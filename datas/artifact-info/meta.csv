@@ -1,12 +1,12 @@
 name,file
-"세가지 보석",세가지_보석.csv
-"전설의 뿔피리",전설의_뿔피리.csv
-"황금 인장 반지",황금_인장_반지.csv
-"화염 부적",화염_부적.csv
-"아누비스의 가면",아누비스의_가면.csv
-"잊혀진 기억 로켓",잊혀진_기억_로켓.csv
-"요정의 목걸이",요정의_목걸이.csv
-"결의의 증표",결의의_증표.csv
-"고룡의 비늘",고룡의_비늘.csv
-"어둠에 물든 구슬",어둠에_물든_구슬.csv
-"시간의 모래시계",시간의_모래시계.csv
+"세가지 보석",three-gems.csv
+"전설의 뿔피리",legend-horn.csv
+"황금 인장 반지",golden-seal-ring.csv
+"화염 부적",flame-talisman.csv
+"아누비스의 가면",anubis-mask.csv
+"잊혀진 기억 로켓",memory-rocket.csv
+"요정의 목걸이",fairy-necklace.csv
+"결의의 증표",token-of-resolve.csv
+"고룡의 비늘",dragon-scale.csv
+"어둠에 물든 구슬",dark-orb.csv
+"시간의 모래시계",hourglass.csv
