@@ -9,8 +9,8 @@
 // 실행 (Entry Point)
 // ==============================
 
-function fnalert(){
-  alert("알럿 테스트");
+function fnalert(value){
+  alert(value);
 }
 
 // RP계산기 이동
