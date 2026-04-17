@@ -30,7 +30,10 @@
 
 <script type="module">
   import { renderTable } from "../../js/table-viewer.js";
-  renderTable("../../datas/monster-stat.csv", "tableContainer");
+  renderTable("../../datas/monster-stat.csv", "tableContainer", {
+    searchColumn: "몬스터이름",
+    searchPlaceholder: "몬스터 이름 검색..."
+  });
 </script>
 </body>
 </html>

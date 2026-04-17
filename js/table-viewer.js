@@ -13,7 +13,7 @@ import { loadCSV } from "./csv-loader.js";
  * @param {boolean} [options.sortable=true] - 컬럼 정렬 기능
  */
 export async function renderTable(csvPath, containerId, options = {}) {
-  const { search = true, sortable = true, levelFilter = false } = options;
+  const { search = true, sortable = true, levelFilter = false, searchColumn = null, searchPlaceholder = "검색..." } = options;
 
   const container = document.getElementById(containerId);
   if (!container) return;
@@ -52,7 +52,7 @@ export async function renderTable(csvPath, containerId, options = {}) {
   if (search) {
     searchInput = document.createElement("input");
     searchInput.type = "text";
-    searchInput.placeholder = "검색...";
+    searchInput.placeholder = searchPlaceholder;
     searchInput.className = "table-search";
     searchInput.addEventListener("input", () => {
       applyFilter();
@@ -91,9 +91,15 @@ export async function renderTable(csvPath, containerId, options = {}) {
     filteredRows = rows;
 
     if (query) {
-      filteredRows = filteredRows.filter(row =>
-        activeHeaders.some(h => String(row[h]).toLowerCase().includes(query))
-      );
+      if (searchColumn) {
+        filteredRows = filteredRows.filter(row =>
+          String(row[searchColumn] || "").toLowerCase().includes(query)
+        );
+      } else {
+        filteredRows = filteredRows.filter(row =>
+          activeHeaders.some(h => String(row[h]).toLowerCase().includes(query))
+        );
+      }
     }
 
     if (levelVal) {
