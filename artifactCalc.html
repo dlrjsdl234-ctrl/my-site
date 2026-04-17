@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>유물 계산기</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      background: #f5f5f5;
+      text-align: center;
+      margin-top: 40px;
+    }
+
+    .box {
+      background: white;
+      padding: 30px;
+      margin: auto;
+      width: 500px;
+      border-radius: 20px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+
+    select, input {
+      width: 100%;
+      padding: 8px;
+      margin: 5px 0;
+    }
+
+    button {
+      margin-top: 10px;
+      padding: 10px;
+      width: 100%;
+      border: none;
+      border-radius: 10px;
+      background: #4CAF50;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #45a049;
+    }
+
+    table {
+      margin-top: 20px;
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      font-size: 12px;
+    }
+
+    th {
+      background: #4CAF50;
+      color: white;
+    }
+  </style>
+
+  <!-- 필수 JS -->
+  <script src="artifacts.js"></script>
+  <script src="artifactCalc.js"></script>
+  <script src="common.js"></script>
+</head>
+
+<body>
+
+<div class="box">
+  <h2>🔮 유물 계산기</h2>
+
+  <label>총 수호자의 돌</label>
+  <input type="number" id="totalStone" value="30000">
+
+  <label>유물 선택</label>
+  <select id="artifact1"></select>
+  <select id="artifact2"></select>
+  <select id="artifact3"></select>
+  <select id="artifact4"></select>
+  <select id="artifact5"></select>
+
+  <button onclick="calculate()">계산하기</button>
+  <button onclick="fnBack()">뒤로가기</button>
+
+  <table id="resultTable">
+    <thead>
+      <tr>
+        <th>번호</th>
+        <th>유물</th>
+        <th>배분량</th>
+        <th>도달 레벨</th>
+        <th>사용 돌</th>
+        <th>남은 돌</th>
+        <th>만렙</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<script>
+// ==========================
+// 초기화: 유물 목록 채우기
+// ==========================
+function initSelects() {
+  const keys = window.ARTIFACT_KEYS;
+
+  for (let i = 1; i <= 5; i++) {
+    const select = document.getElementById("artifact" + i);
+
+    keys.forEach(key => {
+      const art = window.ARTIFACTS[key];
+
+      const option = document.createElement("option");
+      option.value = key;
+      option.textContent = art.name;
+
+      select.appendChild(option);
+    });
+  }
+}
+
+// ==========================
+// 계산 실행
+// ==========================
+function calculate() {
+  const total = Number(document.getElementById("totalStone").value);
+
+  const ids = [];
+  for (let i = 1; i <= 5; i++) {
+    const val = document.getElementById("artifact" + i).value;
+    if (val) ids.push(val);
+  }
+
+  if (ids.length === 0) {
+    alert("유물을 선택하세요");
+    return;
+  }
+
+  const result = distributeArtifactStones(total, ids);
+
+  render(result.rows);
+}
+
+// ==========================
+// 테이블 출력
+// ==========================
+function render(rows) {
+  const tbody = document.querySelector("#resultTable tbody");
+  tbody.innerHTML = "";
+
+  rows.forEach(r => {
+    const tr = document.createElement("tr");
+
+    tr.innerHTML = `
+      <td>${r.no}</td>
+      <td>${r.name}</td>
+      <td>${r.allocatedStone}</td>
+      <td>${r.reachedLevel}</td>
+      <td>${r.usedStone}</td>
+      <td>${r.remainStone}</td>
+      <td>${r.maxCheck}</td>
+    `;
+
+    tbody.appendChild(tr);
+  });
+}
+
+// 뒤로가기
+function fnBack() {
+  window.location.href = "index.html";
+}
+
+// 실행
+initSelects();
+</script>
+
+</body>
+</html>
