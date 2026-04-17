@@ -15,5 +15,5 @@ function fnalert(value){
 
 // RP계산기 이동
 function rpMachine(){
-  location.hrep = "rpMachine.html";
+  window.location.href = "rpMachine.html";
 }
