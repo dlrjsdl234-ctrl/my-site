@@ -205,16 +205,81 @@ body {
   padding: 14px 24px;
 }
 
-.result-box {
-  margin-top: 10px;
-  padding: 18px;
-  border-radius: 14px;
-  background: #f9fcff;
-  border: 1px solid #dbe7f2;
-  white-space: pre-line;
+.top-box {
+  background: linear-gradient(135deg, var(--purple-main), #8d72ff);
+  color: var(--white);
+  border-radius: 24px;
+  padding: 36px;
+  box-shadow: var(--shadow);
+  margin-bottom: 28px;
+}
+
+.top-box h1 {
+  font-size: 32px;
+  margin-bottom: 12px;
+}
+
+.top-box p {
+  font-size: 16px;
   line-height: 1.7;
-  min-height: 90px;
-  color: #333;
+  opacity: 0.95;
+}
+
+.card-wrap {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: var(--shadow);
+}
+
+.card h2 {
+  font-size: 20px;
+  margin-bottom: 12px;
+  color: var(--purple-dark);
+}
+
+.card p {
+  color: var(--text-sub);
+  line-height: 1.7;
+  font-size: 15px;
+}
+
+.info-list {
+  margin-top: 14px;
+  padding-left: 18px;
+  color: var(--text-sub);
+}
+
+.info-list li {
+  margin-bottom: 8px;
+  line-height: 1.6;
+}
+
+.full-card {
+  grid-column: 1 / -1;
+}
+
+.button {
+  display: inline-block;
+  margin-top: 16px;
+  padding: 12px 18px;
+  background: var(--purple-main);
+  color: var(--white);
+  text-decoration: none;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: 0.2s ease;
+}
+
+.button:hover {
+  background: var(--purple-dark);
 }
 
 @media (max-width: 960px) {
@@ -224,6 +289,8 @@ body {
 
   .sidebar {
     width: 100%;
+    height: auto;
+    position: relative;
   }
 
   .content {
@@ -256,6 +323,14 @@ body {
 
   .section-title {
     font-size: 24px;
+  }
+
+  .card-wrap {
+    grid-template-columns: 1fr;
+  }
+
+  .top-box h1 {
+    font-size: 26px;
   }
 }
 
