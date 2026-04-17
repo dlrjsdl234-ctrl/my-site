@@ -1,3 +1,6 @@
+// =========================
+// 유물 가져오기 (sameAs 처리)
+// =========================
 function getArtifact(id) {
   const art = window.ARTIFACTS[id];
   if (!art) return null;
@@ -5,6 +8,7 @@ function getArtifact(id) {
   if (art.sameAs) {
     const base = window.ARTIFACTS[art.sameAs];
     if (!base) return null;
+
     return {
       ...base,
       id: art.id,
@@ -16,14 +20,16 @@ function getArtifact(id) {
   return art;
 }
 
-function getMaxLevel(artifact) {
-  return artifact.maxLevel;
-}
-
+// =========================
+// 레벨 데이터 접근
+// =========================
 function getLevelData(artifact, level) {
   return artifact.levels[level] || null;
 }
 
+// =========================
+// 특정 구간 돌 소모량
+// =========================
 function getStoneCostBetween(artifact, fromLevel, toLevel) {
   const fromData = getLevelData(artifact, fromLevel);
   const toData = getLevelData(artifact, toLevel);
@@ -32,10 +38,12 @@ function getStoneCostBetween(artifact, fromLevel, toLevel) {
   return toData.cumStone - fromData.cumStone;
 }
 
+// =========================
+// 예산 안에서 도달 가능한 최대 레벨 찾기
+// =========================
 function findReachableLevel(artifact, currentLevel, budget) {
-  const maxLevel = getMaxLevel(artifact);
   let low = currentLevel;
-  let high = maxLevel;
+  let high = artifact.maxLevel;
   let answer = currentLevel;
 
   while (low <= high) {
@@ -53,8 +61,11 @@ function findReachableLevel(artifact, currentLevel, budget) {
   return answer;
 }
 
-function distributeArtifactStones(totalStone, selectedArtifactIds) {
-  const rows = selectedArtifactIds.map((id, index) => {
+// =========================
+// 핵심: 유물 돌 균등 분배 + 남은 돌 재분배
+// =========================
+function distributeArtifactStones(totalStone, artifactIds) {
+  const rows = artifactIds.map((id, index) => {
     const artifact = getArtifact(id);
 
     if (!artifact) {
@@ -66,77 +77,79 @@ function distributeArtifactStones(totalStone, selectedArtifactIds) {
       id,
       name: artifact.name,
       artifact,
-      currentLevel: 0,
-      reachedLevel: 0,
-      usedStone: 0,
-      allocatedStone: 0,
-      remainStone: 0,
+      level: 0,
+      used: 0,
+      allocated: 0,
+      remain: 0,
       isMax: false
     };
   });
 
-  let remainingStone = totalStone;
+  let remaining = totalStone;
 
-  while (remainingStone > 0) {
+  while (remaining > 0) {
     const activeRows = rows.filter(row => !row.isMax);
 
-    if (activeRows.length === 0) break;
+    if (activeRows.length === 0) {
+      break;
+    }
 
-    const share = Math.floor(remainingStone / activeRows.length);
+    const share = Math.floor(remaining / activeRows.length);
 
-    if (share <= 0) break;
+    if (share <= 0) {
+      break;
+    }
 
-    let progressed = false;
+    let spentThisRound = 0;
 
     for (const row of activeRows) {
-      const maxLevel = getMaxLevel(row.artifact);
+      const maxLevel = row.artifact.maxLevel;
 
-      if (row.currentLevel >= maxLevel) {
+      if (row.level >= maxLevel) {
         row.isMax = true;
         continue;
       }
 
-      const targetLevel = findReachableLevel(row.artifact, row.currentLevel, share);
-      const spend = getStoneCostBetween(row.artifact, row.currentLevel, targetLevel);
+      const targetLevel = findReachableLevel(row.artifact, row.level, share);
+      const cost = getStoneCostBetween(row.artifact, row.level, targetLevel);
 
-      if (spend > 0) {
-        row.currentLevel = targetLevel;
-        row.reachedLevel = targetLevel;
-        row.usedStone += spend;
-        row.allocatedStone += share;
-        remainingStone -= spend;
-        progressed = true;
-      } else {
-        row.allocatedStone += share;
+      row.allocated += share;
+
+      if (cost > 0) {
+        row.level = targetLevel;
+        row.used += cost;
+        spentThisRound += cost;
       }
 
-      if (row.currentLevel >= maxLevel) {
+      if (row.level >= maxLevel) {
         row.isMax = true;
       }
     }
 
-    if (!progressed) {
+    if (spentThisRound <= 0) {
       break;
     }
+
+    remaining -= spentThisRound;
   }
 
   for (const row of rows) {
-    row.remainStone = row.allocatedStone - row.usedStone;
+    row.remain = row.allocated - row.used;
   }
 
   return {
     totalStone,
-    usedStone: totalStone - remainingStone,
-    remainingStone,
+    usedStone: totalStone - remaining,
+    remainingStone: remaining,
     artifactCount: rows.length,
-    perArtifactBase: Math.floor(totalStone / rows.length),
+    perArtifactBase: rows.length > 0 ? Math.floor(totalStone / rows.length) : 0,
     rows: rows.map(row => ({
       no: row.no,
       name: row.name,
-      allocatedStone: row.allocatedStone,
-      reachedLevel: row.reachedLevel,
-      usedStone: row.usedStone,
-      remainStone: row.remainStone,
+      allocatedStone: row.allocated,
+      reachedLevel: row.level,
+      usedStone: row.used,
+      remainStone: row.remain,
       maxCheck: row.isMax ? "O" : "X"
     }))
   };
