@@ -16,21 +16,67 @@
 
     <main class="content">
       <div class="top-banner">
-        <h1>RP스킬 투자순서</h1>
-        <p>RP스킬 투자순서 데이터 테이블</p>
+        <h1>초반용 RP스킬 투자순서</h1>
+        <p>직업별 초반 RP스킬 투자 추천 순서</p>
       </div>
 
-      <div class="card">
-        <div id="tableContainer">데이터 로딩 중...</div>
+      <div class="article-content">
+        <div class="article-columns">
+          <div class="article-section">
+            <h3>전사, 궁수</h3>
+            <table class="inline-table">
+              <thead><tr><th>순서</th><th>스킬</th><th>레벨 구간</th></tr></thead>
+              <tbody>
+                <tr><td>1</td><td>버서크</td><td>0→1</td></tr>
+                <tr><td>2</td><td>샤프아이즈</td><td>0→1</td></tr>
+                <tr><td>3</td><td>버서크</td><td>1→6</td></tr>
+                <tr><td>4</td><td>샤프아이즈</td><td>1→3</td></tr>
+                <tr><td>5</td><td>쉐도우 파트너</td><td>0→1</td></tr>
+                <tr><td>6</td><td>버서크</td><td>6→12</td></tr>
+                <tr><td>7</td><td>샤프아이즈</td><td>3→5</td></tr>
+                <tr><td>8</td><td>버서크</td><td>12→24</td></tr>
+                <tr><td>9</td><td>샤프아이즈</td><td>5→7</td></tr>
+                <tr><td>10</td><td>버서크</td><td>24→29</td></tr>
+                <tr><td>11</td><td>샤프아이즈</td><td>7→9</td></tr>
+                <tr><td>12</td><td>버서크</td><td>29→30</td></tr>
+                <tr><td>13</td><td>샤프아이즈</td><td>9→30</td></tr>
+                <tr><td>14</td><td>타겟+1</td><td>0→1</td></tr>
+                <tr><td>15</td><td>부스터</td><td>0→2</td></tr>
+                <tr><td>16</td><td>쉐도우 파트너</td><td>1→30</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="article-section">
+            <h3>매직클로 마법사</h3>
+            <table class="inline-table">
+              <thead><tr><th>순서</th><th>스킬</th><th>레벨 구간</th></tr></thead>
+              <tbody>
+                <tr><td>1</td><td>버서크</td><td>0→1</td></tr>
+                <tr><td>2</td><td>샤프아이즈</td><td>0→1</td></tr>
+                <tr><td>3</td><td>버서크</td><td>1→3</td></tr>
+                <tr><td>4</td><td>부스터</td><td>0→2</td></tr>
+                <tr><td>5</td><td>버서크</td><td>3→6</td></tr>
+                <tr><td>6</td><td>샤프아이즈</td><td>1→3</td></tr>
+                <tr><td>7</td><td>쉐도우 파트너</td><td>0→1</td></tr>
+                <tr><td>8</td><td>버서크</td><td>6→12</td></tr>
+                <tr><td>9</td><td>샤프아이즈</td><td>3→5</td></tr>
+                <tr><td>10</td><td>버서크</td><td>12→24</td></tr>
+                <tr><td>11</td><td>샤프아이즈</td><td>5→7</td></tr>
+                <tr><td>12</td><td>버서크</td><td>24→29</td></tr>
+                <tr><td>13</td><td>샤프아이즈</td><td>7→9</td></tr>
+                <tr><td>14</td><td>버서크</td><td>29→30</td></tr>
+                <tr><td>15</td><td>샤프아이즈</td><td>9→30</td></tr>
+                <tr><td>16</td><td>타겟+1</td><td>0→1</td></tr>
+                <tr><td>17</td><td>쉐도우 파트너</td><td>1→30</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </main>
 
   </div>
 </div>
-
-<script type="module">
-  import { renderTable } from "../../js/table-viewer.js";
-  renderTable("../../datas/rpskill-order.csv", "tableContainer");
-</script>
 </body>
 </html>
