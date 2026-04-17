@@ -189,6 +189,58 @@ function pullEvenlyFromDonors(donors, amount) {
   return true;
 }
 
+export function getArtifactMaxLevel(id) {
+  const artifact = getArtifact(id);
+  return artifact ? artifact.maxLevel : 0;
+}
+
+/**
+ * 추천 알고리즘: 매 반복마다 다음 1레벨 비용이 가장 싼 유물을 우선 레벨업
+ * @param {number} remainingStone - 잔여 수호자의 돌
+ * @param {object} currentLevels - { artifactId: currentLevel }
+ * @returns {{ steps: Array<{name, from, to, cost, remaining}>, remainingStone: number }}
+ */
+export function recommendArtifactUpgrades(remainingStone, currentLevels) {
+  const levels = { ...currentLevels };
+  let stone = remainingStone;
+  const steps = [];
+
+  while (stone > 0) {
+    const candidates = [];
+    for (const id of Object.keys(levels)) {
+      const artifact = getArtifact(id);
+      if (!artifact || levels[id] <= 0 || levels[id] >= artifact.maxLevel) continue;
+      const levelData = getLevelData(artifact, levels[id]);
+      if (!levelData) continue;
+      candidates.push({
+        id,
+        name: ARTIFACTS[id].name,
+        fromLevel: levels[id],
+        toLevel: levels[id] + 1,
+        cost: levelData.need
+      });
+    }
+
+    if (candidates.length === 0) break;
+    candidates.sort((a, b) => a.cost - b.cost || a.id.localeCompare(b.id));
+
+    const best = candidates[0];
+    if (best.cost > stone) break;
+
+    stone -= best.cost;
+    levels[best.id] = best.toLevel;
+    steps.push({
+      name: best.name,
+      from: best.fromLevel,
+      to: best.toLevel,
+      cost: best.cost,
+      remaining: stone
+    });
+  }
+
+  return { steps, remainingStone: stone };
+}
+
 export function distributeArtifactStones(totalStone, artifactIds) {
   if (!Array.isArray(artifactIds) || artifactIds.length === 0) {
     throw new Error("선택된 유물이 없습니다.");
@@ -210,49 +262,12 @@ export function distributeArtifactStones(totalStone, artifactIds) {
 
   equalDistributeWithCaps(totalStone, rows);
 
-  function refreshResult() {
-    for (const row of rows) {
-      row.level = findReachableLevel(row.artifact, row.allocated);
-      row.used = getStoneCostBetween(row.artifact, 0, row.level);
-      row.remain = row.allocated - row.used;
-      row.isMax = row.allocated >= row.cap;
-    }
+  for (const row of rows) {
+    row.level = findReachableLevel(row.artifact, row.allocated);
+    row.used = getStoneCostBetween(row.artifact, 0, row.level);
+    row.remain = row.allocated - row.used;
+    row.isMax = row.allocated >= row.cap;
   }
-
-  refreshResult();
-
-  while (true) {
-    const nonMaxRows = rows.filter(row => !row.isMax);
-    if (nonMaxRows.length <= 1) break;
-
-    const candidates = nonMaxRows
-      .map(row => ({ row, extraNeed: row.cap - row.allocated }))
-      .filter(x => x.extraNeed > 0)
-      .sort((a, b) => a.extraNeed !== b.extraNeed ? a.extraNeed - b.extraNeed : a.row.no - b.row.no);
-
-    if (candidates.length === 0) break;
-
-    let improved = false;
-    for (const candidate of candidates) {
-      const target = candidate.row;
-      const need = candidate.extraNeed;
-      const donors = nonMaxRows.filter(row => row.id !== target.id);
-      if (donors.length === 0) continue;
-
-      const tempDonors = donors.map(row => ({ id: row.id, allocated: row.allocated }));
-      if (!pullEvenlyFromDonors(tempDonors, need)) continue;
-
-      pullEvenlyFromDonors(donors, need);
-      target.allocated += need;
-      refreshResult();
-      improved = true;
-      break;
-    }
-
-    if (!improved) break;
-  }
-
-  refreshResult();
 
   const usedStone = rows.reduce((sum, row) => sum + row.used, 0);
 

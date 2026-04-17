@@ -654,6 +654,11 @@ th {
   .btn-discord {
     width: 100%;
   }
+
+  .tab-btn {
+    font-size: 14px;
+    padding: 12px 14px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -911,6 +916,121 @@ th {
 .article-columns > .article-section {
   flex: 1;
   min-width: 280px;
+}
+
+/* ==============================
+   탭 UI
+   ============================== */
+
+.tab-bar {
+  display: flex;
+  gap: 0;
+  margin-bottom: 24px;
+  border-bottom: 2px solid var(--border);
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 14px 20px;
+  border: none;
+  background: transparent;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-sub);
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  transition: 0.2s;
+}
+
+.tab-btn:hover {
+  color: var(--main-blue);
+  background: #f0f7ff;
+}
+
+.tab-btn.active {
+  color: var(--main-blue);
+  border-bottom-color: var(--main-blue);
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* ==============================
+   추천 결과 리스트
+   ============================== */
+
+.recommend-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  counter-reset: recommend-step;
+}
+
+.recommend-list li {
+  counter-increment: recommend-step;
+  padding: 10px 0;
+  border-bottom: 1px solid #eef4fa;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.recommend-list li:last-child {
+  border-bottom: none;
+}
+
+.recommend-list li::before {
+  content: counter(recommend-step) ". ";
+  font-weight: 800;
+  color: var(--main-blue);
+}
+
+.recommend-list .cost-info {
+  color: var(--text-sub);
+  font-size: 13px;
+}
+
+/* ==============================
+   유물 레벨 입력 리스트
+   ============================== */
+
+.artifact-level-list {
+  margin-top: 12px;
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid #dbe7f2;
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: #f9fcff;
+}
+
+.artifact-level-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 6px;
+  border-bottom: 1px solid #eef4fa;
+}
+
+.artifact-level-item:last-child {
+  border-bottom: none;
+}
+
+.artifact-level-item .artifact-name {
+  flex: 1;
+}
+
+.artifact-level-item input[type="number"] {
+  width: 80px;
+  flex: 0 0 80px;
+  padding: 8px 10px;
+  text-align: center;
 }
 
 /* ==============================
