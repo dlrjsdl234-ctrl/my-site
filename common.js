@@ -9,17 +9,23 @@
 // 실행 (Entry Point)
 // ==============================
 
-function fnalert(value){
+function fnalert(value) {
   alert(value);
 }
 
 // RP계산기 이동
-function fnMachine(){
+function fnMachine() {
   window.location.href = "rpMachine.html";
 }
 
+// 경험치 계산기 이동
 function fnExpPage() {
   window.location.href = "expCalc.html";
+}
+
+// 유물 계산기 이동
+function fnArtifactPage() {
+  window.location.href = "artifactCalc.html";
 }
 
 function fnExpCalc() {
