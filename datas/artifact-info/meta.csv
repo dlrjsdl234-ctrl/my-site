@@ -1,5 +1,5 @@
 name,file,desc
-"세가지 보석",three-gems.csv,"올스텟 % 증가"
+"세가지 보석",three-gems.csv,"올스텟"
 "전설의 뿔피리",legend-horn.csv,"최대 레벨 증가"
 "황금 인장 반지",golden-seal-ring.csv,"환생 포인트 획득량 % 증가"
 "화염 부적",flame-talisman.csv,"최종 STR % 증가"
