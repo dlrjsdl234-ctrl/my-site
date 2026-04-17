@@ -23,7 +23,7 @@ const MENU = [
   { label: "SP 스킬", href: "/pages/tables/sp-skill.html" },
   { label: "유물", href: "/pages/tables/artifact-info.html" },
   { label: "몬스터체경비", href: "/pages/tables/monster-stat.html" },
-  { label: "마을디펜스", href: "/pages/tables/town-defense.html" },
+  { label: "몬스터 디펜스", href: "/pages/tables/town-defense.html" },
   { label: "RP 스킬", href: "/pages/tables/rpskill-perf.html" },
   { label: "이세계스킬", href: "/pages/tables/isekai-perf.html" },
   { label: "잡팁", href: "/pages/tables/tips.html" },
