@@ -210,14 +210,14 @@ export function recommendArtifactUpgrades(remainingStone, currentLevels) {
     for (const id of Object.keys(levels)) {
       const artifact = getArtifact(id);
       if (!artifact || levels[id] <= 0 || levels[id] >= artifact.maxLevel) continue;
-      const levelData = getLevelData(artifact, levels[id]);
-      if (!levelData) continue;
+      const nextLevelData = getLevelData(artifact, levels[id] + 1);
+      if (!nextLevelData || nextLevelData.need <= 0) continue;
       candidates.push({
         id,
         name: ARTIFACTS[id].name,
         fromLevel: levels[id],
         toLevel: levels[id] + 1,
-        cost: levelData.need
+        cost: nextLevelData.need
       });
     }
 
