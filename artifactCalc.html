@@ -2,167 +2,81 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>유물 계산기</title>
-
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
-      text-align: center;
-      margin-top: 30px;
-    }
-
-    .box {
-      background: white;
-      padding: 30px;
-      margin: auto;
-      width: 640px;
-      border-radius: 20px;
-      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-    }
-
-    input[type="number"] {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0 16px;
-      box-sizing: border-box;
-    }
-
-    .artifact-list {
-      text-align: left;
-      margin-top: 10px;
-      max-height: 260px;
-      overflow-y: auto;
-      border: 1px solid #ddd;
-      padding: 10px 12px;
-      border-radius: 10px;
-      background: #fafafa;
-    }
-
-    .artifact-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 6px 4px;
-      border-bottom: 1px solid #eee;
-    }
-
-    .artifact-item:last-child {
-      border-bottom: none;
-    }
-
-    .artifact-item:hover {
-      background: #f0f0f0;
-      border-radius: 6px;
-    }
-
-    .artifact-name {
-      font-size: 14px;
-    }
-
-    .artifact-item input[type="checkbox"] {
-      width: 18px;
-      height: 18px;
-      margin: 0;
-      flex-shrink: 0;
-    }
-
-    .button-row {
-      display: flex;
-      gap: 10px;
-      margin-top: 12px;
-    }
-
-    button {
-      flex: 1;
-      padding: 10px;
-      border: none;
-      border-radius: 10px;
-      background: #4CAF50;
-      color: white;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #45a049;
-    }
-
-    table {
-      margin-top: 20px;
-      width: 100%;
-      border-collapse: collapse;
-      background: white;
-    }
-
-    th, td {
-      border: 1px solid #ddd;
-      padding: 8px;
-      font-size: 12px;
-      text-align: center;
-    }
-
-    th {
-      background: #4CAF50;
-      color: white;
-    }
-
-    .summary {
-      margin-top: 18px;
-      text-align: left;
-      font-size: 14px;
-      background: #fafafa;
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      padding: 12px;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 
   <script src="artifacts.js"></script>
   <script src="artifactCalc.js"></script>
   <script src="common.js"></script>
+  <link rel="icon" href="mainImg.png">
 </head>
 <body>
 
-  <div class="box">
-    <h2>🔮 유물 계산기</h2>
+  <div class="wrapper">
+    <div class="container">
+      <aside class="sidebar">
+        <div class="logo">MAPLE STYLE</div>
+        <ul class="menu">
+          <li><a href="index.html">홈</a></li>
+          <li><a href="artifact.html">유물 계산기</a></li>
+          <li><a href="about.html">소개</a></li>
+          <li><a href="contact.html">문의</a></li>
+        </ul>
+      </aside>
 
-    <label for="totalStone">총 수호자의 돌</label>
-    <input type="number" id="totalStone" value="30000" min="0">
+      <main class="content">
+        <div class="top-banner">
+          <h1>🔮 유물 계산기</h1>
+          <p>총 수호자의 돌과 선택한 유물을 기준으로 배분 결과를 계산합니다.</p>
+        </div>
 
-    <h3>유물 선택</h3>
+        <section class="calc-card">
+          <div class="form-list">
+            <div class="form-row">
+              <label for="totalStone">총 수호자의 돌</label>
+              <input type="number" id="totalStone" value="30000" min="0">
+            </div>
+          </div>
 
-    <div class="button-row">
-      <button type="button" onclick="selectAllArtifacts()">전체 선택</button>
-      <button type="button" onclick="clearAllArtifacts()">전체 해제</button>
+          <div class="action-area">
+            <button type="button" class="btn" onclick="selectAllArtifacts()">전체 선택</button>
+            <button type="button" class="btn" onclick="clearAllArtifacts()">전체 해제</button>
+          </div>
+
+          <h2 class="section-title">유물 선택</h2>
+          <div class="artifact-list" id="artifactList"></div>
+
+          <div class="action-area">
+            <button type="button" class="btn btn-green" onclick="calculateArtifacts()">계산하기</button>
+            <button type="button" class="btn" onclick="fnBack()">뒤로가기</button>
+          </div>
+
+          <div class="result-box" id="summaryBox">
+            총 선택 유물 수: 0<br>
+            총 사용 돌: 0<br>
+            총 남은 돌: 0
+          </div>
+
+          <div class="result-box" style="margin-top:20px; overflow-x:auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>번호</th>
+                  <th>유물</th>
+                  <th>배분량</th>
+                  <th>도달 레벨</th>
+                  <th>사용 돌</th>
+                  <th>남은 돌</th>
+                  <th>만렙</th>
+                </tr>
+              </thead>
+              <tbody id="result"></tbody>
+            </table>
+          </div>
+        </section>
+      </main>
     </div>
-
-    <div class="artifact-list" id="artifactList"></div>
-
-    <div class="button-row">
-      <button type="button" onclick="calculateArtifacts()">계산하기</button>
-      <button type="button" onclick="fnBack()">뒤로가기</button>
-    </div>
-
-    <div class="summary" id="summaryBox">
-      총 선택 유물 수: 0<br>
-      총 사용 돌: 0<br>
-      총 남은 돌: 0
-    </div>
-
-    <table>
-      <thead>
-        <tr>
-          <th>번호</th>
-          <th>유물</th>
-          <th>배분량</th>
-          <th>도달 레벨</th>
-          <th>사용 돌</th>
-          <th>남은 돌</th>
-          <th>만렙</th>
-        </tr>
-      </thead>
-      <tbody id="result"></tbody>
-    </table>
   </div>
 
   <script>
