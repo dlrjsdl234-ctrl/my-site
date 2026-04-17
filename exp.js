@@ -532,20 +532,17 @@ function getRequiredExpBetweenLevels(currentLv, targetLv) {
     return { error: "목표 레벨은 현재 레벨보다 커야 합니다." };
   }
 
-  if (!expTotal[currentLv - 1] && currentLv !== 1) {
-    return { error: "현재 레벨 데이터가 없습니다." };
-  }
-
-  if (!expTotal[targetLv - 1]) {
+  if (targetLv - 1 >= expTotal.length) {
     return { error: "목표 레벨 데이터가 없습니다." };
   }
 
-  const requiredExp = expTotal[targetLv - 1] - expTotal[currentLv - 1];
+  const currentTotal = expTotal[currentLv - 1] || 0;
+  const targetTotal = expTotal[targetLv - 1] || 0;
 
   return {
     currentLv,
     targetLv,
-    requiredExp
+    requiredExp: targetTotal - currentTotal
   };
 }
 
@@ -558,7 +555,7 @@ function calculateLevelUpTime(currentLv, targetLv, expPerNMinutes, nMinutes) {
   }
 
   if (expPerNMinutes <= 0 || nMinutes <= 0) {
-    return { error: "경험치와 분은 0보다 커야 합니다." };
+    return { error: "획득 경험치와 기준 시간은 0보다 커야 합니다." };
   }
 
   const expInfo = getRequiredExpBetweenLevels(currentLv, targetLv);
@@ -571,15 +568,12 @@ function calculateLevelUpTime(currentLv, targetLv, expPerNMinutes, nMinutes) {
 
   const days = Math.floor(totalMinutes / 1440);
   const hours = Math.floor((totalMinutes % 1440) / 60);
-  const minutes = Math.floor(totalMinutes % 60);
+  const minutes = Math.ceil(totalMinutes % 60);
 
   return {
     currentLv: expInfo.currentLv,
     targetLv: expInfo.targetLv,
     requiredExp: expInfo.requiredExp,
-    expPerNMinutes,
-    nMinutes,
-    expPerMinute,
     totalMinutes: Math.ceil(totalMinutes),
     days,
     hours,
