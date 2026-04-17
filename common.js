@@ -12,3 +12,8 @@
 function fnalert(){
   alert("알럿 테스트");
 }
+
+// RP계산기 이동
+function rpMachine(){
+  location.hrep = "rpMachine.html";
+}
