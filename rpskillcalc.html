@@ -25,11 +25,13 @@
     <main class="content">
       <div class="top-banner">
         <h1>RP 스킬 계산기</h1>
-        <p>현재 Lv와 목표 Lv를 입력하면 필요한 RP를 계산합니다.</p>
+        <p>현재 Lv와 목표 Lv를 입력한 뒤 계산 버튼을 누르세요.</p>
       </div>
 
       <div class="card">
         <h2>RP 스킬 계산</h2>
+
+        <button id="calcRpSkillBtn" class="btn">계산하기</button>
 
         <div class="rp-skill-wrap">
           <table id="rpSkillTable" class="rp-skill-table">
@@ -41,9 +43,7 @@
                 <th>필요 RP</th>
               </tr>
             </thead>
-
             <tbody></tbody>
-
             <tfoot>
               <tr>
                 <td colspan="3">총합</td>
