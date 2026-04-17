@@ -23,29 +23,62 @@ const skills = [
   { name: "아드레날린 부스터", max: 20, tableKey: "table20" }
 ];
 
+function formatNumber(value) {
+  return Number(value || 0).toLocaleString("ko-KR");
+}
+
+function clamp(value, min, max) {
+  return Math.min(Math.max(value, min), max);
+}
+
+function findLevelColumn(table) {
+  if (!table?.headers?.length) return null;
+  return table.headers.find((h) => String(h).trim() === "레벨") || table.headers[0];
+}
+
 function findTotalColumn(table) {
-  if (!table?.headers) return null;
-  return table.headers.find(h => h.includes("누적")) || null;
+  if (!table?.headers?.length) return null;
+
+  const priority = [
+    "누적 RP",
+    "누적 포인트",
+    "누적 SP"
+  ];
+
+  for (const key of priority) {
+    if (table.headers.includes(key)) return key;
+  }
+
+  return table.headers.find((h) => String(h).includes("누적")) || null;
+}
+
+function getRowByLevel(table, level) {
+  if (!table?.rows?.length) return null;
+
+  const levelColumn = findLevelColumn(table);
+  if (!levelColumn) return null;
+
+  return table.rows.find((row) => Number(row[levelColumn]) === Number(level)) || null;
 }
 
 function getCumulativeValue(tableKey, level) {
   if (!level || level <= 0) return 0;
 
   const table = skillTables[tableKey];
-  if (!table?.rows) return 0;
+  if (!table) return 0;
 
   const totalColumn = findTotalColumn(table);
   if (!totalColumn) return 0;
 
-  const row = table.rows.find(r => Number(r["레벨"]) === Number(level));
+  const row = getRowByLevel(table, level);
   if (!row) return 0;
 
   return Number(row[totalColumn]) || 0;
 }
 
-function calcSkillRP(tableKey, currentLv, targetLv) {
-  const current = Number(currentLv) || 0;
-  const target = Number(targetLv) || 0;
+function calcSkillRP(tableKey, currentLv, targetLv, maxLv) {
+  const current = clamp(Number(currentLv) || 0, 0, maxLv);
+  const target = clamp(Number(targetLv) || 0, 0, maxLv);
 
   if (target <= current) return 0;
 
@@ -55,48 +88,100 @@ function calcSkillRP(tableKey, currentLv, targetLv) {
   return Math.max(0, targetTotal - currentTotal);
 }
 
-function formatNumber(value) {
-  return Number(value || 0).toLocaleString("ko-KR");
-}
-
 function renderTable() {
   const tbody = document.querySelector("#rpSkillTable tbody");
-  tbody.innerHTML = skills.map(skill => `
-    <tr data-table-key="${skill.tableKey}">
-      <td class="skill-name">${skill.name}</td>
+  if (!tbody) return;
+
+  tbody.innerHTML = skills.map((skill) => `
+    <tr data-table-key="${skill.tableKey}" data-max="${skill.max}">
+      <td class="skill-name">${skill.name} 최대 ${skill.max}</td>
       <td>
-        <input class="current-lv" type="number" min="0" max="${skill.max}" value="0">
+        <input
+          class="current-lv"
+          type="number"
+          min="0"
+          max="${skill.max}"
+          value="0"
+        >
       </td>
       <td>
-        <input class="target-lv" type="number" min="0" max="${skill.max}" value="${skill.max}">
+        <input
+          class="target-lv"
+          type="number"
+          min="0"
+          max="${skill.max}"
+          value="${skill.max}"
+        >
       </td>
       <td class="need-rp">0</td>
     </tr>
   `).join("");
 }
 
+function normalizeRowInputs(tr) {
+  const max = Number(tr.dataset.max) || 0;
+  const currentInput = tr.querySelector(".current-lv");
+  const targetInput = tr.querySelector(".target-lv");
+
+  let current = Number(currentInput.value) || 0;
+  let target = Number(targetInput.value) || 0;
+
+  current = clamp(current, 0, max);
+  target = clamp(target, 0, max);
+
+  if (current > target) {
+    target = current;
+  }
+
+  currentInput.value = current;
+  targetInput.value = target;
+
+  return { current, target, max };
+}
+
+function recalcRow(tr) {
+  const tableKey = tr.dataset.tableKey;
+  const resultCell = tr.querySelector(".need-rp");
+  const { current, target, max } = normalizeRowInputs(tr);
+
+  const needRP = calcSkillRP(tableKey, current, target, max);
+  resultCell.textContent = formatNumber(needRP);
+
+  return needRP;
+}
+
 function recalcAll() {
   const rows = document.querySelectorAll("#rpSkillTable tbody tr");
   let total = 0;
 
-  rows.forEach(tr => {
-    const tableKey = tr.dataset.tableKey;
-    const currentLv = tr.querySelector(".current-lv").value;
-    const targetLv = tr.querySelector(".target-lv").value;
-    const need = calcSkillRP(tableKey, currentLv, targetLv);
-
-    tr.querySelector(".need-rp").textContent = formatNumber(need);
-    total += need;
+  rows.forEach((tr) => {
+    total += recalcRow(tr);
   });
 
-  document.querySelector(".grand-total").textContent = formatNumber(total);
+  const totalCell = document.querySelector(".grand-total");
+  if (totalCell) {
+    totalCell.textContent = formatNumber(total);
+  }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
   renderTable();
   recalcAll();
 
-  document.querySelector("#rpSkillTable").addEventListener("input", () => {
-    recalcAll();
+  const table = document.getElementById("rpSkillTable");
+  if (!table) return;
+
+  table.addEventListener("input", (e) => {
+    const target = e.target;
+    if (
+      target.classList.contains("current-lv") ||
+      target.classList.contains("target-lv")
+    ) {
+      const tr = target.closest("tr");
+      if (tr) {
+        recalcRow(tr);
+        recalcAll();
+      }
+    }
   });
 });
