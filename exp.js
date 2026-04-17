@@ -580,3 +580,5 @@ function calculateLevelUpTime(currentLv, targetLv, expPerNMinutes, nMinutes) {
     minutes
   };
 }
+
+console.log("calculateLevelUpTime type:", typeof calculateLevelUpTime);
