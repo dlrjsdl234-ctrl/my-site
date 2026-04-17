@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>경험치 계산기</title>
+</head>
+
+<body>
+  <h2>경험치 계산기</h2>
+
+  <div>
+    <label>레벨:</label>
+    <input type="number" id="level">
+  </div>
+
+  <div>
+    <label>현재 경험치:</label>
+    <input type="number" id="exp">
+  </div>
+
+  <br>
+
+  <button onclick="calcExp()">계산하기</button>
+
+  <h3 id="result"></h3>
+
+  <script src="exp.js"></script>
+  <script src="common.js"></script>
+
+  <script>
+    function calcExp() {
+      const level = Number(document.getElementById("level").value);
+      const exp = Number(document.getElementById("exp").value);
+
+      const info = getLevelInfoByLv(level, exp);
+
+      if (!info || info.error) {
+        document.getElementById("result").innerText = info?.error || "오류";
+        return;
+      }
+
+      document.getElementById("result").innerText =
+        `레벨: ${info.level} / 경험치: ${info.currentExp} / ${info.maxExp} / 진행률: ${info.progressPercent}%`;
+    }
+  </script>
+</body>
+</html>
