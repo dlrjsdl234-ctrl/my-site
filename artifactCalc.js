@@ -63,7 +63,7 @@ function findReachableLevel(artifact, currentLevel, budget) {
 
 // =========================
 // 핵심:
-// 모든 남은 돌을 계속 합쳐서 재분배
+// 모든 남은 돌을 계속 다시 합쳐서 재분배
 // =========================
 function distributeArtifactStones(totalStone, artifactIds) {
   if (!Array.isArray(artifactIds) || artifactIds.length === 0) {
@@ -101,6 +101,7 @@ function distributeArtifactStones(totalStone, artifactIds) {
 
     const share = Math.floor(pool / activeRows.length);
 
+    // 더 이상 균등 분배가 안 되면 종료
     if (share <= 0) {
       break;
     }
@@ -110,9 +111,19 @@ function distributeArtifactStones(totalStone, artifactIds) {
     for (const row of activeRows) {
       if (row.isMax) continue;
 
+      // 이번 라운드 share 추가
       row.allocated += share;
 
-      const targetLevel = findReachableLevel(row.artifact, row.level, share);
+      // 핵심 수정:
+      // 이전에 남아 있던 돌 + 이번에 받은 돌 전체를 기준으로 다시 계산
+      const availableStone = row.allocated - row.used;
+
+      const targetLevel = findReachableLevel(
+        row.artifact,
+        row.level,
+        availableStone
+      );
+
       const cost = getStoneCostBetween(row.artifact, row.level, targetLevel);
 
       if (cost > 0) {
@@ -121,30 +132,33 @@ function distributeArtifactStones(totalStone, artifactIds) {
         spentThisRound += cost;
       }
 
+      row.remain = row.allocated - row.used;
+
       if (row.level >= row.artifact.maxLevel) {
         row.isMax = true;
       }
     }
 
-    // 이번 라운드에서 실제로 쓴 돌만 제외
-    // 안 쓴 돌은 자동으로 pool에 남아서 다음 라운드에 다시 분배됨
+    // 실제 사용한 돌만 pool 에서 제거
     pool -= spentThisRound;
 
-    // 아무도 레벨업을 못 하면 종료
+    // 아무도 레벨업 못 하면 종료
     if (spentThisRound <= 0) {
       break;
     }
   }
 
-  // 최종 remain 계산
+  // 마지막 남은 pool을 다시 균등 분배할 수 없었던 찌꺼기 돌로 보고
+  // rows의 remain 합과 remainingStone이 서로 다를 수 있으니
+  // remain은 각 유물에 실질적으로 잡혀 있는 잔여분만 유지
   for (const row of rows) {
     row.remain = row.allocated - row.used;
   }
 
   return {
     totalStone,
-    usedStone: totalStone - pool,
-    remainingStone: pool,
+    usedStone: rows.reduce((sum, row) => sum + row.used, 0),
+    remainingStone: totalStone - rows.reduce((sum, row) => sum + row.used, 0),
     artifactCount: rows.length,
     perArtifactBase: rows.length > 0 ? Math.floor(totalStone / rows.length) : 0,
     rows: rows.map(row => ({
