@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>유물 계산기 - 이류월드</title>
+  <link rel="stylesheet" href="../../css/style.css">
+  <script src="../../js/common.js"></script>
+  <link rel="icon" href="../../assets/mainImg.png">
+</head>
+<body>
+<div class="wrapper">
+  <div class="container">
+
+    <aside class="sidebar"></aside>
+
+    <main class="content">
+      <div class="top-banner">
+        <h1>유물 계산기</h1>
+        <p>수호자의 돌을 유물에 균등 분배하여 최적의 레벨을 계산합니다.</p>
+      </div>
+
+      <section class="calc-card">
+        <div class="form-list">
+          <div class="form-row">
+            <label for="totalStone">총 수호자의 돌</label>
+            <input type="number" id="totalStone" value="30000" min="0">
+          </div>
+        </div>
+
+        <h3 style="margin-top:20px;">유물 선택</h3>
+
+        <div class="button-row">
+          <button type="button" class="btn btn-green" onclick="selectAllArtifacts()">전체 선택</button>
+          <button type="button" class="btn btn-green" onclick="clearAllArtifacts()">전체 해제</button>
+        </div>
+
+        <div class="artifact-list" id="artifactList"></div>
+
+        <div class="action-area">
+          <button type="button" class="btn btn-green btn-large" onclick="calculateArtifacts()">계산하기</button>
+        </div>
+
+        <div class="artifact-summary" id="summaryBox">
+          총 선택 유물 수: 0<br>
+          총 사용 돌: 0<br>
+          총 남은 돌: 0
+        </div>
+
+        <table class="artifact-table">
+          <thead>
+            <tr>
+              <th>번호</th>
+              <th>유물</th>
+              <th>배분량</th>
+              <th>도달 레벨</th>
+              <th>사용 돌</th>
+              <th>남은 돌</th>
+              <th>만렙</th>
+            </tr>
+          </thead>
+          <tbody id="result"></tbody>
+        </table>
+      </section>
+    </main>
+
+  </div>
+</div>
+
+<script type="module">
+  import { initArtifactData, getArtifactKeys, getArtifacts, distributeArtifactStones } from "../../js/calc/artifact.js";
+
+  await initArtifactData("../..");
+
+  const ARTIFACT_KEYS = getArtifactKeys();
+  const ARTIFACTS = getArtifacts();
+
+  function formatNumber(value) {
+    return Number(value || 0).toLocaleString("ko-KR");
+  }
+
+  function initArtifactList() {
+    const container = document.getElementById("artifactList");
+    container.innerHTML = "";
+
+    ARTIFACT_KEYS.forEach(key => {
+      const art = ARTIFACTS[key];
+      const label = document.createElement("label");
+      label.className = "artifact-item";
+      label.innerHTML = `
+        <span class="artifact-name">${art.name}</span>
+        <input type="checkbox" value="${key}">
+      `;
+      container.appendChild(label);
+    });
+  }
+
+  window.selectAllArtifacts = function () {
+    document.querySelectorAll("#artifactList input[type='checkbox']").forEach(el => el.checked = true);
+  };
+
+  window.clearAllArtifacts = function () {
+    document.querySelectorAll("#artifactList input[type='checkbox']").forEach(el => el.checked = false);
+  };
+
+  window.calculateArtifacts = function () {
+    const totalStone = Number(document.getElementById("totalStone").value);
+    const selectedIds = Array.from(document.querySelectorAll("#artifactList input:checked")).map(el => el.value);
+
+    if (!Number.isFinite(totalStone) || totalStone < 0) {
+      alert("총 수호자의 돌을 올바르게 입력하세요.");
+      return;
+    }
+    if (selectedIds.length === 0) {
+      alert("유물을 하나 이상 선택하세요.");
+      return;
+    }
+
+    try {
+      const result = distributeArtifactStones(totalStone, selectedIds);
+
+      // 테이블 렌더링
+      const tbody = document.getElementById("result");
+      tbody.innerHTML = result.rows.map(row => `
+        <tr>
+          <td>${row.no}</td>
+          <td>${row.name}</td>
+          <td>${formatNumber(row.allocatedStone)}</td>
+          <td>${formatNumber(row.reachedLevel)}</td>
+          <td>${formatNumber(row.usedStone)}</td>
+          <td>${formatNumber(row.remainStone)}</td>
+          <td>${row.maxCheck}</td>
+        </tr>
+      `).join("");
+
+      // 요약
+      document.getElementById("summaryBox").innerHTML = `
+        총 선택 유물 수: ${formatNumber(result.artifactCount)}<br>
+        총 사용 돌: ${formatNumber(result.usedStone)}<br>
+        총 남은 돌: ${formatNumber(result.remainingStone)}
+      `;
+    } catch (error) {
+      alert(error.message || "계산 중 오류가 발생했습니다.");
+    }
+  };
+
+  initArtifactList();
+</script>
+</body>
+</html>

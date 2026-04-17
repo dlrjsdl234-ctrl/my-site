@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RP 스킬 계산기 - 이류월드</title>
+  <link rel="stylesheet" href="../../css/style.css">
+  <script src="../../js/common.js"></script>
+  <link rel="icon" href="../../assets/mainImg.png">
+</head>
+<body>
+<div class="wrapper">
+  <div class="container">
+
+    <aside class="sidebar"></aside>
+
+    <main class="content">
+      <div class="top-banner">
+        <h1>RP 스킬 계산기</h1>
+        <p>현재 Lv와 목표 Lv를 입력한 뒤 계산 버튼을 누르세요.</p>
+      </div>
+
+      <div class="card">
+        <h2>RP 스킬 계산</h2>
+
+        <button id="calcRpSkillBtn" class="btn btn-green">계산하기</button>
+
+        <div class="rp-skill-wrap">
+          <table id="rpSkillTable" class="rp-skill-table">
+            <thead>
+              <tr>
+                <th>스킬명</th>
+                <th>현재 Lv</th>
+                <th>목표 Lv</th>
+                <th>필요 RP</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3">총합</td>
+                <td class="grand-total">0</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </main>
+
+  </div>
+</div>
+
+<script type="module">
+  import { initRPSkillData, getSkillMeta, calcSkillRP } from "../../js/calc/rpskill.js";
+
+  await initRPSkillData("../..");
+
+  const skills = getSkillMeta();
+
+  function formatNumber(value) {
+    return Number(value || 0).toLocaleString("ko-KR");
+  }
+
+  function renderTable() {
+    const tbody = document.querySelector("#rpSkillTable tbody");
+    if (!tbody) return;
+
+    tbody.innerHTML = skills.map(skill => `
+      <tr data-table-key="${skill.tableKey}" data-max="${skill.max}">
+        <td class="skill-name">${skill.name} 최대 ${skill.max}</td>
+        <td><input class="current-lv" type="number" min="0" max="${skill.max}" value="0"></td>
+        <td><input class="target-lv" type="number" min="0" max="${skill.max}" value="0"></td>
+        <td class="need-rp">0</td>
+      </tr>
+    `).join("");
+  }
+
+  function clamp(value, min, max) {
+    return Math.min(Math.max(value, min), max);
+  }
+
+  function recalcAll() {
+    const rows = document.querySelectorAll("#rpSkillTable tbody tr");
+    let total = 0;
+
+    rows.forEach(tr => {
+      const tableKey = tr.dataset.tableKey;
+      const max = Number(tr.dataset.max) || 0;
+      const currentInput = tr.querySelector(".current-lv");
+      const targetInput = tr.querySelector(".target-lv");
+      const resultCell = tr.querySelector(".need-rp");
+
+      let current = clamp(Number(currentInput.value) || 0, 0, max);
+      let target = clamp(Number(targetInput.value) || 0, 0, max);
+      currentInput.value = current;
+      targetInput.value = target;
+
+      const needRP = calcSkillRP(tableKey, current, target, max);
+      resultCell.textContent = formatNumber(needRP);
+      total += needRP;
+    });
+
+    const totalCell = document.querySelector(".grand-total");
+    if (totalCell) totalCell.textContent = formatNumber(total);
+  }
+
+  renderTable();
+
+  document.getElementById("calcRpSkillBtn").addEventListener("click", recalcAll);
+</script>
+</body>
+</html>
