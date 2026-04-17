@@ -157,11 +157,26 @@ function recalcAll() {
 
 document.addEventListener("DOMContentLoaded", () => {
   renderTable();
+  recalcAll();
 
-  const calcBtn = document.getElementById("calcRpSkillBtn");
-  if (calcBtn) {
-    calcBtn.addEventListener("click", () => {
+  const table = document.getElementById("rpSkillTable");
+  if (!table) return;
+
+  table.addEventListener("input", (e) => {
+    if (
+      e.target.classList.contains("current-lv") ||
+      e.target.classList.contains("target-lv")
+    ) {
       recalcAll();
-    });
-  }
+    }
+  });
+
+  table.addEventListener("change", (e) => {
+    if (
+      e.target.classList.contains("current-lv") ||
+      e.target.classList.contains("target-lv")
+    ) {
+      recalcAll();
+    }
+  });
 });
