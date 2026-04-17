@@ -1,0 +1,21 @@
+tableKey,skillName,maxLevel
+table1,"부스트",2
+table2,"경험치",200
+table3,"강화 확률 증가",10
+table4,"SP 증가량",1200
+table5,"장비 제한 레벨 감소",24
+table6,"샤프",55
+table7,"버서크",55
+table8,"쉐도우 파트너",55
+table9,"환포",40
+table10,"비홀더버프",4
+table11,"타겟",1
+table12,"강화횟수",1
+table13,"메용",40
+table14,"원거리마스터리",25
+table15,"어드밴스드 콤보어택",55
+table16,"파이널어택",10
+table17,"너클마스터리",25
+table18,"크리티컬 리인포스",40
+table19,"오브마스터리",30
+table20,"아드레날린 부스터",20
