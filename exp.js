@@ -559,3 +559,26 @@ function getLevelInfo(currentExp) {
 
 // ===== 사용 예시 =====
 console.log(getLevelInfo(2000000));
+function getLevelInfoByLv(level, currentExp) {
+  const lv = expRange[level];
+
+  if (!lv) return null;
+
+  const max = lv.end - lv.start;
+
+  if (currentExp > max) {
+    return {
+      error: "현재 경험치가 레벨 최대치를 초과함"
+    };
+  }
+
+  const progress = Math.floor((currentExp / max) * 100);
+
+  return {
+    level: level,
+    currentExp: currentExp,
+    maxExp: max,
+    progressPercent: progress,
+    remainExp: max - currentExp
+  };
+}
