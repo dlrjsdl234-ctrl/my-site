@@ -39,7 +39,7 @@ function getStoneCostBetween(artifact, fromLevel, toLevel) {
 }
 
 // =========================
-// 예산 안에서 도달 가능한 최대 레벨 찾기
+// 주어진 예산 안에서 도달 가능한 최대 레벨
 // =========================
 function findReachableLevel(artifact, currentLevel, budget) {
   let low = currentLevel;
@@ -62,26 +62,8 @@ function findReachableLevel(artifact, currentLevel, budget) {
 }
 
 // =========================
-// 현재 배분량 기준으로 상태 다시 계산
-// =========================
-function recalcRowByAllocation(row) {
-  const targetLevel = findReachableLevel(row.artifact, 0, row.allocated);
-  const usedStone = getStoneCostBetween(row.artifact, 0, targetLevel);
-  const remainStone = row.allocated - usedStone;
-  const isMax = targetLevel >= row.artifact.maxLevel;
-
-  row.level = targetLevel;
-  row.used = usedStone;
-  row.remain = remainStone;
-  row.isMax = isMax;
-}
-
-// =========================
-// 핵심: 엑셀 방식 분배
-// 1) 처음엔 전체 균등 배분
-// 2) 만렙 유물의 남는 돌만 회수
-// 3) 회수한 돌을 미만렙 유물에 다시 균등 분배
-// 4) 반복
+// 핵심:
+// 모든 남은 돌을 계속 합쳐서 재분배
 // =========================
 function distributeArtifactStones(totalStone, artifactIds) {
   if (!Array.isArray(artifactIds) || artifactIds.length === 0) {
@@ -100,79 +82,71 @@ function distributeArtifactStones(totalStone, artifactIds) {
       id,
       name: artifact.name,
       artifact,
-      allocated: 0,
       level: 0,
       used: 0,
+      allocated: 0,
       remain: 0,
       isMax: false
     };
   });
 
-  // -------------------------
-  // 1차 균등 배분
-  // -------------------------
-  const count = rows.length;
-  const baseShare = Math.floor(totalStone / count);
-  let leftoverPool = totalStone % count;
+  let pool = totalStone;
 
-  rows.forEach(row => {
-    row.allocated = baseShare;
-    recalcRowByAllocation(row);
-  });
-
-  // -------------------------
-  // 만렙 유물 남은 돌 재분배 반복
-  // -------------------------
-  while (true) {
-    let reclaimed = 0;
-
-    // 만렙 유물의 남는 돌만 회수
-    rows.forEach(row => {
-      if (row.isMax && row.remain > 0) {
-        reclaimed += row.remain;
-        row.allocated -= row.remain;
-        row.remain = 0;
-      }
-    });
-
-    reclaimed += leftoverPool;
-    leftoverPool = 0;
-
+  while (pool > 0) {
     const activeRows = rows.filter(row => !row.isMax);
 
-    if (reclaimed <= 0 || activeRows.length === 0) {
-      leftoverPool = reclaimed;
+    if (activeRows.length === 0) {
       break;
     }
 
-    const share = Math.floor(reclaimed / activeRows.length);
-    leftoverPool = reclaimed % activeRows.length;
+    const share = Math.floor(pool / activeRows.length);
 
     if (share <= 0) {
       break;
     }
 
-    activeRows.forEach(row => {
+    let spentThisRound = 0;
+
+    for (const row of activeRows) {
+      if (row.isMax) continue;
+
       row.allocated += share;
-      recalcRowByAllocation(row);
-    });
+
+      const targetLevel = findReachableLevel(row.artifact, row.level, share);
+      const cost = getStoneCostBetween(row.artifact, row.level, targetLevel);
+
+      if (cost > 0) {
+        row.level = targetLevel;
+        row.used += cost;
+        spentThisRound += cost;
+      }
+
+      if (row.level >= row.artifact.maxLevel) {
+        row.isMax = true;
+      }
+    }
+
+    // 이번 라운드에서 실제로 쓴 돌만 제외
+    // 안 쓴 돌은 자동으로 pool에 남아서 다음 라운드에 다시 분배됨
+    pool -= spentThisRound;
+
+    // 아무도 레벨업을 못 하면 종료
+    if (spentThisRound <= 0) {
+      break;
+    }
   }
 
-  // -------------------------
-  // 최종 남은 돌 계산
-  // 미만렙 유물 remain + leftoverPool
-  // -------------------------
-  const finalRemaining =
-    rows.reduce((sum, row) => sum + row.remain, 0) + leftoverPool;
-
-  const finalUsed = totalStone - finalRemaining;
+  // 최종 remain 계산
+  for (const row of rows) {
+    row.remain = row.allocated - row.used;
+  }
 
   return {
     totalStone,
-    usedStone: finalUsed,
-    remainingStone: finalRemaining,
+    usedStone: totalStone - pool,
+    remainingStone: pool,
     artifactCount: rows.length,
-    perArtifactBase: baseShare,
+    perArtifactBase: rows.length > 0 ? Math.floor(totalStone / rows.length) : 0,
     rows: rows.map(row => ({
       no: row.no,
       name: row.name,
