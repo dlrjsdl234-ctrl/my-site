@@ -17,15 +17,13 @@
     <main class="content">
       <div class="top-banner">
         <h1>RP 스킬 계산기</h1>
-        <p>현재 Lv와 목표 Lv를 입력한 뒤 계산 버튼을 누르세요.</p>
+        <p>현재 Lv와 목표 Lv를 입력하면 필요 RP가 자동으로 계산됩니다.</p>
       </div>
 
-      <div class="card">
-        <h2>RP 스킬 계산</h2>
+      <div class="calc-card">
+        <div class="result-title">RP 스킬 계산</div>
 
-        <button id="calcRpSkillBtn" class="btn btn-green">계산하기</button>
-
-        <div class="rp-skill-wrap">
+        <div class="rp-skill-wrap table-wrap">
           <table id="rpSkillTable" class="rp-skill-table">
             <thead>
               <tr>
@@ -38,7 +36,7 @@
             <tbody></tbody>
             <tfoot>
               <tr>
-                <td colspan="3">총합</td>
+                <td colspan="3"><strong>총합</strong></td>
                 <td class="grand-total">0</td>
               </tr>
             </tfoot>
@@ -70,7 +68,7 @@
         <td class="skill-name">${skill.name} 최대 ${skill.max}</td>
         <td><input class="current-lv" type="number" min="0" max="${skill.max}" value="0"></td>
         <td><input class="target-lv" type="number" min="0" max="${skill.max}" value="0"></td>
-        <td class="need-rp">0</td>
+        <td class="need-rp highlight">0</td>
       </tr>
     `).join("");
   }
@@ -105,8 +103,21 @@
   }
 
   renderTable();
+  recalcAll();
 
-  document.getElementById("calcRpSkillBtn").addEventListener("click", recalcAll);
+  const table = document.getElementById("rpSkillTable");
+  if (table) {
+    table.addEventListener("input", (e) => {
+      if (e.target.classList.contains("current-lv") || e.target.classList.contains("target-lv")) {
+        recalcAll();
+      }
+    });
+    table.addEventListener("change", (e) => {
+      if (e.target.classList.contains("current-lv") || e.target.classList.contains("target-lv")) {
+        recalcAll();
+      }
+    });
+  }
 </script>
 </body>
 </html>
