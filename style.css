@@ -14,6 +14,8 @@
   --border: #d9e8f5;
   --green: #55b955;
   --green-dark: #43a843;
+  --gray-btn: #cfd8e3;
+  --gray-btn-dark: #b9c5d3;
 }
 
 body {
@@ -105,6 +107,7 @@ body {
 .top-banner p {
   font-size: 15px;
   opacity: 0.95;
+  line-height: 1.6;
 }
 
 .calc-card {
@@ -118,25 +121,6 @@ body {
 .section-title {
   font-size: 30px;
   margin-bottom: 20px;
-  color: #1f3a56;
-}
-
-.timer-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 18px;
-  flex-wrap: wrap;
-}
-
-.timer-input {
-  width: 220px;
-}
-
-.timer-display {
-  font-size: 32px;
-  font-weight: bold;
-  margin-bottom: 26px;
   color: #1f3a56;
 }
 
@@ -160,8 +144,11 @@ body {
 }
 
 .form-row input,
-.timer-input {
+.timer-input,
+input[type="number"],
+input[type="text"] {
   flex: 1;
+  width: 100%;
   padding: 13px 14px;
   border: 1px solid #c8d8e8;
   border-radius: 10px;
@@ -170,10 +157,32 @@ body {
 }
 
 .form-row input:focus,
-.timer-input:focus {
+.timer-input:focus,
+input[type="number"]:focus,
+input[type="text"]:focus {
   outline: none;
   border-color: var(--main-blue);
   box-shadow: 0 0 0 4px rgba(77, 166, 255, 0.12);
+}
+
+.timer-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.timer-input {
+  width: 220px;
+  flex: 0 0 220px;
+}
+
+.timer-display {
+  font-size: 32px;
+  font-weight: bold;
+  margin-bottom: 26px;
+  color: #1f3a56;
 }
 
 .action-area {
@@ -181,14 +190,28 @@ body {
   margin: 28px 0 20px;
 }
 
+.button-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
 .btn {
   display: inline-block;
-  margin-top: 15px;
-  padding: 10px 16px;
+  padding: 12px 18px;
   border-radius: 12px;
   background: var(--main-blue);
   color: white;
   text-decoration: none;
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 700;
+  transition: 0.2s ease;
+}
+
+.btn:hover {
+  background: #3399ff;
 }
 
 .btn-green {
@@ -200,141 +223,85 @@ body {
   background: var(--green-dark);
 }
 
+.btn-gray {
+  background: var(--gray-btn);
+  color: #2f3c4a;
+}
+
+.btn-gray:hover {
+  background: var(--gray-btn-dark);
+}
+
 .btn-large {
   min-width: 140px;
   padding: 14px 24px;
 }
 
-.top-box {
-  background: linear-gradient(135deg, var(--purple-main), #8d72ff);
-  color: var(--white);
-  border-radius: 24px;
-  padding: 36px;
-  box-shadow: var(--shadow);
-  margin-bottom: 28px;
+.action-area .btn,
+.button-row .btn {
+  margin: 0;
 }
 
-.top-box h1 {
-  font-size: 32px;
-  margin-bottom: 12px;
-}
-
-.top-box p {
-  font-size: 16px;
-  line-height: 1.7;
-  opacity: 0.95;
-}
-
-.card-wrap {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
-}
-
-.card {
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 24px;
-  box-shadow: var(--shadow);
-}
-
-.card h2 {
-  font-size: 20px;
-  margin-bottom: 12px;
-  color: var(--purple-dark);
-}
-
-.card p {
-  color: var(--text-sub);
-  line-height: 1.7;
-  font-size: 15px;
-}
-
-.info-list {
-  margin-top: 14px;
-  padding-left: 18px;
-  color: var(--text-sub);
-}
-
-.info-list li {
-  margin-bottom: 8px;
-  line-height: 1.6;
-}
-
-.full-card {
-  grid-column: 1 / -1;
-}
-
-.button {
+/* 디스코드 이동 버튼 같은 a 태그용 */
+.btn-discord {
   display: inline-block;
-  margin-top: 16px;
-  padding: 12px 18px;
-  background: var(--purple-main);
-  color: var(--white);
+  margin-top: 12px;
+  padding: 10px 18px;
+  border-radius: 10px;
+  background: #5865f2;
+  color: white;
   text-decoration: none;
-  border-radius: 12px;
   font-weight: 600;
-  transition: 0.2s ease;
+  transition: 0.2s;
 }
 
-.button:hover {
-  background: var(--purple-dark);
+.btn-discord:hover {
+  background: #4752c4;
+  transform: translateY(-2px);
 }
 
-@media (max-width: 960px) {
-  .container {
-    flex-direction: column;
-  }
-
-  .sidebar {
-    width: 100%;
-    height: auto;
-    position: relative;
-  }
-
-  .content {
-    padding: 20px;
-  }
-
-  .form-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-
-  .form-row label {
-    width: 100%;
-  }
-
-  .form-row input,
-  .timer-input {
-    width: 100%;
-  }
-
-  .timer-row {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .top-banner h1 {
-    font-size: 26px;
-  }
-
-  .section-title {
-    font-size: 24px;
-  }
-
-  .card-wrap {
-    grid-template-columns: 1fr;
-  }
-
-  .top-box h1 {
-    font-size: 26px;
-  }
+.artifact-list {
+  margin-top: 12px;
+  max-height: 260px;
+  overflow-y: auto;
+  border: 1px solid #dbe7f2;
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: #f9fcff;
 }
 
-.result-box {
+.artifact-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 6px;
+  border-bottom: 1px solid #eef4fa;
+  border-radius: 8px;
+}
+
+.artifact-item:last-child {
+  border-bottom: none;
+}
+
+.artifact-item:hover {
+  background: #eef6ff;
+}
+
+.artifact-name {
+  font-size: 14px;
+  color: var(--text-main);
+}
+
+.artifact-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.result-box,
+.summary,
+.summary-box {
   margin-top: 10px;
   padding: 22px;
   border-radius: 16px;
@@ -417,14 +384,79 @@ body {
   color: #2d7de0;
 }
 
-.summary-box {
-  margin-top: 16px;
-  padding: 14px 16px;
-  border-radius: 12px;
-  background: #eaf5ff;
-  border: 1px solid #cfe6ff;
-  color: #234;
-  font-size: 16px;
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  min-width: 720px;
+}
+
+th,
+td {
+  border: 1px solid #ddd;
+  padding: 10px 8px;
+  font-size: 13px;
+  text-align: center;
+}
+
+th {
+  background: var(--main-blue);
+  color: white;
+}
+
+@media (max-width: 960px) {
+  .container {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+  }
+
+  .content {
+    padding: 20px;
+  }
+
+  .form-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .form-row label {
+    width: 100%;
+  }
+
+  .form-row input,
+  .timer-input,
+  input[type="number"],
+  input[type="text"] {
+    width: 100%;
+  }
+
+  .timer-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .timer-input {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+
+  .button-row {
+    flex-direction: column;
+  }
+
+  .top-banner h1 {
+    font-size: 26px;
+  }
+
+  .section-title {
+    font-size: 24px;
+  }
 }
 
 @media (max-width: 768px) {
