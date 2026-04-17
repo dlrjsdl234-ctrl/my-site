@@ -1,3 +1,5 @@
+alert("새 artifactCalc.js 실행됨");
+console.log("새 artifactCalc.js 실행됨");
 // =========================
 // 유물 가져오기 (sameAs 처리)
 // =========================
