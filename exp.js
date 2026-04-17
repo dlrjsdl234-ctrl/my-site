@@ -547,16 +547,20 @@ function getRequiredExpBetweenLevels(currentLv, targetLv) {
   };
 }
 
-function calculateLevelUpTime(currentLv, targetLv, expPerNMinutes, nMinutes) {
-  expPerNMinutes = Number(expPerNMinutes);
-  nMinutes = Number(nMinutes);
+function calculateLevelUpTime(currentLv, targetLv, expPerMinute, hourglassLv) {
+  expPerMinute = Number(expPerMinute);
+  hourglassLv = Number(hourglassLv);
 
-  if (!Number.isFinite(expPerNMinutes) || !Number.isFinite(nMinutes)) {
-    return { error: "경험치와 분은 숫자로 입력하세요." };
+  if (!Number.isFinite(expPerMinute) || !Number.isFinite(hourglassLv)) {
+    return { error: "경험치와 모래시계 레벨은 숫자로 입력하세요." };
   }
 
-  if (expPerNMinutes <= 0 || nMinutes <= 0) {
-    return { error: "획득 경험치와 기준 시간은 0보다 커야 합니다." };
+  if (expPerMinute <= 0) {
+    return { error: "1분당 경험치는 0보다 커야 합니다." };
+  }
+
+  if (!Number.isInteger(hourglassLv) || hourglassLv < 0 || hourglassLv > 20) {
+    return { error: "모래시계 레벨은 0~20 사이의 정수여야 합니다." };
   }
 
   const expInfo = getRequiredExpBetweenLevels(currentLv, targetLv);
@@ -564,8 +568,10 @@ function calculateLevelUpTime(currentLv, targetLv, expPerNMinutes, nMinutes) {
     return expInfo;
   }
 
-  const expPerMinute = expPerNMinutes / nMinutes;
-  const totalMinutes = expInfo.requiredExp / expPerMinute;
+  const multiplier = 1 + (hourglassLv * 0.1);
+  const adjustedRequiredExp = expInfo.requiredExp * multiplier;
+
+  const totalMinutes = adjustedRequiredExp / expPerMinute;
   const totalHours = totalMinutes / 60;
   const totalDays = totalMinutes / 1440;
 
@@ -576,8 +582,9 @@ function calculateLevelUpTime(currentLv, targetLv, expPerNMinutes, nMinutes) {
   return {
     currentLv: expInfo.currentLv,
     targetLv: expInfo.targetLv,
-    requiredExp: expInfo.requiredExp,
-    expPerMinute,
+    baseRequiredExp: expInfo.requiredExp,
+    multiplier,
+    requiredExp: adjustedRequiredExp,
     totalMinutes,
     totalHours,
     totalDays,
