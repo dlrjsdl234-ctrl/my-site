@@ -67,12 +67,12 @@
 
   <button onclick="calcExpTime()">계산하기</button>
 
-<div id="result"></div>
-
   <div id="result">여기에 결과가 표시됩니다.</div>
 
   <script src="exp.js"></script>
   <script>
+    console.log("calculateLevelUpTime:", typeof calculateLevelUpTime);
+
     function calcExpTime() {
       const resultEl = document.getElementById("result");
 
@@ -106,6 +106,3 @@
   </script>
 </body>
 </html>
-<script>
-console.log(typeof calculateLevelUpTime);
-</script>
