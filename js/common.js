@@ -69,8 +69,10 @@ function buildSidebar() {
   
     const href = basePath + item.href;
 
-    const isActive = currentPath.endsWith(item.href) ||
-      (item.href === "/index.html" && (currentPath === "/" || currentPath.endsWith("/") || currentPath.endsWith("/index.html")));
+    // .html 유무에 관계없이 비교 (serve 등 clean URL 대응)
+    const stripHtml = (p) => p.replace(/\.html$/, "");
+    const isActive = stripHtml(currentPath).endsWith(stripHtml(item.href)) ||
+      (item.href === "/index.html" && (currentPath === "/" || currentPath.endsWith("/")));
     const activeClass = isActive ? ' class="active"' : "";
   
     html += `  <li><a href="${href}"${activeClass}>${item.label}</a></li>\n`;
