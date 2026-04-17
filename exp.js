@@ -501,84 +501,66 @@ const raw = `
 500,4071371335271796;
 
 const expNeed = [0];
-
-raw.trim().split("\n").forEach(line => {
-    const [lv, exp] = line.split(",");
-    expNeed[Number(lv)] = Number(exp.replace(";", ""));
-});
-
-// 누적 + 레벨 구간 생성
-const expTotal = [];
 const expRange = [];
+const expTotal = [];
 
-let sum = 0;
+(function initExpTable() {
+  raw.trim().split("\n").forEach(line => {
+    const [lv, exp] = line.split(",");
+    expNeed[Number(lv)] = Number(String(exp).replace(";", "").trim());
+  });
 
-for (let i = 1; i < expNeed.length; i++) {
+  let sum = 0;
+
+  for (let i = 1; i < expNeed.length; i++) {
     const need = expNeed[i] || 0;
-
     const start = sum;
     sum += need;
     const end = sum;
 
     expTotal[i] = end;
-
     expRange[i] = {
-        level: i,
-        need: need,
-        start: start,
-        end: end
-    };
-}
-
-// ===== 실사용 함수 =====
-function getLevelInfo(currentExp) {
-    for (let i = 1; i < expRange.length; i++) {
-        const lv = expRange[i];
-
-        if (currentExp < lv.end) {
-            const progress = Math.floor(
-                ((currentExp - lv.start) / (lv.end - lv.start)) * 100
-            );
-
-            return {
-                level: lv.level,
-                progressPercent: progress,
-                remainExp: lv.end - currentExp
-            };
-        }
-    }
-
-    // 만렙
-    const maxLv = expRange[expRange.length - 1];
-    return {
-        level: maxLv.level,
-        progressPercent: 100,
-        remainExp: 0
-    };
-}
-
-// ===== 사용 예시 =====
-console.log(getLevelInfo(2000000));
-function getLevelInfoByLv(level, currentExp) {
-  const lv = expRange[level];
-
-  if (!lv) return null;
-
-  const max = lv.end - lv.start;
-
-  if (currentExp > max) {
-    return {
-      error: "현재 경험치가 레벨 최대치를 초과함"
+      level: i,
+      need,
+      start,
+      end
     };
   }
+})();
 
-  const progress = Math.floor((currentExp / max) * 100);
+function getLevelInfoByLv(level, currentExp) {
+  level = Number(level);
+  currentExp = Number(currentExp);
+
+  if (!Number.isFinite(level) || !Number.isFinite(currentExp)) {
+    return { error: "숫자를 입력하세요." };
+  }
+
+  const lv = expRange[level];
+
+  if (!lv) {
+    return { error: "존재하지 않는 레벨입니다." };
+  }
+
+  const maxExp = lv.need;
+
+  if (currentExp < 0) {
+    return { error: "현재 경험치는 0 이상이어야 합니다." };
+  }
+
+  if (currentExp > maxExp) {
+    return { error: "현재 경험치가 다음 레벨 필요 경험치보다 큽니다." };
+  }
+
+  const progressPercent = maxExp === 0
+    ? 100
+    : Math.floor((currentExp / maxExp) * 100);
 
   return {
-    level: level,
-    currentExp: currentExp,
-    maxExp: max,
-    progressPercent: progress,
-    remainExp: max - currentExp
+    level,
+    currentExp,
+    maxExp,
+    progressPercent,
+    remainExp: maxExp - currentExp
   };
 }
