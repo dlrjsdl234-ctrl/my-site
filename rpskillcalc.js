@@ -39,11 +39,7 @@ function findLevelColumn(table) {
 function findTotalColumn(table) {
   if (!table?.headers?.length) return null;
 
-  const priority = [
-    "누적 RP",
-    "누적 포인트",
-    "누적 SP"
-  ];
+  const priority = ["누적 RP", "누적 포인트", "누적 SP"];
 
   for (const key of priority) {
     if (table.headers.includes(key)) return key;
@@ -110,7 +106,7 @@ function renderTable() {
           type="number"
           min="0"
           max="${skill.max}"
-          value="${skill.max}"
+          value="0"
         >
       </td>
       <td class="need-rp">0</td>
@@ -128,10 +124,6 @@ function normalizeRowInputs(tr) {
 
   current = clamp(current, 0, max);
   target = clamp(target, 0, max);
-
-  if (current > target) {
-    target = current;
-  }
 
   currentInput.value = current;
   targetInput.value = target;
@@ -166,22 +158,11 @@ function recalcAll() {
 
 document.addEventListener("DOMContentLoaded", () => {
   renderTable();
-  recalcAll();
 
-  const table = document.getElementById("rpSkillTable");
-  if (!table) return;
-
-  table.addEventListener("input", (e) => {
-    const target = e.target;
-    if (
-      target.classList.contains("current-lv") ||
-      target.classList.contains("target-lv")
-    ) {
-      const tr = target.closest("tr");
-      if (tr) {
-        recalcRow(tr);
-        recalcAll();
-      }
-    }
-  });
+  const calcBtn = document.getElementById("calcRpSkillBtn");
+  if (calcBtn) {
+    calcBtn.addEventListener("click", () => {
+      recalcAll();
+    });
+  }
 });
