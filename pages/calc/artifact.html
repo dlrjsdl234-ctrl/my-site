@@ -17,7 +17,7 @@
     <main class="content">
       <div class="top-banner">
         <h1>유물 계산기</h1>
-        <p>수호자의 돌을 유물에 균등 분배하여 최적의 레벨을 계산합니다.</p>
+        <p>총 수호자의 돌과 선택한 유물을 기준으로 배분 결과를 계산합니다.</p>
       </div>
 
       <section class="calc-card">
@@ -28,39 +28,40 @@
           </div>
         </div>
 
-        <h3 style="margin-top:20px;">유물 선택</h3>
-
-        <div class="button-row">
-          <button type="button" class="btn btn-green" onclick="selectAllArtifacts()">전체 선택</button>
-          <button type="button" class="btn btn-green" onclick="clearAllArtifacts()">전체 해제</button>
+        <div class="action-area">
+          <button type="button" class="btn" onclick="selectAllArtifacts()">전체 선택</button>
+          <button type="button" class="btn" onclick="clearAllArtifacts()">전체 해제</button>
         </div>
 
+        <h2 class="section-title">유물 선택</h2>
         <div class="artifact-list" id="artifactList"></div>
 
         <div class="action-area">
-          <button type="button" class="btn btn-green btn-large" onclick="calculateArtifacts()">계산하기</button>
+          <button type="button" class="btn btn-green" onclick="calculateArtifacts()">계산하기</button>
         </div>
 
-        <div class="artifact-summary" id="summaryBox">
+        <div class="result-box" id="summaryBox">
           총 선택 유물 수: 0<br>
           총 사용 돌: 0<br>
           총 남은 돌: 0
         </div>
 
-        <table class="artifact-table">
-          <thead>
-            <tr>
-              <th>번호</th>
-              <th>유물</th>
-              <th>배분량</th>
-              <th>도달 레벨</th>
-              <th>사용 돌</th>
-              <th>남은 돌</th>
-              <th>만렙</th>
-            </tr>
-          </thead>
-          <tbody id="result"></tbody>
-        </table>
+        <div class="result-box" style="margin-top:20px; overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>번호</th>
+                <th>유물</th>
+                <th>배분량</th>
+                <th>도달 레벨</th>
+                <th>사용 돌</th>
+                <th>남은 돌</th>
+                <th>만렙</th>
+              </tr>
+            </thead>
+            <tbody id="result"></tbody>
+          </table>
+        </div>
       </section>
     </main>
 
