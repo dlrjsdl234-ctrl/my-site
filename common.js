@@ -17,3 +17,20 @@ function fnalert(value){
 function fnMachine(){
   window.location.href = "rpMachine.html";
 }
+
+function fnExpCalc() {
+    const exp = prompt("현재 경험치를 입력하세요:");
+
+    if (!exp || isNaN(exp)) {
+        alert("숫자를 입력하세요!");
+        return;
+    }
+
+    const info = getLevelInfo(Number(exp));
+
+    alert(
+        `레벨: ${info.level}\n` +
+        `진행률: ${info.progressPercent}%\n` +
+        `남은 경험치: ${info.remainExp}`
+    );
+}
