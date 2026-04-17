@@ -18,15 +18,14 @@ const MENU = [
   { label: "RP 스킬 계산기", href: "/pages/calc/rpskill.html" },
 
   { section: "테이블" },
+  { label: "초월정보", href: "/pages/tables/transcend.html" },
   { label: "환포표", href: "/pages/tables/hanpo.html" },
-  { label: "특성", href: "/pages/tables/trait.html" },
   { label: "SP 스킬", href: "/pages/tables/sp-skill.html" },
   { label: "유물", href: "/pages/tables/artifact-info.html" },
   { label: "몬스터체경비", href: "/pages/tables/monster-stat.html" },
   { label: "마을디펜스", href: "/pages/tables/town-defense.html" },
   { label: "RP 스킬", href: "/pages/tables/rpskill-perf.html" },
   { label: "이세계스킬", href: "/pages/tables/isekai-perf.html" },
-  { label: "초월정보", href: "/pages/tables/transcend.html" },
   { label: "잡팁", href: "/pages/tables/tips.html" },
   { label: "RP스킬 투자순서", href: "/pages/tables/rpskill-order.html" },
 ];
@@ -69,19 +68,9 @@ function buildSidebar() {
     }
   
     const href = basePath + item.href;
-  
-    const normalize = (path) => {
-      if (!path) return "/";
-      return path
-        .replace(basePath, "")
-        .replace(/\/index\.html$/, "/")
-        .replace(/\/$/, "") || "/";
-    };
-  
-    const current = normalize(currentPath);
-    const target = normalize(item.href);
-  
-    const isActive = current === target;
+
+    const isActive = currentPath.endsWith(item.href) ||
+      (item.href === "/index.html" && (currentPath === "/" || currentPath.endsWith("/") || currentPath.endsWith("/index.html")));
     const activeClass = isActive ? ' class="active"' : "";
   
     html += `  <li><a href="${href}"${activeClass}>${item.label}</a></li>\n`;
