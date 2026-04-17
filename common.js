@@ -18,3 +18,26 @@ function fnMachine(){
   window.location.href = "rpMachine.html";
 }
 
+function fnExpCalc() {
+  const level = Number(prompt("현재 레벨을 입력하세요:"));
+  const exp = Number(prompt("현재 경험치를 입력하세요:"));
+
+  if (isNaN(level) || isNaN(exp)) {
+    alert("숫자를 입력하세요!");
+    return;
+  }
+
+  const info = getLevelInfoByLv(level, exp);
+
+  if (!info || info.error) {
+    alert(info?.error || "잘못된 입력");
+    return;
+  }
+
+  alert(
+    `레벨: ${info.level}\n` +
+    `경험치: ${info.currentExp} / ${info.maxExp}\n` +
+    `진행률: ${info.progressPercent}%\n` +
+    `남은 경험치: ${info.remainExp}`
+  );
+}
