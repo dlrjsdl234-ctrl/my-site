@@ -51,3 +51,15 @@ function fnExpCalc() {
     `남은 경험치: ${info.remainExp}`
   );
 }
+
+const currentPage = location.pathname.split("/").pop();
+
+const menuLinks = document.querySelectorAll(".menu a");
+
+menuLinks.forEach(link => {
+  const linkPage = link.getAttribute("href");
+
+  if (linkPage === currentPage || (currentPage === "" && linkPage === "index.html")) {
+    link.classList.add("active");
+  }
+});
