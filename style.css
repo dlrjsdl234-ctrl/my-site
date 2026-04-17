@@ -743,3 +743,49 @@ th {
     font-size: 14px;
   }
 }
+
+/* RP 스킬 계산기 - 필요 RP / 총합 가독성 강화 */
+.rp-skill-wrap {
+  margin-top: 12px;
+}
+
+.rp-skill-table input[type="number"] {
+  width: 100%;
+  min-width: 80px;
+  text-align: center;
+}
+
+.rp-skill-table td,
+.rp-skill-table th {
+  vertical-align: middle;
+}
+
+.skill-name {
+  font-weight: 600;
+}
+
+.need-rp {
+  text-align: right;
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: 0.5px;
+  color: #1f2d3d;
+  white-space: nowrap;
+}
+
+.need-rp.highlight {
+  color: #1d7be0;
+}
+
+.grand-total {
+  text-align: right;
+  font-size: 20px;
+  font-weight: 900;
+  color: #ff6b00;
+  white-space: nowrap;
+}
+
+.rp-skill-table tfoot td {
+  font-weight: 700;
+  background: #f2f8ff;
+}
