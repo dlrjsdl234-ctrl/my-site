@@ -1,4 +1,4 @@
-/*26.04.17 22시 11분 수정*/
+/*26.04.17 22시 15분 수정*/
 * {
   margin: 0;
   padding: 0;
@@ -470,7 +470,6 @@ input[type="text"]:focus,
   color: #1f2d3d;
 }
 
-/* 기본 초월 정보는 조금 좁게, 특성/유물 정보는 조금 넓게 */
 .double-section {
   display: grid;
   grid-template-columns: 0.8fr 1.2fr;
@@ -510,7 +509,6 @@ th {
   color: white;
 }
 
-/* 기본 초월 정보 컬럼 비율 */
 #baseInfoTable td:nth-child(1),
 #baseInfoTable th:nth-child(1) {
   width: 42%;
@@ -521,21 +519,22 @@ th {
   width: 58%;
 }
 
-/* 특성 / 유물 정보는 한 줄 유지 */
+/* 특성 / 유물 정보: 길면 2줄까지 허용 */
 #traitInfoTable td,
 #traitInfoTable th {
-  white-space: normal;              /* 줄바꿈 허용 */
+  white-space: normal;
   overflow: hidden;
-
-  display: -webkit-box;             /* ⭐ 핵심 */
-  -webkit-line-clamp: 2;            /* ⭐ 최대 2줄 */
-  -webkit-box-orient: vertical;
-
   text-overflow: ellipsis;
   word-break: break-word;
+  line-height: 1.4;
 }
 
-/* 특성 / 유물 정보 컬럼 비율 */
+#traitInfoTable td {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
 #traitInfoTable td:nth-child(1),
 #traitInfoTable th:nth-child(1) {
   width: 28%;
@@ -685,9 +684,11 @@ th {
     font-size: 24px;
   }
 
-  /* 모바일에서는 다시 줄바꿈 허용 */
   #traitInfoTable td,
   #traitInfoTable th {
+    display: table-cell;
+    -webkit-line-clamp: unset;
+    -webkit-box-orient: unset;
     white-space: normal;
     overflow: visible;
     text-overflow: unset;
