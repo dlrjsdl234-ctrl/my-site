@@ -24,7 +24,7 @@ body {
   max-width: 1400px;
   margin: 30px auto;      /* 위아래 여백도 추가 */
   padding: 0 20px;
-}
+} 
 
 .container {
   display: flex;
