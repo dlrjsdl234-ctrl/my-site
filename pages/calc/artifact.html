@@ -65,6 +65,7 @@
 
 <script type="module">
   import { initArtifactData, getArtifactKeys, getArtifacts, distributeArtifactStones } from "../../js/calc/artifact.js";
+  import { saveInputs, loadInputs } from "../../js/storage.js";
 
   await initArtifactData("../..");
 
@@ -75,20 +76,39 @@
     return Number(value || 0).toLocaleString("ko-KR");
   }
 
+  function saveArtifactState() {
+    const selectedIds = Array.from(document.querySelectorAll("#artifactList input:checked")).map(el => el.value);
+    saveInputs("artifact", {
+      totalStone: document.getElementById("totalStone").value,
+      selectedIds
+    });
+  }
+
   function initArtifactList() {
     const container = document.getElementById("artifactList");
     container.innerHTML = "";
 
+    const saved = loadInputs("artifact");
+    if (saved?.totalStone !== undefined) {
+      document.getElementById("totalStone").value = saved.totalStone;
+    }
+    const savedIds = saved?.selectedIds || [];
+
     ARTIFACT_KEYS.forEach(key => {
       const art = ARTIFACTS[key];
+      const checked = savedIds.includes(key) ? "checked" : "";
       const label = document.createElement("label");
       label.className = "artifact-item";
       label.innerHTML = `
         <span class="artifact-name">${art.name} (${art.effect})</span>
-        <input type="checkbox" value="${key}">
+        <input type="checkbox" value="${key}" ${checked}>
       `;
       container.appendChild(label);
     });
+
+    // 입력 변경 시 저장
+    container.addEventListener("change", saveArtifactState);
+    document.getElementById("totalStone").addEventListener("change", saveArtifactState);
   }
 
   window.calculateArtifacts = function () {

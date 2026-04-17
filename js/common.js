@@ -79,12 +79,24 @@ function buildSidebar() {
   }
 
   html += "</ul>";
+  html += '<div class="sidebar-footer"><button class="btn-clear-storage" onclick="clearStorageAndReload()">저장 데이터 초기화</button></div>';
   sidebar.innerHTML = html;
 }
 
 // ==============================
 // 초기화
 // ==============================
+
+function clearStorageAndReload() {
+  if (!confirm("저장된 모든 입력값이 초기화됩니다. 계속하시겠습니까?")) return;
+  const keys = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key.startsWith("iryu_")) keys.push(key);
+  }
+  keys.forEach(k => localStorage.removeItem(k));
+  location.href = getBasePath() + "/index.html";
+}
 
 document.addEventListener("DOMContentLoaded", () => {
   buildSidebar();

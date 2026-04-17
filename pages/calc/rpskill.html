@@ -50,6 +50,7 @@
 
 <script type="module">
   import { initRPSkillData, getSkillMeta, calcSkillRP } from "../../js/calc/rpskill.js";
+  import { saveInputs, loadInputs } from "../../js/storage.js";
 
   await initRPSkillData("../..");
 
@@ -102,7 +103,34 @@
     if (totalCell) totalCell.textContent = formatNumber(total);
   }
 
+  function saveSkillState() {
+    const rows = document.querySelectorAll("#rpSkillTable tbody tr");
+    const data = {};
+    rows.forEach(tr => {
+      const key = tr.dataset.tableKey;
+      data[key] = {
+        current: tr.querySelector(".current-lv").value,
+        target: tr.querySelector(".target-lv").value
+      };
+    });
+    saveInputs("rpskill", data);
+  }
+
+  function restoreSkillState() {
+    const saved = loadInputs("rpskill");
+    if (!saved) return;
+    const rows = document.querySelectorAll("#rpSkillTable tbody tr");
+    rows.forEach(tr => {
+      const key = tr.dataset.tableKey;
+      if (saved[key]) {
+        if (saved[key].current !== undefined) tr.querySelector(".current-lv").value = saved[key].current;
+        if (saved[key].target !== undefined) tr.querySelector(".target-lv").value = saved[key].target;
+      }
+    });
+  }
+
   renderTable();
+  restoreSkillState();
   recalcAll();
 
   const table = document.getElementById("rpSkillTable");
@@ -110,11 +138,13 @@
     table.addEventListener("input", (e) => {
       if (e.target.classList.contains("current-lv") || e.target.classList.contains("target-lv")) {
         recalcAll();
+        saveSkillState();
       }
     });
     table.addEventListener("change", (e) => {
       if (e.target.classList.contains("current-lv") || e.target.classList.contains("target-lv")) {
         recalcAll();
+        saveSkillState();
       }
     });
   }
