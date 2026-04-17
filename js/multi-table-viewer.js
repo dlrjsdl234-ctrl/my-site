@@ -46,7 +46,7 @@ export async function renderMultiTable(dirPath, containerId) {
   for (const item of meta) {
     const opt = document.createElement("option");
     opt.value = item.file;
-    opt.textContent = item.name;
+    opt.textContent = item.desc ? `${item.name} / ${item.desc}` : item.name;
     select.appendChild(opt);
   }
 
