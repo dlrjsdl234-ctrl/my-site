@@ -1,4 +1,4 @@
-/*26.04.17 22시 08분 수정*/
+/*26.04.17 22시 11분 수정*/
 * {
   margin: 0;
   padding: 0;
@@ -524,11 +524,15 @@ th {
 /* 특성 / 유물 정보는 한 줄 유지 */
 #traitInfoTable td,
 #traitInfoTable th {
-  white-space: nowrap;
+  white-space: normal;              /* 줄바꿈 허용 */
   overflow: hidden;
+
+  display: -webkit-box;             /* ⭐ 핵심 */
+  -webkit-line-clamp: 2;            /* ⭐ 최대 2줄 */
+  -webkit-box-orient: vertical;
+
   text-overflow: ellipsis;
-  word-break: normal;
-  overflow-wrap: normal;
+  word-break: break-word;
 }
 
 /* 특성 / 유물 정보 컬럼 비율 */
