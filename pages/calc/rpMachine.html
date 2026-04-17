@@ -76,8 +76,28 @@
 
 <script type="module">
   import { initHanpoData, calculateHanpo } from "../../js/calc/rpMachine.js";
+  import { saveInputs, loadInputs } from "../../js/storage.js";
 
   await initHanpoData("../..");
+
+  const INPUT_IDS = ["targetHanpo", "rpShop", "encyclopedia", "artifactRing", "vip", "transcendLevel", "hourglassLevel", "currentLevel"];
+
+  // 저장된 값 복원
+  const saved = loadInputs("rpMachine");
+  if (saved) {
+    for (const id of INPUT_IDS) {
+      if (saved[id] !== undefined) document.getElementById(id).value = saved[id];
+    }
+  }
+
+  // 입력 변경 시 저장
+  for (const id of INPUT_IDS) {
+    document.getElementById(id).addEventListener("change", () => {
+      const data = {};
+      for (const id of INPUT_IDS) data[id] = document.getElementById(id).value;
+      saveInputs("rpMachine", data);
+    });
+  }
 
   function fmt(n) {
     if (n === null || n === undefined) return "-";

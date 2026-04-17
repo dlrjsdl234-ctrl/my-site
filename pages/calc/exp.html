@@ -57,8 +57,28 @@
 
   <script type="module">
     import { initExpData, calculateLevelUpTime } from "../../js/calc/exp.js";
+    import { saveInputs, loadInputs } from "../../js/storage.js";
 
     await initExpData("../..");
+
+    const INPUT_IDS = ["currentLv", "targetLv", "expPerMinute", "hourglassLv"];
+
+    // 저장된 값 복원
+    const saved = loadInputs("exp");
+    if (saved) {
+      for (const id of INPUT_IDS) {
+        if (saved[id] !== undefined) document.getElementById(id).value = saved[id];
+      }
+    }
+
+    // 입력 변경 시 저장
+    for (const id of INPUT_IDS) {
+      document.getElementById(id).addEventListener("change", () => {
+        const data = {};
+        for (const id of INPUT_IDS) data[id] = document.getElementById(id).value;
+        saveInputs("exp", data);
+      });
+    }
 
     function formatDate(date) {
       const y = date.getFullYear();
