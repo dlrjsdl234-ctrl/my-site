@@ -40,7 +40,6 @@ function findTotalColumn(table) {
   if (!table?.headers?.length) return null;
 
   const priority = ["누적 RP", "누적 포인트", "누적 SP"];
-
   for (const key of priority) {
     if (table.headers.includes(key)) return key;
   }
