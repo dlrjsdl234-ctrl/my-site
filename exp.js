@@ -501,8 +501,7 @@ const raw = `
 500,4071371335271796;
 
 const expNeed = [0];
-const expRange = [];
-const expTotal = [];
+const expTotal = [0];
 
 (function initExpTable() {
   raw.trim().split("\n").forEach(line => {
@@ -511,56 +510,79 @@ const expTotal = [];
   });
 
   let sum = 0;
-
   for (let i = 1; i < expNeed.length; i++) {
-    const need = expNeed[i] || 0;
-    const start = sum;
-    sum += need;
-    const end = sum;
-
-    expTotal[i] = end;
-    expRange[i] = {
-      level: i,
-      need,
-      start,
-      end
-    };
+    sum += expNeed[i] || 0;
+    expTotal[i] = sum;
   }
 })();
 
-function getLevelInfoByLv(level, currentExp) {
-  level = Number(level);
-  currentExp = Number(currentExp);
+function getRequiredExpBetweenLevels(currentLv, targetLv) {
+  currentLv = Number(currentLv);
+  targetLv = Number(targetLv);
 
-  if (!Number.isFinite(level) || !Number.isFinite(currentExp)) {
-    return { error: "숫자를 입력하세요." };
+  if (!Number.isInteger(currentLv) || !Number.isInteger(targetLv)) {
+    return { error: "레벨은 정수로 입력하세요." };
   }
 
-  const lv = expRange[level];
-
-  if (!lv) {
-    return { error: "존재하지 않는 레벨입니다." };
+  if (currentLv < 1 || targetLv < 1) {
+    return { error: "레벨은 1 이상이어야 합니다." };
   }
 
-  const maxExp = lv.need;
-
-  if (currentExp < 0) {
-    return { error: "현재 경험치는 0 이상이어야 합니다." };
+  if (currentLv >= targetLv) {
+    return { error: "목표 레벨은 현재 레벨보다 커야 합니다." };
   }
 
-  if (currentExp > maxExp) {
-    return { error: "현재 경험치가 다음 레벨 필요 경험치보다 큽니다." };
+  if (!expTotal[currentLv - 1] && currentLv !== 1) {
+    return { error: "현재 레벨 데이터가 없습니다." };
   }
 
-  const progressPercent = maxExp === 0
-    ? 100
-    : Math.floor((currentExp / maxExp) * 100);
+  if (!expTotal[targetLv - 1]) {
+    return { error: "목표 레벨 데이터가 없습니다." };
+  }
+
+  const requiredExp = expTotal[targetLv - 1] - expTotal[currentLv - 1];
 
   return {
-    level,
-    currentExp,
-    maxExp,
-    progressPercent,
-    remainExp: maxExp - currentExp
+    currentLv,
+    targetLv,
+    requiredExp
+  };
+}
+
+function calculateLevelUpTime(currentLv, targetLv, expPerNMinutes, nMinutes) {
+  expPerNMinutes = Number(expPerNMinutes);
+  nMinutes = Number(nMinutes);
+
+  if (!Number.isFinite(expPerNMinutes) || !Number.isFinite(nMinutes)) {
+    return { error: "경험치와 분은 숫자로 입력하세요." };
+  }
+
+  if (expPerNMinutes <= 0 || nMinutes <= 0) {
+    return { error: "경험치와 분은 0보다 커야 합니다." };
+  }
+
+  const expInfo = getRequiredExpBetweenLevels(currentLv, targetLv);
+  if (expInfo.error) {
+    return expInfo;
+  }
+
+  const expPerMinute = expPerNMinutes / nMinutes;
+  const totalMinutes = expInfo.requiredExp / expPerMinute;
+
+  const days = Math.floor(totalMinutes / 1440);
+  const hours = Math.floor((totalMinutes % 1440) / 60);
+  const minutes = Math.floor(totalMinutes % 60);
+
+  return {
+    currentLv: expInfo.currentLv,
+    targetLv: expInfo.targetLv,
+    requiredExp: expInfo.requiredExp,
+    expPerNMinutes,
+    nMinutes,
+    expPerMinute,
+    totalMinutes: Math.ceil(totalMinutes),
+    days,
+    hours,
+    minutes
   };
 }
