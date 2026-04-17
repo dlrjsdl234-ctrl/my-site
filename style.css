@@ -1,0 +1,150 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --main-blue: #4da6ff;
+  --sub-blue: #8fd3ff;
+  --bg-sky: #eaf6ff;
+  --card-bg: #ffffff;
+  --text-main: #333;
+  --text-sub: #666;
+  --border: #d6ecff;
+}
+
+body {
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: linear-gradient(180deg, #dff3ff 0%, #f7fbff 100%);
+  color: var(--text-main);
+}
+
+.container {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* 왼쪽 메뉴 */
+.sidebar {
+  width: 240px;
+  background: linear-gradient(180deg, var(--main-blue), #6ec1ff);
+  padding: 25px 15px;
+  color: white;
+  box-shadow: 3px 0 10px rgba(0,0,0,0.1);
+}
+
+.logo {
+  font-size: 22px;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.menu {
+  list-style: none;
+}
+
+.menu li {
+  margin-bottom: 10px;
+}
+
+.menu a {
+  display: block;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.2);
+  color: white;
+  text-decoration: none;
+  transition: 0.2s;
+  font-weight: 500;
+}
+
+.menu a:hover {
+  background: rgba(255,255,255,0.35);
+  transform: translateX(4px);
+}
+
+.menu a.active {
+  background: white;
+  color: var(--main-blue);
+  font-weight: bold;
+}
+
+/* 오른쪽 */
+.content {
+  flex: 1;
+  padding: 30px;
+}
+
+/* 상단 배너 */
+.top-banner {
+  background: linear-gradient(135deg, var(--main-blue), var(--sub-blue));
+  color: white;
+  padding: 30px;
+  border-radius: 20px;
+  margin-bottom: 20px;
+}
+
+.top-banner h1 {
+  margin-bottom: 10px;
+}
+
+/* 카드 */
+.card-wrap {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.card {
+  background: var(--card-bg);
+  border: 2px solid var(--border);
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+.card h2 {
+  color: var(--main-blue);
+  margin-bottom: 10px;
+}
+
+.card p {
+  color: var(--text-sub);
+  line-height: 1.6;
+}
+
+.full {
+  grid-column: 1 / -1;
+}
+
+/* 버튼 */
+.btn {
+  display: inline-block;
+  margin-top: 15px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: var(--main-blue);
+  color: white;
+  text-decoration: none;
+}
+
+.btn:hover {
+  background: #3399ff;
+}
+
+/* 반응형 */
+@media (max-width: 900px) {
+  .container {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+  }
+
+  .card-wrap {
+    grid-template-columns: 1fr;
+  }
+}
