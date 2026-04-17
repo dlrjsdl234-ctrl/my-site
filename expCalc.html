@@ -6,92 +6,162 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      margin: 30px;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 40px 20px;
     }
+
+    .box {
+      background: white;
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      margin-top: 0;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
     .row {
-      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      margin-bottom: 12px;
     }
+
     label {
-      display: inline-block;
-      width: 120px;
+      width: 130px;
+      font-weight: bold;
     }
+
     input {
-      width: 200px;
-      padding: 4px;
+      flex: 1;
+      padding: 8px 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 14px;
     }
+
+    .btn-area {
+      text-align: center;
+      margin-top: 20px;
+    }
+
     button {
-      margin-top: 16px;
-      padding: 8px 16px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 10px;
+      background: #4CAF50;
+      color: white;
       cursor: pointer;
     }
+
+    button:hover {
+      background: #45a049;
+    }
+
     #result {
       margin-top: 20px;
-      padding: 12px;
-      border: 1px solid #ccc;
+      padding: 15px;
+      border-radius: 10px;
       background: #f9f9f9;
       white-space: pre-line;
+      border: 1px solid #ddd;
     }
   </style>
 </head>
 <body>
+
+<div class="box">
   <h1>경험치 시간 계산기</h1>
 
   <div class="row">
-    <label for="currentLv">현재 레벨:</label>
+    <label>현재 레벨</label>
     <input type="number" id="currentLv" value="490">
   </div>
 
   <div class="row">
-    <label for="targetLv">목표 레벨:</label>
+    <label>목표 레벨</label>
     <input type="number" id="targetLv" value="500">
   </div>
 
   <div class="row">
-    <label for="expPerNMinutes">획득 경험치:</label>
+    <label>획득 경험치</label>
     <input type="number" id="expPerNMinutes" value="120000000000">
   </div>
 
   <div class="row">
-    <label for="nMinutes">기준 시간(분):</label>
+    <label>기준 시간(분)</label>
     <input type="number" id="nMinutes" value="1">
   </div>
 
-  <button onclick="calcExpTime()">계산하기</button>
+  <div class="btn-area">
+    <button onclick="calcExpTime()">계산하기</button>
+  </div>
 
   <div id="result">여기에 결과가 표시됩니다.</div>
+</div>
 
-  <script src="./exp.js"></script>
-  <script>
-    function calcExpTime() {
-      const resultEl = document.getElementById("result");
+<script src="./exp.js"></script>
+<script>
+function formatDate(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  const h = String(date.getHours()).padStart(2, '0');
+  const min = String(date.getMinutes()).padStart(2, '0');
 
-      const currentLv = Number(document.getElementById("currentLv").value);
-      const targetLv = Number(document.getElementById("targetLv").value);
-      const expPerNMinutes = Number(document.getElementById("expPerNMinutes").value);
-      const nMinutes = Number(document.getElementById("nMinutes").value);
+  return `${y}-${m}-${d} ${h}:${min}`;
+}
 
-      if (typeof calculateLevelUpTime !== "function") {
-        resultEl.innerText = "오류: exp.js의 calculateLevelUpTime 함수가 없습니다.";
-        return;
-      }
+function calcExpTime() {
+  const resultEl = document.getElementById("result");
 
-      const result = calculateLevelUpTime(
-        currentLv,
-        targetLv,
-        expPerNMinutes,
-        nMinutes
-      );
+  const currentLv = Number(document.getElementById("currentLv").value);
+  const targetLv = Number(document.getElementById("targetLv").value);
+  const expPerNMinutes = Number(document.getElementById("expPerNMinutes").value);
+  const nMinutes = Number(document.getElementById("nMinutes").value);
 
-      if (!result || result.error) {
-        resultEl.innerText = result?.error || "알 수 없는 오류가 발생했습니다.";
-        return;
-      }
+  if (typeof calculateLevelUpTime !== "function") {
+    resultEl.innerText = "exp.js 로딩 오류";
+    return;
+  }
 
-      resultEl.innerText =
-        `필요 총 경험치: ${result.requiredExp.toLocaleString()}\n` +
-        `예상 소요 시간: ${result.totalMinutes.toLocaleString()}분\n` +
-        `(${result.days}일 ${result.hours}시간 ${result.minutes}분)`;
-    }
-  </script>
+  const result = calculateLevelUpTime(
+    currentLv,
+    targetLv,
+    expPerNMinutes,
+    nMinutes
+  );
+
+  if (!result || result.error) {
+    resultEl.innerText = result?.error || "오류 발생";
+    return;
+  }
+
+  // ⭐ 현재 시간
+  const now = new Date();
+
+  // ⭐ 목표 시간 계산
+  const targetTime = new Date(now.getTime() + result.totalMinutes * 60000);
+
+  resultEl.innerText =
+    `필요 총 경험치: ${Math.round(result.requiredExp).toLocaleString()}\n\n` +
+
+    `예상 소요 시간:\n` +
+    `- ${result.totalMinutes.toFixed(2)}분\n` +
+    `- ${result.totalHours.toFixed(2)}시간\n` +
+    `- ${result.totalDays.toFixed(2)}일\n\n` +
+
+    `대략: ${result.days}일 ${result.hours}시간 ${result.minutes}분\n\n` +
+
+    `현재 시간: ${formatDate(now)}\n` +
+    `목표 달성 시간: ${formatDate(targetTime)}`;
+}
+</script>
+
 </body>
 </html>
