@@ -524,7 +524,6 @@ th {
 /* 특성 / 유물 정보는 한 줄 유지 */
 #traitInfoTable td,
 #traitInfoTable th {
-  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   word-break: normal;
