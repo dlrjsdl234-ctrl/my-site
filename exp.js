@@ -551,32 +551,23 @@ function calculateLevelUpTime(currentLv, targetLv, expPerNMinutes, nMinutes) {
   nMinutes = Number(nMinutes);
 
   if (!Number.isFinite(expPerNMinutes) || !Number.isFinite(nMinutes)) {
-    return { error: "경험치와 분은 숫자로 입력하세요." };
+    return { error: "숫자 입력 오류" };
   }
 
   if (expPerNMinutes <= 0 || nMinutes <= 0) {
-    return { error: "획득 경험치와 기준 시간은 0보다 커야 합니다." };
+    return { error: "값은 0보다 커야 함" };
   }
 
   const expInfo = getRequiredExpBetweenLevels(currentLv, targetLv);
-  if (expInfo.error) {
-    return expInfo;
-  }
+  if (expInfo.error) return expInfo;
 
   const expPerMinute = expPerNMinutes / nMinutes;
   const totalMinutes = expInfo.requiredExp / expPerMinute;
 
-  const days = Math.floor(totalMinutes / 1440);
-  const hours = Math.floor((totalMinutes % 1440) / 60);
-  const minutes = Math.ceil(totalMinutes % 60);
-
   return {
-    currentLv: expInfo.currentLv,
-    targetLv: expInfo.targetLv,
     requiredExp: expInfo.requiredExp,
     totalMinutes: Math.ceil(totalMinutes),
-    days,
-    hours,
-    minutes
+    hours: Math.floor(totalMinutes / 60),
+    minutes: Math.ceil(totalMinutes % 60)
   };
 }
