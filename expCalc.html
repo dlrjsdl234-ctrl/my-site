@@ -114,18 +114,60 @@
       const now = new Date();
       const targetTime = new Date(now.getTime() + result.totalMinutes * 60000);
 
-      resultEl.innerText =
-        `기본 필요 총 경험치: ${Math.round(result.baseRequiredExp).toLocaleString()}\n` +
-        `모래시계 레벨: ${hourglassLv}\n` +
-        `모래시계 배율: ${result.multiplier.toFixed(1)}배\n` +
-        `적용 후 필요 총 경험치: ${Math.round(result.requiredExp).toLocaleString()}\n\n` +
-        `예상 소요 시간:\n` +
-        `- ${result.totalMinutes.toFixed(2)}분\n` +
-        `- ${result.totalHours.toFixed(2)}시간\n` +
-        `- ${result.totalDays.toFixed(2)}일\n\n` +
-        `대략: ${result.days}일 ${result.hours}시간 ${result.minutes}분\n\n` +
-        `현재 시간: ${formatDate(now)}\n` +
-        `목표 달성 시간: ${formatDate(targetTime)}`;
+      resultEl.innerHTML = `
+        <div class="result-section">
+          <div class="result-title">경험치 정보</div>
+          <div class="result-row">
+            <span class="result-label">기본 필요 총 경험치</span>
+            <strong class="result-value">${Math.round(result.baseRequiredExp).toLocaleString()}</strong>
+          </div>
+          <div class="result-row">
+            <span class="result-label">모래시계 레벨</span>
+            <strong class="result-value">${hourglassLv}</strong>
+          </div>
+          <div class="result-row">
+            <span class="result-label">모래시계 배율</span>
+            <strong class="result-value">${result.multiplier.toFixed(1)}배</strong>
+          </div>
+          <div class="result-row">
+            <span class="result-label">적용 후 필요 총 경험치</span>
+            <strong class="result-value">${Math.round(result.requiredExp).toLocaleString()}</strong>
+          </div>
+        </div>
+      
+        <div class="result-section">
+          <div class="result-title">예상 소요 시간</div>
+          <div class="result-grid">
+            <div class="time-card">
+              <span class="time-label">분</span>
+              <strong class="time-value">${result.totalMinutes.toFixed(2)}</strong>
+            </div>
+            <div class="time-card">
+              <span class="time-label">시간</span>
+              <strong class="time-value">${result.totalHours.toFixed(2)}</strong>
+            </div>
+            <div class="time-card">
+              <span class="time-label">일</span>
+              <strong class="time-value">${result.totalDays.toFixed(2)}</strong>
+            </div>
+          </div>
+          <div class="summary-box">
+            대략 <strong>${result.days}일 ${result.hours}시간 ${result.minutes}분</strong>
+          </div>
+        </div>
+      
+        <div class="result-section">
+          <div class="result-title">시간 정보</div>
+          <div class="result-row">
+            <span class="result-label">현재 시간</span>
+            <strong class="result-value">${formatDate(now)}</strong>
+          </div>
+          <div class="result-row">
+            <span class="result-label">목표 달성 시간</span>
+            <strong class="result-value highlight">${formatDate(targetTime)}</strong>
+          </div>
+        </div>
+      `;
     }
   </script>
   <script>
