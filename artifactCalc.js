@@ -62,9 +62,32 @@ function findReachableLevel(artifact, currentLevel, budget) {
 }
 
 // =========================
-// 핵심: 유물 돌 균등 분배 + 남은 돌 재분배
+// 현재 배분량 기준으로 상태 다시 계산
+// =========================
+function recalcRowByAllocation(row) {
+  const targetLevel = findReachableLevel(row.artifact, 0, row.allocated);
+  const usedStone = getStoneCostBetween(row.artifact, 0, targetLevel);
+  const remainStone = row.allocated - usedStone;
+  const isMax = targetLevel >= row.artifact.maxLevel;
+
+  row.level = targetLevel;
+  row.used = usedStone;
+  row.remain = remainStone;
+  row.isMax = isMax;
+}
+
+// =========================
+// 핵심: 엑셀 방식 분배
+// 1) 처음엔 전체 균등 배분
+// 2) 만렙 유물의 남는 돌만 회수
+// 3) 회수한 돌을 미만렙 유물에 다시 균등 분배
+// 4) 반복
 // =========================
 function distributeArtifactStones(totalStone, artifactIds) {
+  if (!Array.isArray(artifactIds) || artifactIds.length === 0) {
+    throw new Error("선택된 유물이 없습니다.");
+  }
+
   const rows = artifactIds.map((id, index) => {
     const artifact = getArtifact(id);
 
@@ -77,72 +100,79 @@ function distributeArtifactStones(totalStone, artifactIds) {
       id,
       name: artifact.name,
       artifact,
+      allocated: 0,
       level: 0,
       used: 0,
-      allocated: 0,
       remain: 0,
       isMax: false
     };
   });
 
-  let remaining = totalStone;
+  // -------------------------
+  // 1차 균등 배분
+  // -------------------------
+  const count = rows.length;
+  const baseShare = Math.floor(totalStone / count);
+  let leftoverPool = totalStone % count;
 
-  while (remaining > 0) {
+  rows.forEach(row => {
+    row.allocated = baseShare;
+    recalcRowByAllocation(row);
+  });
+
+  // -------------------------
+  // 만렙 유물 남은 돌 재분배 반복
+  // -------------------------
+  while (true) {
+    let reclaimed = 0;
+
+    // 만렙 유물의 남는 돌만 회수
+    rows.forEach(row => {
+      if (row.isMax && row.remain > 0) {
+        reclaimed += row.remain;
+        row.allocated -= row.remain;
+        row.remain = 0;
+      }
+    });
+
+    reclaimed += leftoverPool;
+    leftoverPool = 0;
+
     const activeRows = rows.filter(row => !row.isMax);
 
-    if (activeRows.length === 0) {
+    if (reclaimed <= 0 || activeRows.length === 0) {
+      leftoverPool = reclaimed;
       break;
     }
 
-    const share = Math.floor(remaining / activeRows.length);
+    const share = Math.floor(reclaimed / activeRows.length);
+    leftoverPool = reclaimed % activeRows.length;
 
     if (share <= 0) {
       break;
     }
 
-    let spentThisRound = 0;
-
-    for (const row of activeRows) {
-      const maxLevel = row.artifact.maxLevel;
-
-      if (row.level >= maxLevel) {
-        row.isMax = true;
-        continue;
-      }
-
-      const targetLevel = findReachableLevel(row.artifact, row.level, share);
-      const cost = getStoneCostBetween(row.artifact, row.level, targetLevel);
-
+    activeRows.forEach(row => {
       row.allocated += share;
-
-      if (cost > 0) {
-        row.level = targetLevel;
-        row.used += cost;
-        spentThisRound += cost;
-      }
-
-      if (row.level >= maxLevel) {
-        row.isMax = true;
-      }
-    }
-
-    if (spentThisRound <= 0) {
-      break;
-    }
-
-    remaining -= spentThisRound;
+      recalcRowByAllocation(row);
+    });
   }
 
-  for (const row of rows) {
-    row.remain = row.allocated - row.used;
-  }
+  // -------------------------
+  // 최종 남은 돌 계산
+  // 미만렙 유물 remain + leftoverPool
+  // -------------------------
+  const finalRemaining =
+    rows.reduce((sum, row) => sum + row.remain, 0) + leftoverPool;
+
+  const finalUsed = totalStone - finalRemaining;
 
   return {
     totalStone,
-    usedStone: totalStone - remaining,
-    remainingStone: remaining,
+    usedStone: finalUsed,
+    remainingStone: finalRemaining,
     artifactCount: rows.length,
-    perArtifactBase: rows.length > 0 ? Math.floor(totalStone / rows.length) : 0,
+    perArtifactBase: baseShare,
     rows: rows.map(row => ({
       no: row.no,
       name: row.name,
