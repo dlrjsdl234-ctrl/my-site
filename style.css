@@ -5,51 +5,50 @@
 }
 
 :root {
-  --main-blue: #4da6ff;
-  --sub-blue: #8fd3ff;
-  --bg-sky: #eaf6ff;
-  --card-bg: #ffffff;
-  --text-main: #222;
-  --text-sub: #666;
-  --border: #d9e8f5;
-  --green: #55b955;
-  --green-dark: #43a843;
+  --purple-main: #6d4aff;
+  --purple-dark: #4c2fd1;
+  --purple-light: #f4f0ff;
+  --purple-soft: #ede7ff;
+  --text-main: #1f1f2e;
+  --text-sub: #6b6b80;
+  --white: #ffffff;
+  --border: #e7e2f8;
+  --shadow: 0 10px 30px rgba(93, 63, 211, 0.12);
 }
 
 body {
   font-family: "Segoe UI", Arial, sans-serif;
-  background: linear-gradient(180deg, #dff3ff 0%, #f7fbff 100%);
+  background: linear-gradient(135deg, #f8f6ff 0%, #f2edff 100%);
   color: var(--text-main);
-}
-
-.wrapper {
-  max-width: 1500px;
-  margin: 24px auto;
-  padding: 0 20px;
 }
 
 .container {
   display: flex;
-  min-height: calc(100vh - 48px);
-  border-radius: 24px;
-  overflow: hidden;
-  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.08);
-  background: #fff;
+  min-height: 100vh;
 }
 
+/* 왼쪽 메뉴 */
 .sidebar {
-  width: 240px;
-  background: linear-gradient(180deg, var(--main-blue), #6ec1ff);
-  padding: 28px 16px;
-  color: white;
-  box-shadow: 3px 0 10px rgba(0, 0, 0, 0.08);
+  width: 260px;
+  background: linear-gradient(180deg, var(--purple-dark), var(--purple-main));
+  color: var(--white);
+  padding: 32px 20px;
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.08);
+  position: sticky;
+  top: 0;
+  height: 100vh;
 }
 
 .logo {
   font-size: 24px;
-  font-weight: bold;
-  text-align: center;
-  margin-bottom: 30px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.logo-sub {
+  font-size: 13px;
+  opacity: 0.8;
+  margin-bottom: 32px;
 }
 
 .menu {
@@ -57,205 +56,138 @@ body {
 }
 
 .menu li {
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .menu a {
   display: block;
-  padding: 12px 14px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
+  padding: 14px 16px;
+  border-radius: 14px;
+  color: var(--white);
   text-decoration: none;
-  transition: 0.2s;
+  font-size: 15px;
   font-weight: 500;
+  background: rgba(255, 255, 255, 0.08);
+  transition: all 0.2s ease;
 }
 
 .menu a:hover {
-  background: rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.18);
   transform: translateX(4px);
 }
 
 .menu a.active {
-  background: white;
-  color: var(--main-blue);
-  font-weight: bold;
+  background: var(--white);
+  color: var(--purple-dark);
+  font-weight: 700;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
 }
 
+/* 오른쪽 화면 */
 .content {
   flex: 1;
-  padding: 30px;
-  background: #f8fcff;
+  padding: 40px;
 }
 
-.top-banner {
-  background: linear-gradient(135deg, var(--main-blue), var(--sub-blue));
-  color: white;
-  padding: 30px;
-  border-radius: 20px;
-  margin-bottom: 24px;
-  box-shadow: 0 8px 24px rgba(77, 166, 255, 0.2);
+.top-box {
+  background: linear-gradient(135deg, var(--purple-main), #8d72ff);
+  color: var(--white);
+  border-radius: 24px;
+  padding: 36px;
+  box-shadow: var(--shadow);
+  margin-bottom: 28px;
 }
 
-.top-banner h1 {
-  margin-bottom: 10px;
+.top-box h1 {
   font-size: 32px;
+  margin-bottom: 12px;
 }
 
-.top-banner p {
-  font-size: 15px;
+.top-box p {
+  font-size: 16px;
+  line-height: 1.7;
   opacity: 0.95;
 }
 
-.calc-card {
-  background: var(--card-bg);
-  border: 2px solid var(--border);
-  border-radius: 24px;
-  padding: 28px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+.card-wrap {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
 }
 
-.section-title {
-  font-size: 30px;
-  margin-bottom: 20px;
-  color: #1f3a56;
+.card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: var(--shadow);
 }
 
-.timer-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 18px;
-  flex-wrap: wrap;
+.card h2 {
+  font-size: 20px;
+  margin-bottom: 12px;
+  color: var(--purple-dark);
 }
 
-.timer-input {
-  width: 220px;
-}
-
-.timer-display {
-  font-size: 32px;
-  font-weight: bold;
-  margin-bottom: 26px;
-  color: #1f3a56;
-}
-
-.form-list {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.form-row {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-}
-
-.form-row label {
-  width: 140px;
-  font-weight: 700;
-  color: #222;
-  flex-shrink: 0;
-}
-
-.form-row input,
-.timer-input {
-  flex: 1;
-  padding: 13px 14px;
-  border: 1px solid #c8d8e8;
-  border-radius: 10px;
-  font-size: 16px;
-  background: #fff;
-}
-
-.form-row input:focus,
-.timer-input:focus {
-  outline: none;
-  border-color: var(--main-blue);
-  box-shadow: 0 0 0 4px rgba(77, 166, 255, 0.12);
-}
-
-.action-area {
-  text-align: center;
-  margin: 28px 0 20px;
-}
-
-.btn {
-  display: inline-block;
-  padding: 12px 20px;
-  border-radius: 12px;
-  border: none;
-  cursor: pointer;
-  font-size: 15px;
-  font-weight: 700;
-}
-
-.btn-green {
-  background: var(--green);
-  color: white;
-}
-
-.btn-green:hover {
-  background: var(--green-dark);
-}
-
-.btn-large {
-  min-width: 140px;
-  padding: 14px 24px;
-}
-
-.result-box {
-  margin-top: 10px;
-  padding: 18px;
-  border-radius: 14px;
-  background: #f9fcff;
-  border: 1px solid #dbe7f2;
-  white-space: pre-line;
+.card p {
+  color: var(--text-sub);
   line-height: 1.7;
-  min-height: 90px;
-  color: #333;
+  font-size: 15px;
 }
 
-@media (max-width: 960px) {
+.info-list {
+  margin-top: 14px;
+  padding-left: 18px;
+  color: var(--text-sub);
+}
+
+.info-list li {
+  margin-bottom: 8px;
+  line-height: 1.6;
+}
+
+.full-card {
+  grid-column: 1 / -1;
+}
+
+.button {
+  display: inline-block;
+  margin-top: 16px;
+  padding: 12px 18px;
+  background: var(--purple-main);
+  color: var(--white);
+  text-decoration: none;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: 0.2s ease;
+}
+
+.button:hover {
+  background: var(--purple-dark);
+}
+
+/* 반응형 */
+@media (max-width: 900px) {
   .container {
     flex-direction: column;
   }
 
   .sidebar {
     width: 100%;
+    height: auto;
+    position: relative;
   }
 
   .content {
     padding: 20px;
   }
 
-  .form-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
+  .card-wrap {
+    grid-template-columns: 1fr;
   }
 
-  .form-row label {
-    width: 100%;
-  }
-
-  .form-row input,
-  .timer-input {
-    width: 100%;
-  }
-
-  .timer-row {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .top-banner h1 {
+  .top-box h1 {
     font-size: 26px;
-  }
-
-  .section-title {
-    font-size: 24px;
   }
 }
 
