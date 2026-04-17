@@ -30,7 +30,10 @@
 
 <script type="module">
   import { renderTable } from "../../js/table-viewer.js";
-  renderTable("../../datas/hanpo-table.csv", "tableContainer");
+  renderTable("../../datas/hanpo-table.csv", "tableContainer", {
+    search: false,
+    levelFilter: true
+  });
 </script>
 </body>
 </html>

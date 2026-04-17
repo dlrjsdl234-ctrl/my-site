@@ -13,7 +13,7 @@ import { loadCSV } from "./csv-loader.js";
  * @param {boolean} [options.sortable=true] - 컬럼 정렬 기능
  */
 export async function renderTable(csvPath, containerId, options = {}) {
-  const { search = true, sortable = true } = options;
+  const { search = true, sortable = true, levelFilter = false } = options;
 
   const container = document.getElementById(containerId);
   if (!container) return;
@@ -61,6 +61,21 @@ export async function renderTable(csvPath, containerId, options = {}) {
     container.appendChild(searchInput);
   }
 
+  // 레벨 필터 입력
+  let levelInput = null;
+  if (levelFilter) {
+    levelInput = document.createElement("input");
+    levelInput.type = "number";
+    levelInput.placeholder = "레벨 입력...";
+    levelInput.className = "table-search";
+    levelInput.min = "1";
+    levelInput.addEventListener("input", () => {
+      applyFilter();
+      render();
+    });
+    container.appendChild(levelInput);
+  }
+
   const tableWrap = document.createElement("div");
   tableWrap.className = "table-container";
   container.appendChild(tableWrap);
@@ -71,12 +86,26 @@ export async function renderTable(csvPath, containerId, options = {}) {
 
   function applyFilter() {
     const query = searchInput ? searchInput.value.trim().toLowerCase() : "";
-    if (!query) {
-      filteredRows = rows;
-    } else {
-      filteredRows = rows.filter(row =>
+    const levelVal = levelInput ? levelInput.value.trim() : "";
+
+    filteredRows = rows;
+
+    if (query) {
+      filteredRows = filteredRows.filter(row =>
         activeHeaders.some(h => String(row[h]).toLowerCase().includes(query))
       );
+    }
+
+    if (levelVal) {
+      const lv = Number(levelVal);
+      if (Number.isFinite(lv)) {
+        // 첫 번째 컬럼(레벨)에서 숫자 매칭
+        const lvCol = activeHeaders[0];
+        filteredRows = filteredRows.filter(row => {
+          const rowLv = Number(String(row[lvCol] || "").replace(/,/g, "").trim());
+          return rowLv === lv;
+        });
+      }
     }
   }
 
