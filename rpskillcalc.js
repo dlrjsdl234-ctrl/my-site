@@ -108,7 +108,7 @@ function renderTable() {
           value="0"
         >
       </td>
-      <td class="need-rp">0</td>
+      <td class="need-rp highlight">0</td>
     </tr>
   `).join("");
 }
