@@ -41,9 +41,40 @@
           </div>
         </div>
       </section>
+
+      <section class="calc-card" style="margin-top: 24px;">
+        <div class="result-section">
+          <div class="result-title">기여자</div>
+          <div class="contributors">
+            <div class="contributor">
+              <img src="assets/건버드.png" alt="건버드" class="contributor-img">
+              <span class="contributor-name">건버드</span>
+            </div>
+            <div class="contributor">
+              <img src="assets/카츠키치.png" alt="카츠키치" class="contributor-img">
+              <span class="contributor-name">카츠키치</span>
+            </div>
+            <div class="contributor">
+              <img src="assets/혀니.png" alt="혀니" class="contributor-img">
+              <span class="contributor-name">혀니</span>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
 
   </div>
 </div>
+<div class="img-overlay" id="imgOverlay" onclick="this.classList.remove('show')">
+  <img id="overlayImg" src="" alt="">
+</div>
+<script>
+  document.querySelectorAll(".contributor-img").forEach(img => {
+    img.addEventListener("click", () => {
+      document.getElementById("overlayImg").src = img.src;
+      document.getElementById("imgOverlay").classList.add("show");
+    });
+  });
+</script>
 </body>
 </html>

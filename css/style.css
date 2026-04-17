@@ -1181,6 +1181,66 @@ th {
 }
 
 /* ==============================
+   기여자 목록
+   ============================== */
+
+.contributors {
+  display: flex;
+  gap: 28px;
+  justify-content: center;
+  flex-wrap: wrap;
+  padding: 12px 0;
+}
+
+.contributor {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.contributor-img {
+  width: 120px;
+  border-radius: 12px;
+  border: 2px solid var(--border);
+  transition: 0.2s;
+}
+
+.contributor-img:hover {
+  border-color: var(--main-blue);
+  transform: scale(1.05);
+  cursor: pointer;
+}
+
+.img-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 9999;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+
+.img-overlay.show {
+  display: flex;
+}
+
+.img-overlay img {
+  max-width: 90vw;
+  max-height: 90vh;
+  border-radius: 16px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+.contributor-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+/* ==============================
    사이드바 하단 초기화 버튼
    ============================== */
 
