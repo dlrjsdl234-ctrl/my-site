@@ -5,20 +5,18 @@
 }
 
 :root {
-  --purple-main: #6d4aff;
-  --purple-dark: #4c2fd1;
-  --purple-light: #f4f0ff;
-  --purple-soft: #ede7ff;
-  --text-main: #1f1f2e;
-  --text-sub: #6b6b80;
-  --white: #ffffff;
-  --border: #e7e2f8;
-  --shadow: 0 10px 30px rgba(93, 63, 211, 0.12);
+  --main-blue: #4da6ff;
+  --sub-blue: #8fd3ff;
+  --bg-sky: #eaf6ff;
+  --card-bg: #ffffff;
+  --text-main: #333;
+  --text-sub: #666;
+  --border: #d6ecff;
 }
 
 body {
   font-family: "Segoe UI", Arial, sans-serif;
-  background: linear-gradient(135deg, #f8f6ff 0%, #f2edff 100%);
+  background: linear-gradient(180deg, #dff3ff 0%, #f7fbff 100%);
   color: var(--text-main);
 }
 
@@ -29,26 +27,18 @@ body {
 
 /* 왼쪽 메뉴 */
 .sidebar {
-  width: 260px;
-  background: linear-gradient(180deg, var(--purple-dark), var(--purple-main));
-  color: var(--white);
-  padding: 32px 20px;
-  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.08);
-  position: sticky;
-  top: 0;
-  height: 100vh;
+  width: 240px;
+  background: linear-gradient(180deg, var(--main-blue), #6ec1ff);
+  padding: 25px 15px;
+  color: white;
+  box-shadow: 3px 0 10px rgba(0,0,0,0.1);
 }
 
 .logo {
-  font-size: 24px;
-  font-weight: 700;
-  margin-bottom: 8px;
-}
-
-.logo-sub {
-  font-size: 13px;
-  opacity: 0.8;
-  margin-bottom: 32px;
+  font-size: 22px;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 30px;
 }
 
 .menu {
@@ -56,114 +46,92 @@ body {
 }
 
 .menu li {
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .menu a {
   display: block;
-  padding: 14px 16px;
-  border-radius: 14px;
-  color: var(--white);
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.2);
+  color: white;
   text-decoration: none;
-  font-size: 15px;
+  transition: 0.2s;
   font-weight: 500;
-  background: rgba(255, 255, 255, 0.08);
-  transition: all 0.2s ease;
 }
 
 .menu a:hover {
-  background: rgba(255, 255, 255, 0.18);
+  background: rgba(255,255,255,0.35);
   transform: translateX(4px);
 }
 
 .menu a.active {
-  background: var(--white);
-  color: var(--purple-dark);
-  font-weight: 700;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  background: white;
+  color: var(--main-blue);
+  font-weight: bold;
 }
 
-/* 오른쪽 화면 */
+/* 오른쪽 */
 .content {
   flex: 1;
-  padding: 40px;
+  padding: 30px;
 }
 
-.top-box {
-  background: linear-gradient(135deg, var(--purple-main), #8d72ff);
-  color: var(--white);
-  border-radius: 24px;
-  padding: 36px;
-  box-shadow: var(--shadow);
-  margin-bottom: 28px;
+/* 상단 배너 */
+.top-banner {
+  background: linear-gradient(135deg, var(--main-blue), var(--sub-blue));
+  color: white;
+  padding: 30px;
+  border-radius: 20px;
+  margin-bottom: 20px;
 }
 
-.top-box h1 {
-  font-size: 32px;
-  margin-bottom: 12px;
+.top-banner h1 {
+  margin-bottom: 10px;
 }
 
-.top-box p {
-  font-size: 16px;
-  line-height: 1.7;
-  opacity: 0.95;
-}
-
+/* 카드 */
 .card-wrap {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 20px;
 }
 
 .card {
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 24px;
-  box-shadow: var(--shadow);
+  background: var(--card-bg);
+  border: 2px solid var(--border);
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
 }
 
 .card h2 {
-  font-size: 20px;
-  margin-bottom: 12px;
-  color: var(--purple-dark);
+  color: var(--main-blue);
+  margin-bottom: 10px;
 }
 
 .card p {
   color: var(--text-sub);
-  line-height: 1.7;
-  font-size: 15px;
-}
-
-.info-list {
-  margin-top: 14px;
-  padding-left: 18px;
-  color: var(--text-sub);
-}
-
-.info-list li {
-  margin-bottom: 8px;
   line-height: 1.6;
 }
 
-.full-card {
+.full {
   grid-column: 1 / -1;
 }
 
-.button {
+/* 버튼 */
+.btn {
   display: inline-block;
-  margin-top: 16px;
-  padding: 12px 18px;
-  background: var(--purple-main);
-  color: var(--white);
-  text-decoration: none;
+  margin-top: 15px;
+  padding: 10px 16px;
   border-radius: 12px;
-  font-weight: 600;
-  transition: 0.2s ease;
+  background: var(--main-blue);
+  color: white;
+  text-decoration: none;
 }
 
-.button:hover {
-  background: var(--purple-dark);
+.btn:hover {
+  background: #3399ff;
 }
 
 /* 반응형 */
@@ -174,20 +142,10 @@ body {
 
   .sidebar {
     width: 100%;
-    height: auto;
-    position: relative;
-  }
-
-  .content {
-    padding: 20px;
   }
 
   .card-wrap {
     grid-template-columns: 1fr;
-  }
-
-  .top-box h1 {
-    font-size: 26px;
   }
 }
 
