@@ -480,16 +480,16 @@ input[type="text"]:focus,
 .table-wrap {
   width: 100%;
   max-width: 100%;
-  overflow-x: auto;
+  overflow-x: hidden;   /* 가로 스크롤 제거 */
   overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
   background: white;
-  min-width: 600px;
+  table-layout: fixed;   /* 셀 너비 고정 분배 */
+  min-width: unset;      /* 최소 너비 제거 */
 }
 
 th,
@@ -499,7 +499,9 @@ td {
   font-size: 13px;
   text-align: center;
   vertical-align: middle;
-  word-break: break-word;
+  white-space: normal;         /* 줄바꿈 허용 */
+  word-break: break-word;      /* 긴 단어 줄바꿈 */
+  overflow-wrap: anywhere;     /* 긴 문자열 강제 줄바꿈 */
 }
 
 th {
@@ -639,7 +641,13 @@ th {
   }
 
   table {
-    min-width: 520px;
+    min-width: unset;
+  }
+
+  th,
+  td {
+    font-size: 12px;
+    padding: 8px 6px;
   }
 }
 
