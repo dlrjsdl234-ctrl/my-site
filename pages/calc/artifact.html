@@ -31,7 +31,7 @@
           <div class="form-list">
             <div class="form-row">
               <label for="totalStone">총 수호자의 돌</label>
-              <input type="number" id="totalStone" value="30000" min="0">
+              <input type="number" id="totalStone" placeholder="사용할 수호자의돌을 입력하세요 예)30000" min="0">
             </div>
           </div>
 
@@ -71,10 +71,11 @@
           <div class="form-list">
             <div class="form-row">
               <label for="remainStone">잔여 수호자의 돌</label>
-              <input type="number" id="remainStone" value="30000" min="0">
+              <input type="number" id="remainStone" placeholder="현재 소유 수호자의돌을 입력하세요 예)30000" min="0">
             </div>
           </div>
 
+          <p style="color: var(--text-sub); font-size: 14px; margin-bottom: 12px;">현재 투자된 유물 레벨을 입력하면, 잔여 돌로 다음에 어떤 유물을 올릴지 추천합니다. (0레벨 유물은 제외)</p>
           <h2 class="section-title">현재 유물 레벨</h2>
           <div class="artifact-level-list" id="artifactLevelList"></div>
 
@@ -276,10 +277,23 @@
       return;
     }
 
-    ol.innerHTML = result.steps.map(step => `
+    // 같은 유물을 최종 1행으로 합침
+    const byName = new Map();
+    for (const step of result.steps) {
+      if (byName.has(step.name)) {
+        const existing = byName.get(step.name);
+        existing.to = step.to;
+        existing.cost += step.cost;
+      } else {
+        byName.set(step.name, { ...step });
+      }
+    }
+    const merged = [...byName.values()];
+
+    ol.innerHTML = merged.map(step => `
       <li>
         <strong>${step.name}</strong> ${step.from} → ${step.to} 레벨
-        <span class="cost-info">| 사용: ${formatNumber(step.cost)} | 남은 돌: ${formatNumber(step.remaining)}</span>
+        <span class="cost-info">| 사용: ${formatNumber(step.cost)}</span>
       </li>
     `).join("");
   };

@@ -100,4 +100,9 @@ function clearStorageAndReload() {
 
 document.addEventListener("DOMContentLoaded", () => {
   buildSidebar();
+
+  // number input 스크롤로 값 변경 방지
+  document.addEventListener("wheel", (e) => {
+    if (e.target.type === "number") e.target.blur();
+  }, { passive: true });
 });
