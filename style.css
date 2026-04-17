@@ -1,4 +1,4 @@
-/*26.04.17 22시 04분 수정*/
+/*26.04.17 22시 08분 수정*/
 * {
   margin: 0;
   padding: 0;
@@ -470,9 +470,10 @@ input[type="text"]:focus,
   color: #1f2d3d;
 }
 
+/* 기본 초월 정보는 조금 좁게, 특성/유물 정보는 조금 넓게 */
 .double-section {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 0.8fr 1.2fr;
   gap: 24px;
   min-width: 0;
 }
@@ -480,7 +481,7 @@ input[type="text"]:focus,
 .table-wrap {
   width: 100%;
   max-width: 100%;
-  overflow-x: hidden;   /* 가로 스크롤 제거 */
+  overflow-x: hidden;
   overflow-y: hidden;
 }
 
@@ -488,8 +489,8 @@ table {
   width: 100%;
   border-collapse: collapse;
   background: white;
-  table-layout: fixed;   /* 셀 너비 고정 분배 */
-  min-width: unset;      /* 최소 너비 제거 */
+  table-layout: fixed;
+  min-width: unset;
 }
 
 th,
@@ -499,9 +500,9 @@ td {
   font-size: 13px;
   text-align: center;
   vertical-align: middle;
-  white-space: normal;         /* 줄바꿈 허용 */
-  word-break: break-word;      /* 긴 단어 줄바꿈 */
-  overflow-wrap: anywhere;     /* 긴 문자열 강제 줄바꿈 */
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 th {
@@ -509,9 +510,49 @@ th {
   color: white;
 }
 
+/* 기본 초월 정보 컬럼 비율 */
+#baseInfoTable td:nth-child(1),
+#baseInfoTable th:nth-child(1) {
+  width: 42%;
+}
+
+#baseInfoTable td:nth-child(2),
+#baseInfoTable th:nth-child(2) {
+  width: 58%;
+}
+
+/* 특성 / 유물 정보는 한 줄 유지 */
+#traitInfoTable td,
+#traitInfoTable th {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+/* 특성 / 유물 정보 컬럼 비율 */
+#traitInfoTable td:nth-child(1),
+#traitInfoTable th:nth-child(1) {
+  width: 28%;
+}
+
+#traitInfoTable td:nth-child(2),
+#traitInfoTable th:nth-child(2) {
+  width: 47%;
+}
+
+#traitInfoTable td:nth-child(3),
+#traitInfoTable th:nth-child(3) {
+  width: 25%;
+}
+
 @media (max-width: 1100px) {
   .summary-cards,
-  .quick-info-grid,
+  .quick-info-grid {
+    grid-template-columns: 1fr;
+  }
+
   .double-section {
     grid-template-columns: 1fr;
   }
@@ -640,8 +681,14 @@ th {
     font-size: 24px;
   }
 
-  table {
-    min-width: unset;
+  /* 모바일에서는 다시 줄바꿈 허용 */
+  #traitInfoTable td,
+  #traitInfoTable th {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+    word-break: break-word;
+    overflow-wrap: anywhere;
   }
 
   th,
