@@ -6,7 +6,7 @@
 
   <style>
     body {
-      font-family: Arial;
+      font-family: Arial, sans-serif;
       background: #f5f5f5;
       text-align: center;
       margin-top: 30px;
@@ -16,35 +16,66 @@
       background: white;
       padding: 30px;
       margin: auto;
-      width: 600px;
+      width: 640px;
       border-radius: 20px;
-      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
     }
 
-    input {
+    input[type="number"] {
       width: 100%;
-      padding: 8px;
-      margin: 10px 0;
+      padding: 10px;
+      margin: 10px 0 16px;
+      box-sizing: border-box;
     }
 
     .artifact-list {
       text-align: left;
       margin-top: 10px;
-      max-height: 200px;
+      max-height: 260px;
       overflow-y: auto;
       border: 1px solid #ddd;
-      padding: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: #fafafa;
     }
 
-    .artifact-list label {
-      display: block;
-      margin: 3px 0;
+    .artifact-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 4px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .artifact-item:last-child {
+      border-bottom: none;
+    }
+
+    .artifact-item:hover {
+      background: #f0f0f0;
+      border-radius: 6px;
+    }
+
+    .artifact-name {
+      font-size: 14px;
+    }
+
+    .artifact-item input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      margin: 0;
+      flex-shrink: 0;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
     }
 
     button {
-      margin-top: 10px;
+      flex: 1;
       padding: 10px;
-      width: 100%;
       border: none;
       border-radius: 10px;
       background: #4CAF50;
@@ -60,17 +91,29 @@
       margin-top: 20px;
       width: 100%;
       border-collapse: collapse;
+      background: white;
     }
 
     th, td {
       border: 1px solid #ddd;
-      padding: 6px;
+      padding: 8px;
       font-size: 12px;
+      text-align: center;
     }
 
     th {
       background: #4CAF50;
       color: white;
+    }
+
+    .summary {
+      margin-top: 18px;
+      text-align: left;
+      font-size: 14px;
+      background: #fafafa;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 12px;
     }
   </style>
 
@@ -78,136 +121,152 @@
   <script src="artifactCalc.js"></script>
   <script src="common.js"></script>
 </head>
-
 <body>
 
-<div class="box">
-  <h2>🔮 유물 계산기</h2>
+  <div class="box">
+    <h2>🔮 유물 계산기</h2>
 
-  <label>총 수호자의 돌</label>
-  <input type="number" id="totalStone" value="30000">
+    <label for="totalStone">총 수호자의 돌</label>
+    <input type="number" id="totalStone" value="30000" min="0">
 
-  <h3>유물 선택</h3>
+    <h3>유물 선택</h3>
 
-  <button onclick="selectAll()">전체 선택</button>
-  <button onclick="clearAll()">전체 해제</button>
+    <div class="button-row">
+      <button type="button" onclick="selectAllArtifacts()">전체 선택</button>
+      <button type="button" onclick="clearAllArtifacts()">전체 해제</button>
+    </div>
 
-  <div class="artifact-list" id="artifactList"></div>
+    <div class="artifact-list" id="artifactList"></div>
 
-  <button onclick="calculate()">계산하기</button>
-  <button onclick="fnBack()">뒤로가기</button>
+    <div class="button-row">
+      <button type="button" onclick="calculateArtifacts()">계산하기</button>
+      <button type="button" onclick="fnBack()">뒤로가기</button>
+    </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>번호</th>
-        <th>유물</th>
-        <th>배분량</th>
-        <th>도달 레벨</th>
-        <th>사용 돌</th>
-        <th>남은 돌</th>
-        <th>만렙</th>
-      </tr>
-    </thead>
-    <tbody id="result"></tbody>
-  </table>
-</div>
+    <div class="summary" id="summaryBox">
+      총 선택 유물 수: 0<br>
+      총 사용 돌: 0<br>
+      총 남은 돌: 0
+    </div>
 
-<script>
+    <table>
+      <thead>
+        <tr>
+          <th>번호</th>
+          <th>유물</th>
+          <th>배분량</th>
+          <th>도달 레벨</th>
+          <th>사용 돌</th>
+          <th>남은 돌</th>
+          <th>만렙</th>
+        </tr>
+      </thead>
+      <tbody id="result"></tbody>
+    </table>
+  </div>
 
-// =======================
-// 유물 목록 생성
-// =======================
-function initArtifactList() {
-  const container = document.getElementById("artifactList");
+  <script>
+    function initArtifactList() {
+      const container = document.getElementById("artifactList");
+      container.innerHTML = "";
 
-  window.ARTIFACT_KEYS.forEach(key => {
-    const art = window.ARTIFACTS[key];
+      window.ARTIFACT_KEYS.forEach((key) => {
+        const art = window.ARTIFACTS[key];
 
-    const label = document.createElement("label");
+        const label = document.createElement("label");
+        label.className = "artifact-item";
 
-    label.innerHTML = `
-      <input type="checkbox" value="${key}">
-      ${art.name}
-    `;
+        label.innerHTML = `
+          <span class="artifact-name">${art.name}</span>
+          <input type="checkbox" value="${key}">
+        `;
 
-    container.appendChild(label);
-  });
-}
+        container.appendChild(label);
+      });
+    }
 
-// =======================
-// 선택된 유물 가져오기
-// =======================
-function getSelectedArtifacts() {
-  const checked = document.querySelectorAll("#artifactList input:checked");
-  return Array.from(checked).map(el => el.value);
-}
+    function getSelectedArtifacts() {
+      const checked = document.querySelectorAll("#artifactList input:checked");
+      return Array.from(checked).map((el) => el.value);
+    }
 
-// =======================
-// 전체 선택
-// =======================
-function selectAll() {
-  document.querySelectorAll("#artifactList input")
-    .forEach(el => el.checked = true);
-}
+    function selectAllArtifacts() {
+      document.querySelectorAll("#artifactList input[type='checkbox']")
+        .forEach((el) => {
+          el.checked = true;
+        });
+    }
 
-// =======================
-// 전체 해제
-// =======================
-function clearAll() {
-  document.querySelectorAll("#artifactList input")
-    .forEach(el => el.checked = false);
-}
+    function clearAllArtifacts() {
+      document.querySelectorAll("#artifactList input[type='checkbox']")
+        .forEach((el) => {
+          el.checked = false;
+        });
+    }
 
-// =======================
-// 계산 실행
-// =======================
-function calculate() {
-  const total = Number(document.getElementById("totalStone").value);
-  const ids = getSelectedArtifacts();
+    function calculateArtifacts() {
+      const totalStone = Number(document.getElementById("totalStone").value);
+      const selectedIds = getSelectedArtifacts();
 
-  if (ids.length === 0) {
-    alert("유물을 선택하세요");
-    return;
-  }
+      if (!Number.isFinite(totalStone) || totalStone < 0) {
+        alert("총 수호자의 돌을 올바르게 입력하세요.");
+        return;
+      }
 
-  const result = distributeArtifactStones(total, ids);
-  render(result.rows);
-}
+      if (selectedIds.length === 0) {
+        alert("유물을 하나 이상 선택하세요.");
+        return;
+      }
 
-// =======================
-// 테이블 출력
-// =======================
-function render(rows) {
-  const tbody = document.getElementById("result");
-  tbody.innerHTML = "";
+      try {
+        const result = distributeArtifactStones(totalStone, selectedIds);
+        renderArtifactTable(result.rows);
+        renderSummary(result);
+      } catch (error) {
+        console.error(error);
+        alert(error.message || "계산 중 오류가 발생했습니다.");
+      }
+    }
 
-  rows.forEach(r => {
-    const tr = document.createElement("tr");
+    function renderArtifactTable(rows) {
+      const tbody = document.getElementById("result");
+      tbody.innerHTML = "";
 
-    tr.innerHTML = `
-      <td>${r.no}</td>
-      <td>${r.name}</td>
-      <td>${r.allocatedStone}</td>
-      <td>${r.reachedLevel}</td>
-      <td>${r.usedStone}</td>
-      <td>${r.remainStone}</td>
-      <td>${r.maxCheck}</td>
-    `;
+      rows.forEach((row) => {
+        const tr = document.createElement("tr");
 
-    tbody.appendChild(tr);
-  });
-}
+        tr.innerHTML = `
+          <td>${row.no}</td>
+          <td>${row.name}</td>
+          <td>${formatNumber(row.allocatedStone)}</td>
+          <td>${formatNumber(row.reachedLevel)}</td>
+          <td>${formatNumber(row.usedStone)}</td>
+          <td>${formatNumber(row.remainStone)}</td>
+          <td>${row.maxCheck}</td>
+        `;
 
-// 뒤로가기
-function fnBack() {
-  window.location.href = "index.html";
-}
+        tbody.appendChild(tr);
+      });
+    }
 
-// 실행
-initArtifactList();
+    function renderSummary(result) {
+      const box = document.getElementById("summaryBox");
+      box.innerHTML = `
+        총 선택 유물 수: ${formatNumber(result.artifactCount)}<br>
+        총 사용 돌: ${formatNumber(result.usedStone)}<br>
+        총 남은 돌: ${formatNumber(result.remainingStone)}
+      `;
+    }
 
-</script>
+    function formatNumber(value) {
+      return Number(value || 0).toLocaleString("ko-KR");
+    }
 
+    function fnBack() {
+      window.location.href = "index.html";
+    }
+
+    initArtifactList();
+  </script>
 </body>
 </html>
