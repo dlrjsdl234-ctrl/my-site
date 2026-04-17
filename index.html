@@ -1,58 +1,48 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <title>내 첫 사이트</title>
-    <style>
-        body {
-            font-family: Arial;
-            text-align: center;
-            margin-top: 100px;
-            background: #f5f5f5;
-        }
-
-        .box {
-            background: white;
-            padding: 40px;
-            margin: auto;
-            width: 300px;
-            border-radius: 20px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-        }
-
-        button {
-            display: block;
-            width: 100%;
-            margin: 10px 0;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 10px;
-            background: #4CAF50;
-            color: white;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background: #45a049;
-        }
-    </style>
-    <script src="common.js"></script>
-    <script>
-        function fnArtifactPage() {
-            location.href = "artifactCalc.html";
-        }
-    </script>
+  <meta charset="UTF-8">
+  <title>홈</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-    <div class="box">
-        <h1>👋 안녕!</h1>
-        <p>이건 내가 만든 첫 웹사이트야 혀니 왔다감</p>
+<div class="container">
 
-        <button onclick="fnMachine();">환포계산기 이동</button>
-        <button onclick="fnExpPage();">경험치 계산기</button>
-        <button onclick="fnArtifactPage();">유물 계산기</button>
-        <button onclick="fnalert('건버드의 테스트');">눌러봐</button>
+  <aside class="sidebar">
+    <div class="logo">MAPLE STYLE</div>
+    <ul class="menu">
+      <li><a href="index.html" class="active">홈</a></li>
+      <li><a href="javascript:fnMachine();">환포 계산기</a></li>
+      <li><a href="javascript:fnExpPage();">경험치 계산기</a></li>
+      <li><a href="javascript:fnArtifactPage();">유물 계산기</a></li>
+    </ul>
+  </aside>
+
+  <main class="content">
+    <div class="top-banner">
+      <h1>메이플 스타일 홈페이지</h1>
+      <p>게임 느낌의 UI + 카드형 레이아웃</p>
     </div>
+
+    <div class="card-wrap">
+      <div class="card">
+        <h2>공지사항</h2>
+        <p>새로운 업데이트 내용이 여기에 표시됩니다.</p>
+      </div>
+
+      <div class="card">
+        <h2>이벤트</h2>
+        <p>현재 진행 중인 이벤트를 확인하세요.</p>
+      </div>
+
+      <div class="card full">
+        <h2>안내</h2>
+        <p>왼쪽 메뉴를 클릭하면 다른 HTML 페이지로 이동합니다.</p>
+        <a href="about.html" class="btn">자세히 보기</a>
+      </div>
+    </div>
+  </main>
+
+</div>
 </body>
 </html>
