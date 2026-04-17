@@ -18,6 +18,10 @@ function fnMachine(){
   window.location.href = "rpMachine.html";
 }
 
+function fnExpPage() {
+  window.location.href = "expCalc.html";
+}
+
 function fnExpCalc() {
   const level = Number(prompt("현재 레벨을 입력하세요:"));
   const exp = Number(prompt("현재 경험치를 입력하세요:"));
