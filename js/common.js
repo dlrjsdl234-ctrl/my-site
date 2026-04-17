@@ -19,15 +19,15 @@ const MENU = [
 
   { section: "테이블" },
   { label: "초월정보", href: "/pages/tables/transcend.html" },
-  { label: "환포표", href: "/pages/tables/hanpo.html" },
-  { label: "SP 스킬", href: "/pages/tables/sp-skill.html" },
-  { label: "유물", href: "/pages/tables/artifact-info.html" },
   { label: "몬스터체경비", href: "/pages/tables/monster-stat.html" },
-  { label: "몬스터 디펜스", href: "/pages/tables/town-defense.html" },
-  { label: "RP 스킬", href: "/pages/tables/rpskill-perf.html" },
-  { label: "이세계스킬", href: "/pages/tables/isekai-perf.html" },
   { label: "잡팁", href: "/pages/tables/tips.html" },
   { label: "RP스킬 투자순서", href: "/pages/tables/rpskill-order.html" },
+  { label: "몬스터 디펜스", href: "/pages/tables/town-defense.html" },
+  { label: "SP 스킬", href: "/pages/tables/sp-skill.html" },
+  { label: "RP 스킬", href: "/pages/tables/rpskill-perf.html" },
+  { label: "유물", href: "/pages/tables/artifact-info.html" },
+  { label: "환포표", href: "/pages/tables/hanpo.html" },
+  { label: "이세계스킬", href: "/pages/tables/isekai-perf.html" },
 ];
 
 // ==============================
