@@ -9,22 +9,36 @@
       font-family: Arial;
       background: #f5f5f5;
       text-align: center;
-      margin-top: 40px;
+      margin-top: 30px;
     }
 
     .box {
       background: white;
       padding: 30px;
       margin: auto;
-      width: 500px;
+      width: 600px;
       border-radius: 20px;
       box-shadow: 0 5px 20px rgba(0,0,0,0.1);
     }
 
-    select, input {
+    input {
       width: 100%;
       padding: 8px;
-      margin: 5px 0;
+      margin: 10px 0;
+    }
+
+    .artifact-list {
+      text-align: left;
+      margin-top: 10px;
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      padding: 10px;
+    }
+
+    .artifact-list label {
+      display: block;
+      margin: 3px 0;
     }
 
     button {
@@ -50,7 +64,7 @@
 
     th, td {
       border: 1px solid #ddd;
-      padding: 8px;
+      padding: 6px;
       font-size: 12px;
     }
 
@@ -60,7 +74,6 @@
     }
   </style>
 
-  <!-- 필수 JS -->
   <script src="artifacts.js"></script>
   <script src="artifactCalc.js"></script>
   <script src="common.js"></script>
@@ -74,17 +87,17 @@
   <label>총 수호자의 돌</label>
   <input type="number" id="totalStone" value="30000">
 
-  <label>유물 선택</label>
-  <select id="artifact1"></select>
-  <select id="artifact2"></select>
-  <select id="artifact3"></select>
-  <select id="artifact4"></select>
-  <select id="artifact5"></select>
+  <h3>유물 선택</h3>
+
+  <button onclick="selectAll()">전체 선택</button>
+  <button onclick="clearAll()">전체 해제</button>
+
+  <div class="artifact-list" id="artifactList"></div>
 
   <button onclick="calculate()">계산하기</button>
   <button onclick="fnBack()">뒤로가기</button>
 
-  <table id="resultTable">
+  <table>
     <thead>
       <tr>
         <th>번호</th>
@@ -96,43 +109,62 @@
         <th>만렙</th>
       </tr>
     </thead>
-    <tbody></tbody>
+    <tbody id="result"></tbody>
   </table>
 </div>
 
 <script>
-// ==========================
-// 초기화: 유물 목록 채우기
-// ==========================
-function initSelects() {
-  const keys = window.ARTIFACT_KEYS;
 
-  for (let i = 1; i <= 5; i++) {
-    const select = document.getElementById("artifact" + i);
+// =======================
+// 유물 목록 생성
+// =======================
+function initArtifactList() {
+  const container = document.getElementById("artifactList");
 
-    keys.forEach(key => {
-      const art = window.ARTIFACTS[key];
+  window.ARTIFACT_KEYS.forEach(key => {
+    const art = window.ARTIFACTS[key];
 
-      const option = document.createElement("option");
-      option.value = key;
-      option.textContent = art.name;
+    const label = document.createElement("label");
 
-      select.appendChild(option);
-    });
-  }
+    label.innerHTML = `
+      <input type="checkbox" value="${key}">
+      ${art.name}
+    `;
+
+    container.appendChild(label);
+  });
 }
 
-// ==========================
+// =======================
+// 선택된 유물 가져오기
+// =======================
+function getSelectedArtifacts() {
+  const checked = document.querySelectorAll("#artifactList input:checked");
+  return Array.from(checked).map(el => el.value);
+}
+
+// =======================
+// 전체 선택
+// =======================
+function selectAll() {
+  document.querySelectorAll("#artifactList input")
+    .forEach(el => el.checked = true);
+}
+
+// =======================
+// 전체 해제
+// =======================
+function clearAll() {
+  document.querySelectorAll("#artifactList input")
+    .forEach(el => el.checked = false);
+}
+
+// =======================
 // 계산 실행
-// ==========================
+// =======================
 function calculate() {
   const total = Number(document.getElementById("totalStone").value);
-
-  const ids = [];
-  for (let i = 1; i <= 5; i++) {
-    const val = document.getElementById("artifact" + i).value;
-    if (val) ids.push(val);
-  }
+  const ids = getSelectedArtifacts();
 
   if (ids.length === 0) {
     alert("유물을 선택하세요");
@@ -140,15 +172,14 @@ function calculate() {
   }
 
   const result = distributeArtifactStones(total, ids);
-
   render(result.rows);
 }
 
-// ==========================
+// =======================
 // 테이블 출력
-// ==========================
+// =======================
 function render(rows) {
-  const tbody = document.querySelector("#resultTable tbody");
+  const tbody = document.getElementById("result");
   tbody.innerHTML = "";
 
   rows.forEach(r => {
@@ -174,7 +205,8 @@ function fnBack() {
 }
 
 // 실행
-initSelects();
+initArtifactList();
+
 </script>
 
 </body>
