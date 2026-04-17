@@ -67,8 +67,8 @@
     tbody.innerHTML = skills.map(skill => `
       <tr data-table-key="${skill.tableKey}" data-max="${skill.max}">
         <td class="skill-name">${skill.name} 최대 ${skill.max}</td>
-        <td><input class="current-lv" type="number" min="0" max="${skill.max}" value="0"></td>
-        <td><input class="target-lv" type="number" min="0" max="${skill.max}" value="0"></td>
+        <td><input class="current-lv" type="number" min="0" max="${skill.max}" placeholder="0"></td>
+        <td><input class="target-lv" type="number" min="0" max="${skill.max}" placeholder="0"></td>
         <td class="need-rp highlight">0</td>
       </tr>
     `).join("");
