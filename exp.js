@@ -566,20 +566,23 @@ function calculateLevelUpTime(currentLv, targetLv, expPerNMinutes, nMinutes) {
 
   const expPerMinute = expPerNMinutes / nMinutes;
   const totalMinutes = expInfo.requiredExp / expPerMinute;
+  const totalHours = totalMinutes / 60;
+  const totalDays = totalMinutes / 1440;
 
   const days = Math.floor(totalMinutes / 1440);
   const hours = Math.floor((totalMinutes % 1440) / 60);
-  const minutes = Math.ceil(totalMinutes % 60);
+  const minutes = Math.round(totalMinutes % 60);
 
   return {
     currentLv: expInfo.currentLv,
     targetLv: expInfo.targetLv,
     requiredExp: expInfo.requiredExp,
-    totalMinutes: Math.ceil(totalMinutes),
+    expPerMinute,
+    totalMinutes,
+    totalHours,
+    totalDays,
     days,
     hours,
     minutes
   };
 }
-
-console.log("calculateLevelUpTime type:", typeof calculateLevelUpTime);
