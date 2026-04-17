@@ -67,12 +67,23 @@ function buildSidebar() {
       html += `  <li class="menu-section">${item.section}</li>\n`;
       continue;
     }
-
+  
     const href = basePath + item.href;
-    const isActive = currentPath.endsWith(item.href) ||
-      (item.href === "/index.html" && (currentPath === "/" || currentPath.endsWith("/")));
+  
+    const normalize = (path) => {
+      if (!path) return "/";
+      return path
+        .replace(basePath, "")
+        .replace(/\/index\.html$/, "/")
+        .replace(/\/$/, "") || "/";
+    };
+  
+    const current = normalize(currentPath);
+    const target = normalize(item.href);
+  
+    const isActive = current === target;
     const activeClass = isActive ? ' class="active"' : "";
-
+  
     html += `  <li><a href="${href}"${activeClass}>${item.label}</a></li>\n`;
   }
 
