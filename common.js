@@ -28,6 +28,11 @@ function fnArtifactPage() {
   window.location.href = "artifactCalc.html";
 }
 
+// RP 스킬 계산기 이동
+function fnRPSkillPage() {
+  window.location.href = "rpskillcalc.html";
+}
+
 function fnExpCalc() {
   const level = Number(prompt("현재 레벨을 입력하세요:"));
   const exp = Number(prompt("현재 경험치를 입력하세요:"));
@@ -52,14 +57,15 @@ function fnExpCalc() {
   );
 }
 
-const currentPage = location.pathname.split("/").pop();
+document.addEventListener("DOMContentLoaded", () => {
+  const currentPage = location.pathname.split("/").pop();
+  const menuLinks = document.querySelectorAll(".menu a");
 
-const menuLinks = document.querySelectorAll(".menu a");
+  menuLinks.forEach(link => {
+    const linkPage = link.getAttribute("href");
 
-menuLinks.forEach(link => {
-  const linkPage = link.getAttribute("href");
-
-  if (linkPage === currentPage || (currentPage === "" && linkPage === "index.html")) {
-    link.classList.add("active");
-  }
+    if (linkPage === currentPage || (currentPage === "" && linkPage === "index.html")) {
+      link.classList.add("active");
+    }
+  });
 });
