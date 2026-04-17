@@ -28,11 +28,6 @@
           </div>
         </div>
 
-        <div class="action-area">
-          <button type="button" class="btn" onclick="selectAllArtifacts()">전체 선택</button>
-          <button type="button" class="btn" onclick="clearAllArtifacts()">전체 해제</button>
-        </div>
-
         <h2 class="section-title">유물 선택</h2>
         <div class="artifact-list" id="artifactList"></div>
 
@@ -89,20 +84,12 @@
       const label = document.createElement("label");
       label.className = "artifact-item";
       label.innerHTML = `
-        <span class="artifact-name">${art.name}</span>
+        <span class="artifact-name">${art.name} (${art.effect})</span>
         <input type="checkbox" value="${key}">
       `;
       container.appendChild(label);
     });
   }
-
-  window.selectAllArtifacts = function () {
-    document.querySelectorAll("#artifactList input[type='checkbox']").forEach(el => el.checked = true);
-  };
-
-  window.clearAllArtifacts = function () {
-    document.querySelectorAll("#artifactList input[type='checkbox']").forEach(el => el.checked = false);
-  };
 
   window.calculateArtifacts = function () {
     const totalStone = Number(document.getElementById("totalStone").value);
