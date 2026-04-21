@@ -22,33 +22,84 @@
         </div>
 
         <section class="calc-card">
-          <div class="form-list">
-            <div class="form-row">
-              <label for="currentLv">현재 레벨</label>
-              <input type="number" id="currentLv" placeholder="현재 레벨을 입력하세요 예)120" min="1">
-            </div>
-
-            <div class="form-row">
-              <label for="targetLv">목표 레벨</label>
-              <input type="number" id="targetLv" placeholder="목표 레벨을 입력하세요 예)455" min="1">
-            </div>
-
-            <div class="form-row">
-              <label for="expPerMinute">1분당 경험치</label>
-              <input type="number" id="expPerMinute" placeholder="1분당 경험치를 입력하세요 예)30000000" min="1">
-            </div>
-
-            <div class="form-row">
-              <label for="hourglassLv">모래시계 레벨</label>
-              <input type="number" id="hourglassLv" value="0" min="0" max="20">
-            </div>
+          <div class="tab-bar">
+            <button class="tab-btn active" data-tab="expCalc">경험치 계산</button>
+            <button class="tab-btn" data-tab="cycleOpt">사이클 최적화</button>
           </div>
 
-          <div class="action-area">
-            <button type="button" class="btn btn-green btn-large" onclick="calcExpTime()">계산하기</button>
+          <div class="tab-content active" id="tab-expCalc">
+            <div class="form-list">
+              <div class="form-row">
+                <label for="currentLv">현재 레벨</label>
+                <input type="number" id="currentLv" placeholder="현재 레벨을 입력하세요 예)120" min="1">
+              </div>
+
+              <div class="form-row">
+                <label for="targetLv">목표 레벨</label>
+                <input type="number" id="targetLv" placeholder="목표 레벨을 입력하세요 예)455" min="1">
+              </div>
+
+              <div class="form-row">
+                <label for="expPerMinute">1분당 경험치</label>
+                <input type="number" id="expPerMinute" placeholder="1분당 경험치를 입력하세요 예)30000000" min="1">
+              </div>
+
+              <div class="form-row">
+                <label for="hourglassLv">모래시계 레벨</label>
+                <input type="number" id="hourglassLv" value="0" min="0" max="20">
+              </div>
+            </div>
+
+            <div class="action-area">
+              <button type="button" class="btn btn-green btn-large" onclick="calcExpTime()">계산하기</button>
+            </div>
+
+            <div id="result" class="result-box">여기에 결과가 표시됩니다.</div>
           </div>
 
-          <div id="result" class="result-box">여기에 결과가 표시됩니다.</div>
+          <div class="tab-content" id="tab-cycleOpt">
+            <div class="form-list">
+              <div class="form-row">
+                <label for="sweepExp">소탕시 획득 경험치</label>
+                <input type="number" id="sweepExp" placeholder="소탕 1회 경험치 예)500000000" min="0">
+              </div>
+
+              <div class="form-row">
+                <label for="sweepCount">소탕 횟수</label>
+                <select id="sweepCount" class="styled-select">
+                  <option value="1">1회</option>
+                  <option value="2">2회</option>
+                  <option value="3">3회</option>
+                </select>
+              </div>
+
+              <div class="form-row">
+                <label for="totalHours">총 시간 (시간)</label>
+                <select id="totalHours" class="styled-select">
+                  <option value="12">12시간</option>
+                  <option value="24">24시간</option>
+                  <option value="48">48시간</option>
+                  <option value="72">72시간</option>
+                </select>
+              </div>
+
+              <div class="form-row">
+                <label for="cycleExpPerMinute">1분당 경험치</label>
+                <input type="number" id="cycleExpPerMinute" placeholder="1분당 경험치를 입력하세요" min="1">
+              </div>
+
+              <div class="form-row">
+                <label for="cycleHourglassLv">모래시계 레벨</label>
+                <input type="number" id="cycleHourglassLv" value="0" min="0" max="20">
+              </div>
+            </div>
+
+            <div class="action-area">
+              <button type="button" class="btn btn-green btn-large" onclick="calcCycleOpt()">계산하기</button>
+            </div>
+
+            <div id="cycleResult" class="result-box">여기에 결과가 표시됩니다.</div>
+          </div>
         </section>
       </main>
 
@@ -56,30 +107,64 @@
   </div>
 
   <script type="module">
-    import { initExpData, calculateLevelUpTime } from "../../js/calc/exp.js";
+    import { initExpData, calculateLevelUpTime, calculateCycleLevel } from "../../js/calc/exp.js";
     import { saveInputs, loadInputs } from "../../js/storage.js";
 
     await initExpData("../..");
 
-    const INPUT_IDS = ["currentLv", "targetLv", "expPerMinute", "hourglassLv"];
+    // === 탭 전환 ===
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+        document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+        btn.classList.add("active");
+        document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
+      });
+    });
 
-    // 저장된 값 복원
+    // === 입력 ID 정의 ===
+    const TAB1_IDS = ["currentLv", "targetLv", "expPerMinute", "hourglassLv"];
+    const TAB2_IDS = ["sweepExp", "sweepCount", "totalHours", "cycleExpPerMinute", "cycleHourglassLv"];
+    const SHARED_PAIRS = [
+      ["expPerMinute", "cycleExpPerMinute"],
+      ["hourglassLv", "cycleHourglassLv"]
+    ];
+
+    // === 저장 함수 ===
+    function saveAll() {
+      const data = {};
+      for (const id of TAB1_IDS) data[id] = document.getElementById(id).value;
+      for (const id of ["sweepExp", "sweepCount", "totalHours"]) data[id] = document.getElementById(id).value;
+      saveInputs("exp", data);
+    }
+
+    // === 저장된 값 복원 ===
     const saved = loadInputs("exp");
     if (saved) {
-      for (const id of INPUT_IDS) {
+      for (const id of TAB1_IDS) {
         if (saved[id] !== undefined) document.getElementById(id).value = saved[id];
+      }
+      for (const id of ["sweepExp", "sweepCount", "totalHours"]) {
+        if (saved[id] !== undefined) document.getElementById(id).value = saved[id];
+      }
+      // 공유 입력 복원
+      for (const [tab1Id, tab2Id] of SHARED_PAIRS) {
+        if (saved[tab1Id] !== undefined) document.getElementById(tab2Id).value = saved[tab1Id];
       }
     }
 
-    // 입력 변경 시 저장
-    for (const id of INPUT_IDS) {
+    // === 입력 변경 시 저장 + 공유 입력 동기화 ===
+    for (const id of [...TAB1_IDS, ...TAB2_IDS]) {
       document.getElementById(id).addEventListener("change", () => {
-        const data = {};
-        for (const id of INPUT_IDS) data[id] = document.getElementById(id).value;
-        saveInputs("exp", data);
+        for (const [tab1Id, tab2Id] of SHARED_PAIRS) {
+          if (id === tab1Id) document.getElementById(tab2Id).value = document.getElementById(tab1Id).value;
+          if (id === tab2Id) document.getElementById(tab1Id).value = document.getElementById(tab2Id).value;
+        }
+        saveAll();
       });
     }
 
+    // === 경험치 계산 (기존) ===
     function formatDate(date) {
       const y = date.getFullYear();
       const m = String(date.getMonth() + 1).padStart(2, "0");
@@ -158,6 +243,59 @@
           <div class="result-row">
             <span class="result-label">목표 달성 시간</span>
             <strong class="result-value highlight">${formatDate(targetTime)}</strong>
+          </div>
+        </div>
+      `;
+    };
+
+    // === 사이클 최적화 ===
+    window.calcCycleOpt = function () {
+      const resultEl = document.getElementById("cycleResult");
+
+      const sweepExp = Number(document.getElementById("sweepExp").value);
+      const sweepCount = Number(document.getElementById("sweepCount").value);
+      const totalHours = Number(document.getElementById("totalHours").value);
+      const expPerMinute = Number(document.getElementById("cycleExpPerMinute").value);
+      const hourglassLv = Number(document.getElementById("cycleHourglassLv").value);
+
+      const result = calculateCycleLevel(expPerMinute, hourglassLv, sweepExp, sweepCount, totalHours);
+
+      if (result.error) {
+        resultEl.innerText = result.error;
+        return;
+      }
+
+      resultEl.innerHTML = `
+        <div class="result-section">
+          <div class="result-title">사이클 정보</div>
+          <div class="result-row">
+            <span class="result-label">모래시계 배율</span>
+            <strong class="result-value">${result.multiplier.toFixed(1)}배</strong>
+          </div>
+          <div class="result-row">
+            <span class="result-label">소탕 적용 세트</span>
+            <strong class="result-value">${result.sweepSets}세트</strong>
+          </div>
+        </div>
+        <div class="result-section">
+          <div class="result-title">경험치 합산</div>
+          <div class="result-row">
+            <span class="result-label">총 사냥 경험치</span>
+            <strong class="result-value">${Math.round(result.totalHuntingExp).toLocaleString("ko-KR")}</strong>
+          </div>
+          <div class="result-row">
+            <span class="result-label">총 소탕 경험치</span>
+            <strong class="result-value">${Math.round(result.totalSweepExp).toLocaleString("ko-KR")}</strong>
+          </div>
+          <div class="result-row">
+            <span class="result-label">총 획득 경험치</span>
+            <strong class="result-value">${Math.round(result.grandTotalExp).toLocaleString("ko-KR")}</strong>
+          </div>
+        </div>
+        <div class="result-section">
+          <div class="result-title">결과</div>
+          <div class="summary-box">
+            도달 레벨: <strong>LV ${result.cycleLevel}</strong>
           </div>
         </div>
       `;

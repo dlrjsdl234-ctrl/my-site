@@ -96,3 +96,62 @@ export function calculateLevelUpTime(currentLv, targetLv, expPerMinute, hourglas
     minutes
   };
 }
+
+/**
+ * 사이클 최적화 계산
+ * LV 1에서 시작하여 주어진 시간 동안 사냥 + 소탕으로 도달 가능한 최고 레벨 산출
+ *
+ * @param {number} expPerMinute - 1분당 경험치
+ * @param {number} hourglassLv - 모래시계 레벨 (0~20)
+ * @param {number} sweepExp - 소탕 1회당 경험치
+ * @param {number} sweepCount - 소탕 횟수 (1~3)
+ * @param {number} totalHours - 총 시간 (시간 단위)
+ */
+export function calculateCycleLevel(expPerMinute, hourglassLv, sweepExp, sweepCount, totalHours) {
+  expPerMinute = Number(expPerMinute);
+  hourglassLv = Number(hourglassLv);
+  sweepExp = Number(sweepExp);
+  sweepCount = Number(sweepCount);
+  totalHours = Number(totalHours);
+
+  if (!Number.isFinite(expPerMinute) || expPerMinute <= 0) {
+    return { error: "1분당 경험치는 0보다 커야 합니다." };
+  }
+  if (!Number.isInteger(hourglassLv) || hourglassLv < 0 || hourglassLv > 20) {
+    return { error: "모래시계 레벨은 0~20 사이의 정수여야 합니다." };
+  }
+  if (!Number.isFinite(sweepExp) || sweepExp < 0) {
+    return { error: "소탕 경험치는 0 이상이어야 합니다." };
+  }
+  if (!Number.isInteger(sweepCount) || sweepCount < 1 || sweepCount > 3) {
+    return { error: "소탕 횟수는 1~3 사이의 정수여야 합니다." };
+  }
+  if (!Number.isFinite(totalHours) || totalHours <= 0) {
+    return { error: "총 시간은 0보다 커야 합니다." };
+  }
+
+  const multiplier = 1 + (hourglassLv * 0.1);
+  const totalHuntingExp = expPerMinute * multiplier * totalHours * 60;
+  const sweepSets = Math.max(1, Math.floor(totalHours / 24));
+  const totalSweepExp = sweepExp * sweepCount * sweepSets;
+  const grandTotalExp = totalHuntingExp + totalSweepExp;
+
+  // LV 1에서 시작하여 도달 가능한 최고 레벨 탐색
+  let cycleLevel = 1;
+  for (let lv = 1; lv < expTotal.length; lv++) {
+    if (expTotal[lv] <= grandTotalExp) {
+      cycleLevel = lv + 1;
+    } else {
+      break;
+    }
+  }
+
+  return {
+    cycleLevel,
+    grandTotalExp,
+    totalHuntingExp,
+    totalSweepExp,
+    multiplier,
+    sweepSets
+  };
+}
