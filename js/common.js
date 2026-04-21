@@ -1,6 +1,6 @@
 /**
  * common.js
- * 사이드바 동적 생성 + 네비게이션 + 공통 유틸
+ * 사이드바 동적 생성 + 네비게이션 + 테마 관리 + 공통 유틸
  */
 
 // ==============================
@@ -49,6 +49,43 @@ function getBasePath() {
 }
 
 // ==============================
+// 테마 관리
+// ==============================
+
+function getThemePref() {
+  return localStorage.getItem("iryu_theme") || "system";
+}
+
+function applyTheme(pref) {
+  var resolved = pref;
+  if (pref === "system") {
+    resolved = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  }
+  document.documentElement.setAttribute("data-theme", resolved);
+}
+
+function setThemePref(theme) {
+  localStorage.setItem("iryu_theme", theme);
+  applyTheme(theme);
+  updateThemeToggleUI();
+}
+
+function updateThemeToggleUI() {
+  var current = getThemePref();
+  document.querySelectorAll(".theme-toggle button").forEach(function (btn) {
+    btn.classList.toggle("active", btn.dataset.theme === current);
+  });
+}
+
+function buildThemeToggle() {
+  return '<div class="theme-toggle">'
+    + '<button data-theme="light" title="라이트 모드" aria-label="라이트 모드">☀️</button>'
+    + '<button data-theme="system" title="시스템 설정" aria-label="시스템 설정">🖥️</button>'
+    + '<button data-theme="dark" title="다크 모드" aria-label="다크 모드">🌙</button>'
+    + '</div>';
+}
+
+// ==============================
 // 사이드바 생성
 // ==============================
 
@@ -73,7 +110,7 @@ function buildSidebar() {
       html += `  <li class="menu-section">${item.section}</li>\n`;
       continue;
     }
-  
+
     const href = basePath + item.href;
 
     // .html 유무에 관계없이 비교 (serve 등 clean URL 대응)
@@ -81,12 +118,15 @@ function buildSidebar() {
     const isActive = stripHtml(currentPath).endsWith(stripHtml(item.href)) ||
       (item.href === "/index.html" && (currentPath === "/" || currentPath.endsWith("/")));
     const activeClass = isActive ? ' class="active"' : "";
-  
+
     html += `  <li><a href="${href}"${activeClass}>${item.label}</a></li>\n`;
   }
 
   html += "</ul>";
-  html += '<div class="sidebar-footer"><button class="btn-clear-storage" onclick="clearStorageAndReload()">저장 데이터 초기화</button></div>';
+  html += '<div class="sidebar-footer">'
+    + buildThemeToggle()
+    + '<button class="btn-clear-storage" onclick="clearStorageAndReload()">저장 데이터 초기화</button>'
+    + '</div>';
   sidebar.innerHTML = html;
 
   // 햄버거 메뉴 토글 (모바일)
@@ -99,6 +139,14 @@ function buildSidebar() {
       hamburger.setAttribute("aria-label", isOpen ? "메뉴 닫기" : "메뉴 열기");
     });
   }
+
+  // 테마 토글 이벤트
+  document.querySelectorAll(".theme-toggle button").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      setThemePref(btn.dataset.theme);
+    });
+  });
+  updateThemeToggleUI();
 }
 
 // ==============================
@@ -123,4 +171,11 @@ document.addEventListener("DOMContentLoaded", () => {
   document.addEventListener("wheel", (e) => {
     if (e.target.type === "number") e.target.blur();
   }, { passive: true });
+
+  // 시스템 테마 변경 감지 (시스템 모드일 때 자동 반영)
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+    if (getThemePref() === "system") {
+      applyTheme("system");
+    }
+  });
 });

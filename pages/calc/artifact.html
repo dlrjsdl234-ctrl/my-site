@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>유물 계산기 - 이류월드</title>
+  <script>(function(){var p=localStorage.getItem('iryu_theme')||'system';var t=p;if(p==='system')t=matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t)})()</script>
   <link rel="stylesheet" href="../../css/style.css">
   <script src="../../js/common.js"></script>
   <link rel="icon" href="../../assets/mainImg.png">
@@ -75,7 +76,7 @@
             </div>
           </div>
 
-          <p style="color: #e53e3e; font-size: 14px; font-weight: 600; margin-bottom: 12px;">현재 투자된 유물 레벨을 입력하면, 잔여 돌로 다음에 어떤 유물을 올릴지 추천합니다. (0레벨 유물은 제외)</p>
+          <p style="color: var(--warning-color); font-size: 14px; font-weight: 600; margin-bottom: 12px;">현재 투자된 유물 레벨을 입력하면, 잔여 돌로 다음에 어떤 유물을 올릴지 추천합니다. (0레벨 유물은 제외)</p>
           <h2 class="section-title">현재 유물 레벨</h2>
           <div class="artifact-level-list" id="artifactLevelList"></div>
 
