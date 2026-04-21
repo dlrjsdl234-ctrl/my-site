@@ -17,8 +17,9 @@ my-site/
 │   ├── csv-loader.js           # CSV fetch & parse 유틸 (ES module)
 │   ├── table-viewer.js         # 단일 CSV 테이블 렌더러 (ES module)
 │   ├── multi-table-viewer.js   # 드롭다운 기반 멀티테이블 뷰어 (ES module)
+│   ├── storage.js              # localStorage 입력값 저장/복원 유틸 (ES module)
 │   └── calc/                   # 계산기 로직 (ES modules)
-│       ├── exp.js              # 경험치 계산
+│       ├── exp.js              # 경험치 계산 + 사이클 최적화
 │       ├── artifact.js         # 유물 분배 계산
 │       ├── rpskill.js          # RP 스킬 계산
 │       └── rpMachine.js        # 환포 계산
