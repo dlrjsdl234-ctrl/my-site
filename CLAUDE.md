@@ -6,6 +6,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 "이류월드 계산기" - 모바일 게임 이류월드(이세계에선 내가 1억 과금러!?)의 각종 게임 데이터 계산기 모음 사이트. 빌드 도구 없이 순수 HTML/CSS/JS(ES modules)로 구성된 정적 사이트이며, GitHub Pages로 배포된다.
 
+- 리포지토리: https://github.com/dlrjsdl234-ctrl/my-site
+- 게임 링크: https://maplestoryworlds.nexon.com/ko/play/a39450cd781d418190b9d4419c330eac/
+
 ## Directory Structure
 
 ```
@@ -63,7 +66,7 @@ my-site/
 - 나머지 JS는 모두 ES module (`<script type="module">`)
 
 ### 데이터 흐름
-게임 데이터의 원본은 xlsx 파일이다. `scripts/xlsx-to-csv.js`로 CSV를 추출하고, 계산기와 테이블 페이지는 `csv-loader.js`를 통해 런타임에 CSV를 fetch한다.
+게임 데이터의 원본은 루트 디렉토리의 xlsx 파일이다 (예: `건버드의 이류월드 계산기2026-04-21.xlsx`). `scripts/xlsx-to-csv.js`로 CSV를 추출하고, 계산기와 테이블 페이지는 `csv-loader.js`를 통해 런타임에 CSV를 fetch한다. xlsx 파일은 git에 포함되지 않을 수 있으므로, CSV 파일이 실질적인 데이터 소스 역할을 한다.
 
 ### 테이블 뷰어 (2종)
 
@@ -82,6 +85,7 @@ my-site/
 1. `initData()` — CSV 데이터 로딩 (async)
 2. 계산 함수 export — 입력값을 받아 결과 객체 반환
 3. HTML 페이지의 인라인 `<script type="module">`에서 import 후 폼 이벤트에 연결
+4. `storage.js`의 `saveInputs(pageKey, data)` / `loadInputs(pageKey)`로 사용자 입력값을 localStorage에 저장/복원 (페이지 재방문 시 이전 입력값 유지)
 
 ## Development
 
