@@ -59,7 +59,14 @@ function buildSidebar() {
   const basePath = getBasePath();
   const currentPath = location.pathname;
 
-  let html = '<div class="logo">이류월드 계산기</div>\n<ul class="menu">\n';
+  let html = '<div class="sidebar-header">'
+    + '<div class="logo">이류월드 계산기</div>'
+    + '<button class="hamburger" id="hamburgerBtn" aria-label="메뉴 열기" aria-expanded="false">'
+    + '<span class="hamburger-line"></span>'
+    + '<span class="hamburger-line"></span>'
+    + '<span class="hamburger-line"></span>'
+    + '</button>'
+    + '</div>\n<ul class="menu">\n';
 
   for (const item of MENU) {
     if (item.section) {
@@ -81,6 +88,17 @@ function buildSidebar() {
   html += "</ul>";
   html += '<div class="sidebar-footer"><button class="btn-clear-storage" onclick="clearStorageAndReload()">저장 데이터 초기화</button></div>';
   sidebar.innerHTML = html;
+
+  // 햄버거 메뉴 토글 (모바일)
+  const hamburger = document.getElementById("hamburgerBtn");
+  if (hamburger) {
+    hamburger.addEventListener("click", () => {
+      sidebar.classList.toggle("menu-open");
+      const isOpen = sidebar.classList.contains("menu-open");
+      hamburger.setAttribute("aria-expanded", String(isOpen));
+      hamburger.setAttribute("aria-label", isOpen ? "메뉴 닫기" : "메뉴 열기");
+    });
+  }
 }
 
 // ==============================
