@@ -141,11 +141,11 @@ export function calculateCycleLevel(expPerMinute, hourglassLv, sweepExp, sweepCo
   let remainingExp = grandTotalExp;
 
   for (let lv = 0; lv < expTotal.length; lv++) {
-    const requiredExp = Number(expTotal[lv].expNeed) * multiplier;
+    const requiredExp = Number(expTotal[lv]) * multiplier;
 
     if (remainingExp >= requiredExp) {
       remainingExp -= requiredExp;
-      cycleLevel = Number(expTotal[lv].level) + 1;
+      cycleLevel = lv + 2;
     } else {
       break;
     }
