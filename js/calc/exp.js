@@ -131,16 +131,21 @@ export function calculateCycleLevel(expPerMinute, hourglassLv, sweepExp, sweepCo
   }
 
   const multiplier = 1 + (hourglassLv * 0.1);
-  const totalHuntingExp = expPerMinute * multiplier * totalHours * 60;
+  const totalHuntingExp = expPerMinute * totalHours * 60;
   const sweepSets = Math.max(1, Math.floor(totalHours / 24));
   const totalSweepExp = sweepExp * sweepCount * sweepSets;
   const grandTotalExp = totalHuntingExp + totalSweepExp;
 
   // LV 1에서 시작하여 도달 가능한 최고 레벨 탐색
   let cycleLevel = 1;
-  for (let lv = 1; lv < expTotal.length; lv++) {
-    if (expTotal[lv] <= grandTotalExp) {
-      cycleLevel = lv + 1;
+  let remainingExp = grandTotalExp;
+
+  for (let lv = 0; lv < expTotal.length; lv++) {
+    const requiredExp = Number(expTotal[lv].expNeed) * multiplier;
+
+    if (remainingExp >= requiredExp) {
+      remainingExp -= requiredExp;
+      cycleLevel = Number(expTotal[lv].level) + 1;
     } else {
       break;
     }
