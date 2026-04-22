@@ -131,21 +131,19 @@ export function calculateCycleLevel(expPerMinute, hourglassLv, sweepExp, sweepCo
   }
 
   const multiplier = 1 + (hourglassLv * 0.1);
+
+  // 모래시계는 획득 경험치가 아니라 필요 경험치 쪽에 적용
   const totalHuntingExp = expPerMinute * totalHours * 60;
+
   const sweepSets = Math.max(1, Math.floor(totalHours / 24));
   const totalSweepExp = sweepExp * sweepCount * sweepSets;
   const grandTotalExp = totalHuntingExp + totalSweepExp;
 
   // LV 1에서 시작하여 도달 가능한 최고 레벨 탐색
   let cycleLevel = 1;
-  let remainingExp = grandTotalExp;
-
-  for (let lv = 0; lv < expTotal.length; lv++) {
-    const requiredExp = Number(expTotal[lv]) * multiplier;
-
-    if (remainingExp >= requiredExp) {
-      remainingExp -= requiredExp;
-      cycleLevel = lv + 2;
+  for (let lv = 1; lv < expTotal.length; lv++) {
+    if ((expTotal[lv] * multiplier) <= grandTotalExp) {
+      cycleLevel = lv + 1;
     } else {
       break;
     }
