@@ -131,13 +131,13 @@ export function calculateHanpo(params) {
   const acquiredBaseHanpo = found ? found.hanpo : 0;
 
   // 실제 획득 환포 (B * D2)
-  const actualHanpo = acquiredBaseHanpo * combinedMult;
+  const actualHanpo = acquiredBaseHanpo * finalMultiplier;
 
   // 현재 레벨 기본 환포
   const currentBaseHanpo = getHanpoAtLevel(currentLevel);
 
   // 현재 레벨 배율 적용 환포
-  const currentHanpoWithMult = currentBaseHanpo * combinedMult;
+  const currentHanpoWithMult = currentBaseHanpo * finalMultiplier;
 
   // 윤회 축복 배율
   const rebirthMult = getRebirthMultiplier(transcendLevel);
