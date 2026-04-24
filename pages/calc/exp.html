@@ -67,8 +67,13 @@
               </div>
 
               <div class="form-row">
-                <label for="expRatio">실경험치 배율</label>
-                <input type="number" id="expRatio" placeholder="실경험치 배율을 입력하세요 예) 5.52" min="1">
+                <label for="encyExp">도감 경험치 (%)</label>
+                <input type="number" id="encyExp" placeholder="도감 경험치를 입력하세요 예) 14" min="0">
+              </div>
+
+              <div class="form-row">
+                <label for="holySymbol">홀리심볼 경험치 (%)</label>
+                <input type="number" id="holySymbol" placeholder="홀리심볼 경험치를 입력하세요 예) 70" min="0">
               </div>
 
               <div class="form-row">
@@ -160,7 +165,7 @@
     // === 입력 ID 정의 ===
     const TAB1_IDS = ["currentLv", "targetLv", "expPerMinute", "hourglassLv"];
     const TAB2_IDS = ["sweepExp", "sweepCount", "totalHours", "cycleExpPerMinute", "cycleHourglassLv"];
-    const TAB3_IDS = ["firstExp", "expRatio", "numAnimal", "animalTime"];
+    const TAB3_IDS = ["firstExp", "encyExp", "holySymbol", "numAnimal", "animalTime"];
     const SHARED_PAIRS = [
       ["expPerMinute", "cycleExpPerMinute"],
       ["hourglassLv", "cycleHourglassLv"]
@@ -293,10 +298,12 @@
       const resultEl = document.getElementById("expMinuteResult");
 
       const firstExp = Number(document.getElementById("firstExp").value);     // 앞경험치
-      const expRatio = Number(document.getElementById("expRatio").value);     // 실경험치 배율
+      const encyExp = Number(document.getElementById("encyExp").value);     // 도감 경험치
+      const holySymbol = Number(document.getElementById("holySymbol").value);     // 홀리심볼 경험치
       const numAnimal = Number(document.getElementById("numAnimal").value);   // 마릿수
       const animalTime = Number(document.getElementById("animalTime").value); // 걸리는 시간
 
+      const expRatio = (3*(100+encyExp+holySymbol))/100; // 실경험치 배율
       const realExp = Math.round(firstExp * expRatio); // 실경험치
       const animalExp = Math.round(realExp * numAnimal); // 마릿수 경험치
       const oneMinExp = Math.round((animalExp/animalTime)*60); // 1분당 경험치
