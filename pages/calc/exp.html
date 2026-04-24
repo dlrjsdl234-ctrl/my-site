@@ -25,6 +25,7 @@
         <section class="calc-card">
           <div class="tab-bar">
             <button class="tab-btn active" data-tab="expCalc">경험치 계산</button>
+            <button class="tab-btn" data-tab="expMinute">1분당 경험치 계산</button>
             <button class="tab-btn" data-tab="cycleOpt">사이클 최적화</button>
           </div>
 
@@ -56,6 +57,36 @@
             </div>
 
             <div id="result" class="result-box">여기에 결과가 표시됩니다.</div>
+          </div>
+
+           <div class="tab-content active" id="tab-expMinute">
+            <div class="form-list">
+              <div class="form-row">
+                <label for="firstExp">앞 경험치</label>
+                <input type="number" id="firstExp" placeholder="앞에 경험치를 입력하세요 예) 9450000000" min="1">
+              </div>
+
+              <div class="form-row">
+                <label for="expRatio">실경험치 배율</label>
+                <input type="number" id="expRatio" placeholder="실경험치 배율을 입력하세요 예) 5.52" min="1">
+              </div>
+
+              <div class="form-row">
+                <label for="numAnimal">잡는 마릿수</label>
+                <input type="number" id="numAnimal" placeholder="잡는 마릿수를 입력하세요 예)8" min="1">
+              </div>
+
+              <div class="form-row">
+                <label for="animalTime">걸리는 시간</label>
+                <input type="number" id="animalTime" placeholder="잡는데 걸리는 시간을 입력하세요 예)3" min="1">
+              </div>
+            </div>
+
+            <div class="action-area">
+              <button type="button" class="btn btn-green btn-large" onclick="expMinuteTime()">계산하기</button>
+            </div>
+
+            <div id="expMinuteResult" class="result-box">여기에 결과가 표시됩니다.</div>
           </div>
 
           <div class="tab-content" id="tab-cycleOpt">
@@ -252,6 +283,38 @@
       `;
     };
 
+    // === 1분당 경험치 계산 ===
+    window.expMinuteTime = function () {
+      const resultEl = document.getElementById("expMinuteResult");
+
+      const firstExp = Number(document.getElementById("firstExp").value);     // 앞경험치
+      const expRatio = Number(document.getElementById("expRatio").value);     // 실경험치 배율
+      const numAnimal = Number(document.getElementById("numAnimal").value);   // 마릿수
+      const animalTime = Number(document.getElementById("animalTime").value); // 걸리는 시간
+
+      const realExp = Math.round(firstExp * expRatio); // 실경험치
+      const animalExp = Math.round(realExp * numAnimal); // 마릿수 경험치
+      const oneMinExp = Math.round((animalExp/animalTime)*60); // 1분당 경험치
+
+      resultEl.innerHTML = `
+        <div class="result-section">
+          <div class="result-title">1분당 경험치 정보</div>
+          <div class="result-row">
+            <span class="result-label">실경험치</span>
+            <strong class="result-value">` + realExp.toLocaleString() + `</strong>
+          </div>
+          <div class="result-row">
+            <span class="result-label">` + numAnimal +`마리 경험치</span>
+            <strong class="result-value">` + animalExp.toLocaleString() + `</strong>
+          </div>
+          <div class="result-row">
+            <span class="result-label">1분당 경험치</span>
+            <strong class="result-value">` + oneMinExp.toLocaleString() + `</strong>
+          </div>
+        </div>
+      `;
+    }
+    
     // === 사이클 최적화 ===
     window.calcCycleOpt = function () {
       const resultEl = document.getElementById("cycleResult");
