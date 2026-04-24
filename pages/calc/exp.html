@@ -59,7 +59,7 @@
             <div id="result" class="result-box">여기에 결과가 표시됩니다.</div>
           </div>
 
-           <div class="tab-content active" id="tab-expMinute">
+           <div class="tab-content" id="tab-expMinute">
             <div class="form-list">
               <div class="form-row">
                 <label for="firstExp">앞 경험치</label>
@@ -160,6 +160,7 @@
     // === 입력 ID 정의 ===
     const TAB1_IDS = ["currentLv", "targetLv", "expPerMinute", "hourglassLv"];
     const TAB2_IDS = ["sweepExp", "sweepCount", "totalHours", "cycleExpPerMinute", "cycleHourglassLv"];
+    const TAB3_IDS = ["firstExp", "expRatio", "numAnimal", "animalTime"];
     const SHARED_PAIRS = [
       ["expPerMinute", "cycleExpPerMinute"],
       ["hourglassLv", "cycleHourglassLv"]
@@ -170,6 +171,7 @@
       const data = {};
       for (const id of TAB1_IDS) data[id] = document.getElementById(id).value;
       for (const id of ["sweepExp", "sweepCount", "totalHours"]) data[id] = document.getElementById(id).value;
+      for (const id of TAB3_IDS) data[id] = document.getElementById(id).value;
       saveInputs("exp", data);
     }
 
@@ -182,6 +184,9 @@
       for (const id of ["sweepExp", "sweepCount", "totalHours"]) {
         if (saved[id] !== undefined) document.getElementById(id).value = saved[id];
       }
+      for (const id of TAB3_IDS) {
+        if (saved[id] !== undefined) document.getElementById(id).value = saved[id];
+      }
       // 공유 입력 복원
       for (const [tab1Id, tab2Id] of SHARED_PAIRS) {
         if (saved[tab1Id] !== undefined) document.getElementById(tab2Id).value = saved[tab1Id];
@@ -189,7 +194,7 @@
     }
 
     // === 입력 변경 시 저장 + 공유 입력 동기화 ===
-    for (const id of [...TAB1_IDS, ...TAB2_IDS]) {
+    for (const id of [...TAB1_IDS, ...TAB2_IDS, ...TAB3_IDS]) {
       document.getElementById(id).addEventListener("change", () => {
         for (const [tab1Id, tab2Id] of SHARED_PAIRS) {
           if (id === tab1Id) document.getElementById(tab2Id).value = document.getElementById(tab1Id).value;
