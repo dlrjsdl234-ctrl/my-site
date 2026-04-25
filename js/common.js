@@ -19,7 +19,8 @@ const MENU = [
 
   { section: "테이블" },
   { label: "초월정보", href: "/pages/tables/transcend.html" },
-  { label: "몬스터체경비", href: "/pages/tables/monster-stat.html" },
+  { label: "몬스터DB", href: "/pages/tables/monster.html" },
+  /*{ label: "몬스터체경비", href: "/pages/tables/monster-stat.html" },*/
   { label: "잡팁", href: "/pages/tables/tips.html" },
   { label: "RP스킬 투자순서", href: "/pages/tables/rpskill-order.html" },
   { label: "몬스터 디펜스", href: "/pages/tables/town-defense.html" },
