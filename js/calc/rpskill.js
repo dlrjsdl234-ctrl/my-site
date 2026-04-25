@@ -59,7 +59,10 @@ function getCumulativeValue(tableKey, level) {
   const lvCol = findLevelColumn(rows);
   if (!cumCol || !lvCol) return 0;
 
-  const row = rows.find(r => Number(r[lvCol]) === Number(level));
+  const row = rows.find(r => {
+    const rowLevel = Number(String(r[lvCol]).replace(/,/g, ""));
+    return rowLevel === Number(level);
+  });
   if (!row) return 0;
 
   return Number(String(row[cumCol]).replace(/,/g, "")) || 0;
