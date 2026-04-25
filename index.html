@@ -21,7 +21,7 @@
         <p>이세계에선 내가 1억 과금러!?</p>
       </div>
 
-      <section class="calc-card">
+      <section class="calc-card link-card-grid">
         <div class="result-section">
           <div class="result-title">안녕하세요.</div>
           <div class="result-box">
@@ -40,6 +40,20 @@
             </p>
             <a href="https://discord.gg/WjDNES7n4t" class="btn-discord" target="_blank" rel="noopener noreferrer">이동하기</a>
           </div>
+        </div>
+      </section>
+
+      <section class="calc-card image-tab-card">
+        <div class="result-title">기초 가이드</div>
+
+        <div class="image-tab-menu" id="imageTabMenu"></div>
+
+        <div class="image-viewer">
+          <img id="tabImage" src="" alt="탭 이미지">
+        </div>
+
+        <div class="result-box image-caption" id="tabCaption">
+          이미지를 선택해주세요.
         </div>
       </section>
 
@@ -76,6 +90,76 @@
       document.getElementById("imgOverlay").classList.add("show");
     });
   });
+</script>
+<script>
+  const imageTabs = [
+    {
+      title: "무과금",
+      image: "assets/tab/img1.png",
+      text: "몬스터 DB는 디코 팁-게시판 참조 / 과금 이미지에 추천스킬순서, 추천환생, 무기 추천이 있습니다."
+    },
+    {
+      title: "과금",
+      image: "assets/tab/img2.png",
+      text: "질문은 디스코드 잡담방 혹은 질문-답변방에 올려주시면 답해드리겠습니다."
+    }/*,
+    {
+      title: "3번",
+      image: "assets/tab/img3.png",
+      text: "3번 이미지 설명 문구입니다."
+    },
+    {
+      title: "4번",
+      image: "assets/tab/img4.png",
+      text: "4번 이미지 설명 문구입니다."
+    },
+    {
+      title: "5번",
+      image: "assets/tab/img5.png",
+      text: "5번 이미지 설명 문구입니다."
+    },
+    {
+      title: "6번",
+      image: "assets/tab/img6.png",
+      text: "6번 이미지 설명 문구입니다."
+    },
+    {
+      title: "7번",
+      image: "assets/tab/img7.png",
+      text: "7번 이미지 설명 문구입니다."
+    }*/
+  ];
+
+  const imageTabMenu = document.getElementById("imageTabMenu");
+  const tabImage = document.getElementById("tabImage");
+  const tabCaption = document.getElementById("tabCaption");
+
+  function renderImageTab(index) {
+    const data = imageTabs[index];
+
+    tabImage.src = data.image;
+    tabImage.alt = data.title;
+    tabCaption.textContent = data.text;
+
+    document.querySelectorAll(".image-tab-btn").forEach((btn, i) => {
+      btn.classList.toggle("active", i === index);
+    });
+  }
+
+  imageTabs.forEach((item, index) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "image-tab-btn";
+    button.textContent = item.title;
+
+    button.addEventListener("click", () => {
+      renderImageTab(index);
+    });
+
+    imageTabMenu.appendChild(button);
+  });
+
+  renderImageTab(0);
 </script>
 </body>
 </html>

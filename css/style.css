@@ -1608,3 +1608,104 @@ th {
   background: rgba(255, 255, 255, 0.25);
   color: white;
 }
+
+/* ==============================
+   이미지 탭 css
+   ============================== */
+
+.image-tab-card {
+  margin-top: 24px;
+}
+
+.image-tab-menu {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 18px 0;
+}
+
+.image-tab-btn {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  color: inherit;
+  padding: 10px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 800;
+  transition: 0.2s;
+}
+
+.image-tab-btn:hover,
+.image-tab-btn.active {
+  background: #ff2f6d;
+  color: #fff;
+  border-color: #ff2f6d;
+  transform: translateY(-1px);
+}
+
+.image-viewer {
+  width: 100%;
+  text-align: center;
+  margin-top: 18px;
+}
+
+.image-viewer img {
+  max-width: 100%;
+  height: auto;
+  max-height: 620px;
+  object-fit: contain;
+  border-radius: 18px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22);
+}
+
+.image-caption {
+  margin-top: 18px;
+  font-size: 16px;
+  line-height: 1.7;
+  font-weight: 700;
+  white-space: pre-line;
+}
+
+/* ==============================
+   [전용] 링크 카드 2분할 (이류월드 / 디스코드)
+   다른 페이지 영향 없음
+   ============================== */
+
+.link-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+/* 기존 세로 구분선 제거 */
+.link-card-grid .result-section + .result-section {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+/* 높이 맞추기 */
+.link-card-grid .result-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.link-card-grid .result-box {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* 모바일 */
+@media (max-width: 768px) {
+  .link-card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .link-card-grid .result-section + .result-section {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px dashed var(--result-section-border);
+  }
+}
