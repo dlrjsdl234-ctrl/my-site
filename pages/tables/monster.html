@@ -189,6 +189,29 @@
     return Number.isFinite(num) ? num : 999999999999999999;
   }
 
+  function formatKoreanUnit(value) {
+    const num = Number(String(value).replaceAll(",", "").trim());
+    if (!Number.isFinite(num)) return normalize(value);
+
+    const units = [
+      { label: "조", value: 1000000000000 },
+      { label: "억", value: 100000000 },
+      { label: "만", value: 10000 }
+    ];
+
+    for (const unit of units) {
+      if (num >= unit.value) {
+        const scaled = num / unit.value;
+        const formatted = Number.isInteger(scaled)
+          ? String(scaled)
+          : scaled.toFixed(1).replace(/\.0$/, "");
+        return `${formatted}${unit.label}`;
+      }
+    }
+
+    return num.toLocaleString("ko-KR");
+  }
+
   function getHeaderTitle(header) {
     const title = normalize(header).replaceAll("\n", " ");
 
@@ -312,7 +335,13 @@
 
       headers.forEach((_, index) => {
         const td = document.createElement("td");
-        td.textContent = normalize(row[index]);
+        const rawValue = normalize(row[index]);
+
+        if (index === cols.hp || index === cols.exp || index === cols.rp) {
+          td.textContent = formatKoreanUnit(rawValue);
+        } else {
+          td.textContent = rawValue;
+        }
 
         if (index === cols.name || index === cols.memo) {
           td.style.textAlign = "left";
