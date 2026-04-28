@@ -4,6 +4,7 @@
  */
 const fs = require("fs");
 const path = require("path");
+const { readCsvText, writeCsvFile } = require("./csv-utils");
 
 const DATAS = path.join(__dirname, "..", "datas");
 
@@ -104,11 +105,11 @@ for (const dir of DIRS) {
   // meta.csv 업데이트
   const metaPath = path.join(dirPath, "meta.csv");
   if (fs.existsSync(metaPath)) {
-    let metaContent = fs.readFileSync(metaPath, "utf-8");
+    let metaContent = readCsvText(metaPath);
     for (const r of renames) {
       metaContent = metaContent.replace(r.oldFile, r.newFile);
     }
-    fs.writeFileSync(metaPath, metaContent, "utf-8");
+    writeCsvFile(metaPath, metaContent);
   }
 
   console.log(`[${dir}] ${renames.length}개 파일 영문 변환`);

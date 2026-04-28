@@ -5,6 +5,7 @@
 const XLSX = require("xlsx");
 const fs = require("fs");
 const path = require("path");
+const { writeCsvFile } = require("./csv-utils");
 
 const XLSX_FILE = path.join(__dirname, "..", "건버드의 이류월드 계산기2026-04-17.xlsx");
 const DATAS_DIR = path.join(__dirname, "..", "datas");
@@ -77,7 +78,7 @@ function exportSheet(workbook, sheetName, outputPath) {
   }
 
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
-  fs.writeFileSync(outputPath, csv, "utf-8");
+  writeCsvFile(outputPath, csv);
   console.log(`  [변환] ${sheetName} → ${path.relative(DATAS_DIR, outputPath)} (${lines.length}행)`);
 }
 

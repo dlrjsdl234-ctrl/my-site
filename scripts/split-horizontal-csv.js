@@ -4,6 +4,7 @@
  */
 const fs = require("fs");
 const path = require("path");
+const { readCsvText, writeCsvFile } = require("./csv-utils");
 
 const DATAS = path.join(__dirname, "..", "datas");
 
@@ -71,7 +72,7 @@ function splitCSV(csvFile, outDir, options = {}) {
     return;
   }
 
-  const text = fs.readFileSync(csvPath, "utf-8");
+  const text = readCsvText(csvPath);
   const lines = text.split("\n").filter(l => l.trim() !== "");
   if (lines.length < 2) return;
 
@@ -139,7 +140,7 @@ function splitCSV(csvFile, outDir, options = {}) {
       csvLines.push(row.map(v => v.includes(",") ? `"${v}"` : v).join(","));
     }
 
-    fs.writeFileSync(path.join(outPath, fileName), csvLines.join("\n"), "utf-8");
+    writeCsvFile(path.join(outPath, fileName), csvLines.join("\n"));
     meta.push({ name: title, file: fileName, rows: dataRows.length });
   }
 
@@ -148,7 +149,7 @@ function splitCSV(csvFile, outDir, options = {}) {
   for (const m of meta) {
     metaLines.push(`"${m.name}",${m.file}`);
   }
-  fs.writeFileSync(path.join(outPath, "meta.csv"), metaLines.join("\n"), "utf-8");
+  writeCsvFile(path.join(outPath, "meta.csv"), metaLines.join("\n"));
 
   console.log(`[${outDir}] ${meta.length}개 항목 분리 (${meta.map(m => m.name).join(", ")})`);
 }

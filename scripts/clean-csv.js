@@ -3,6 +3,7 @@
  */
 const fs = require("fs");
 const path = require("path");
+const { readCsvText, writeCsvFile } = require("./csv-utils");
 
 const DATAS = path.join(__dirname, "..", "datas");
 
@@ -19,7 +20,7 @@ for (const file of FILES) {
   const filePath = path.join(DATAS, file);
   if (!fs.existsSync(filePath)) continue;
 
-  const content = fs.readFileSync(filePath, "utf-8");
+  const content = readCsvText(filePath);
   const lines = content.split("\n");
 
   // 후행 빈/쉼표만 있는 행 제거
@@ -29,7 +30,7 @@ for (const file of FILES) {
   }
 
   const cleaned = lines.slice(0, lastNonEmpty + 1).join("\n");
-  fs.writeFileSync(filePath, cleaned, "utf-8");
+  writeCsvFile(filePath, cleaned);
 
   const removed = lines.length - lastNonEmpty - 1;
   if (removed > 0) {
