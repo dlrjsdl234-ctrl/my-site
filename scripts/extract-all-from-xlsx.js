@@ -5,6 +5,7 @@
 const XLSX = require("xlsx");
 const fs = require("fs");
 const path = require("path");
+const { writeCsvFile } = require("./csv-utils");
 
 const ROOT = path.join(__dirname, "..");
 const DATAS = path.join(ROOT, "datas");
@@ -40,7 +41,7 @@ function writeCSV(filePath, headers, rows) {
       return s.includes(",") || s.includes('"') ? '"' + s.replace(/"/g, '""') + '"' : s;
     }).join(","));
   }
-  fs.writeFileSync(filePath, lines.join("\n"), "utf-8");
+  writeCsvFile(filePath, lines.join("\n"));
 }
 
 // ==============================
@@ -169,7 +170,7 @@ function saveTables(outDir, tables) {
   for (const m of meta) {
     metaLines.push(`"${m.name}",${m.file}`);
   }
-  fs.writeFileSync(path.join(DATAS, outDir, "meta.csv"), metaLines.join("\n"), "utf-8");
+  writeCsvFile(path.join(DATAS, outDir, "meta.csv"), metaLines.join("\n"));
 
   console.log(`[${outDir}] ${tables.length}개 항목 (${meta.map(m => `${m.name}(${m.rows}행)`).join(", ")})`);
 }
@@ -280,7 +281,7 @@ const rpMetaLines = ["tableKey,skillName,maxLevel"];
 for (const m of rpSkillMeta) {
   rpMetaLines.push(`${m.tableKey},"${m.name}",${m.max}`);
 }
-fs.writeFileSync(path.join(DATAS, "rpskill", "meta.csv"), rpMetaLines.join("\n"), "utf-8");
+writeCsvFile(path.join(DATAS, "rpskill", "meta.csv"), rpMetaLines.join("\n"));
 console.log(`  meta.csv: ${rpSkillMeta.length}항목`);
 
 // ==============================

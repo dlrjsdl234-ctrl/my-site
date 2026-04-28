@@ -9,6 +9,7 @@
  * @returns {Array<Object>} 헤더를 키로 하는 객체 배열
  */
 export function parseCSV(text) {
+  text = text.replace(/^\uFEFF/, "");
   const lines = text.split("\n").filter(line => line.trim() !== "");
   if (lines.length < 2) return [];
 

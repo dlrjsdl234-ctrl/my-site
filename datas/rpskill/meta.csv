@@ -1,4 +1,4 @@
-tableKey,skillName,maxLevel
+﻿tableKey,skillName,maxLevel
 table1,"부스트",2
 table2,"경험치",200
 table3,"강화 확률 증가",10

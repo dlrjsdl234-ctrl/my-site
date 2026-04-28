@@ -6,6 +6,7 @@
  */
 const fs = require("fs");
 const path = require("path");
+const { writeCsvFile } = require("./csv-utils");
 
 const ROOT = path.join(__dirname, "..");
 const DATAS = path.join(ROOT, "datas");
@@ -27,7 +28,7 @@ function extractExp() {
   }
 
   const csv = rows.map(r => r.join(",")).join("\n");
-  fs.writeFileSync(path.join(DATAS, "exp.csv"), csv, "utf-8");
+  writeCsvFile(path.join(DATAS, "exp.csv"), csv);
   console.log(`[exp] ${rows.length - 1}행 → datas/exp.csv`);
 }
 
@@ -75,8 +76,8 @@ function extractArtifacts() {
 
   const dir = path.join(DATAS, "artifacts");
   fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(path.join(dir, "meta.csv"), metaRows.map(r => r.join(",")).join("\n"), "utf-8");
-  fs.writeFileSync(path.join(dir, "levels.csv"), levelRows.map(r => r.join(",")).join("\n"), "utf-8");
+  writeCsvFile(path.join(dir, "meta.csv"), metaRows.map(r => r.join(",")).join("\n"));
+  writeCsvFile(path.join(dir, "levels.csv"), levelRows.map(r => r.join(",")).join("\n"));
   console.log(`[artifacts] meta: ${metaRows.length - 1}행, levels: ${levelRows.length - 1}행`);
 }
 
@@ -126,7 +127,7 @@ function extractRPSkill() {
   for (const s of skillMeta) {
     metaRows.push([s.tableKey, `"${s.name}"`, s.max]);
   }
-  fs.writeFileSync(path.join(dir, "meta.csv"), metaRows.map(r => r.join(",")).join("\n"), "utf-8");
+  writeCsvFile(path.join(dir, "meta.csv"), metaRows.map(r => r.join(",")).join("\n"));
 
   // 각 테이블 CSV
   for (const [key, table] of Object.entries(skillTables)) {
@@ -144,7 +145,7 @@ function extractRPSkill() {
       csvRows.push(values.join(","));
     }
 
-    fs.writeFileSync(path.join(dir, `${key}.csv`), csvRows.join("\n"), "utf-8");
+    writeCsvFile(path.join(dir, `${key}.csv`), csvRows.join("\n"));
     console.log(`[rpskill] ${key}: ${table.rows.length}행`);
   }
 

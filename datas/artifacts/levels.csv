@@ -1,4 +1,4 @@
-id,level,need,cumStone,unlockGem,cumGem
+﻿id,level,need,cumStone,unlockGem,cumGem
 threeGems,0,0,0,200,200
 threeGems,1,1,1,0,200
 threeGems,2,1,2,0,200
