@@ -53,6 +53,21 @@ export function getRequiredExpBetweenLevels(currentLv, targetLv) {
   return { currentLv, targetLv, requiredExp: targetTotal - currentTotal };
 }
 
+export function getExpNeedForLevel(level) {
+  level = Number(level);
+
+  if (!Number.isInteger(level) || level < 1) {
+    return { error: "레벨은 1 이상의 정수로 입력하세요." };
+  }
+
+  const exp = expNeed[level];
+  if (!Number.isFinite(exp) || exp <= 0) {
+    return { error: "해당 레벨의 경험치 데이터가 없습니다." };
+  }
+
+  return { level, expNeed: exp };
+}
+
 export function calculateLevelUpTime(currentLv, targetLv, expPerMinute, hourglassLv) {
   expPerMinute = Number(expPerMinute);
   hourglassLv = Number(hourglassLv);
