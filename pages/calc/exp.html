@@ -151,9 +151,12 @@
               <div class="screen-exp-guide-title">사용법</div>
               <ol>
                 <li>`화면 선택 시작`으로 게임 화면을 선택합니다.</li>
-                <li>`자동으로 경험치바 찾기`를 누릅니다.</li>
-                <li>빨간 선택 영역의 좌우 경계를 드래그해서 경험치 바 끝에 맞춥니다.</li>
-                <li>현재 레벨과 측정 시간을 확인한 뒤 `측정 시작`을 누릅니다.</li>
+                <li>하단 1/3 확대 미리보기에서 경험치 바 영역을 대략 드래그해서 지정합니다.</li>
+                <li><strong class="screen-exp-emphasis">초록색 진행 영역과 회색 빈 영역</strong>을 기준으로 맞추되, 정확히 딱 맞추기 어렵다면 경험치 바 안쪽을 <strong>대략적으로</strong> 잡아도 됩니다.</li>
+                <li>한 번 선택한 뒤에는 상하좌우 손잡이로 빨간 선을 조절합니다. 돋보기의 굵은 십자선이 조절 중인 기준선입니다.</li>
+                <li>다시 선택하려면 `Delete` 키로 영역을 지웁니다.</li>
+                <li>현재 레벨, 모래시계 레벨, 측정 시간을 확인한 뒤 `측정 시작`을 누릅니다. <strong class="screen-exp-warning">명확한 지표 수집을 위해 3분 이상 측정을 권장합니다.</strong></li>
+                <li>테스트 결과 경험치 퍼센트 인식 오차는 대체로 <strong>0.1% 미만</strong>이지만, 측정 결과를 맹신하지 말고 <u>2~3번 반복 측정</u>해서 비교해 주세요.</li>
               </ol>
             </div>
 
@@ -161,6 +164,11 @@
               <div class="form-row">
                 <label for="screenCurrentLv">현재 레벨</label>
                 <input type="number" id="screenCurrentLv" placeholder="현재 레벨을 입력하세요" min="1">
+              </div>
+
+              <div class="form-row">
+                <label for="screenHourglassLv">모래시계 레벨</label>
+                <input type="number" id="screenHourglassLv" value="0" min="0" max="20">
               </div>
 
               <div class="form-row">
@@ -176,18 +184,21 @@
 
             <div class="screen-exp-actions">
               <button type="button" class="btn btn-green" id="screenStartCaptureBtn">화면 선택 시작</button>
-              <button type="button" class="btn" id="screenAutoFindBtn">자동으로 경험치바 찾기</button>
               <button type="button" class="btn btn-gray" id="screenStartMeasureBtn">측정 시작</button>
               <button type="button" class="btn btn-gray" id="screenStopMeasureBtn">측정 중지</button>
               <button type="button" class="btn btn-green" id="screenApplyBtn">계산기에 적용</button>
             </div>
 
             <div class="screen-exp-preview" id="screenPreviewWrap">
+              <canvas id="screenPreviewCanvas" class="screen-exp-preview-canvas"></canvas>
               <video id="screenVideo" muted playsinline></video>
               <div class="screen-exp-roi" id="screenRoiBox"></div>
+              <div class="screen-exp-resize-handle screen-exp-resize-top" id="screenRoiTopHandle" title="위쪽 높이 조정"></div>
               <div class="screen-exp-resize-handle screen-exp-resize-left" id="screenRoiLeftHandle" title="왼쪽 폭 조정"></div>
               <div class="screen-exp-resize-handle screen-exp-resize-right" id="screenRoiRightHandle" title="오른쪽 폭 조정"></div>
-              <div class="screen-exp-placeholder" id="screenPlaceholder">화면 선택 후 경험치 바 영역을 드래그하세요.</div>
+              <div class="screen-exp-resize-handle screen-exp-resize-bottom" id="screenRoiBottomHandle" title="아래쪽 높이 조정"></div>
+              <canvas class="screen-exp-magnifier" id="screenMagnifierCanvas"></canvas>
+              <div class="screen-exp-placeholder" id="screenPlaceholder">화면 선택 후 하단 확대 미리보기에서 경험치 바 영역을 드래그하세요.</div>
             </div>
             <canvas id="screenCanvas" hidden></canvas>
 
@@ -202,7 +213,7 @@
 
   <script type="module">
     import { initExpData, calculateLevelUpTime, calculateCycleLevel, getExpNeedForLevel } from "../../js/calc/exp.js";
-    import { startCapture, stopCapture, drawFrameToCanvas, detectExpRatio, findExpBarRoi } from "../../js/calc/screen-exp.js";
+    import { startCapture, stopCapture, drawFrameToCanvas, detectExpRatio } from "../../js/calc/screen-exp.js";
     import { saveInputs, loadInputs } from "../../js/storage.js";
 
     await initExpData("../..");
@@ -221,10 +232,10 @@
     const TAB1_IDS = ["currentLv", "targetLv", "expPerMinute", "hourglassLv"];
     const TAB2_IDS = ["sweepExp", "sweepCount", "totalHours", "cycleExpPerMinute", "cycleHourglassLv"];
     const TAB3_IDS = ["firstExp", "encyExp", "holySymbol", "numAnimal", "animalTime"];
-    const SCREEN_IDS = ["screenCurrentLv", "screenMeasureSeconds"];
-    const SHARED_PAIRS = [
+    const SCREEN_IDS = ["screenCurrentLv", "screenHourglassLv", "screenMeasureSeconds"];
+    const SHARED_GROUPS = [
       ["expPerMinute", "cycleExpPerMinute"],
-      ["hourglassLv", "cycleHourglassLv"]
+      ["hourglassLv", "cycleHourglassLv", "screenHourglassLv"]
     ];
 
     // === 저장 함수 ===
@@ -253,17 +264,20 @@
         if (saved[id] !== undefined) document.getElementById(id).value = saved[id];
       }
       // 공유 입력 복원
-      for (const [tab1Id, tab2Id] of SHARED_PAIRS) {
-        if (saved[tab1Id] !== undefined) document.getElementById(tab2Id).value = saved[tab1Id];
+      for (const group of SHARED_GROUPS) {
+        const savedId = group.find(id => saved[id] !== undefined);
+        if (!savedId) continue;
+        for (const id of group) document.getElementById(id).value = saved[savedId];
       }
     }
 
     // === 입력 변경 시 저장 + 공유 입력 동기화 ===
     for (const id of [...TAB1_IDS, ...TAB2_IDS, ...TAB3_IDS, ...SCREEN_IDS]) {
       document.getElementById(id).addEventListener("change", () => {
-        for (const [tab1Id, tab2Id] of SHARED_PAIRS) {
-          if (id === tab1Id) document.getElementById(tab2Id).value = document.getElementById(tab1Id).value;
-          if (id === tab2Id) document.getElementById(tab1Id).value = document.getElementById(tab2Id).value;
+        for (const group of SHARED_GROUPS) {
+          if (!group.includes(id)) continue;
+          const value = document.getElementById(id).value;
+          for (const targetId of group) document.getElementById(targetId).value = value;
         }
         saveAll();
       });
@@ -271,37 +285,47 @@
 
     // === 화면 인식(beta) ===
     const screenVideo = document.getElementById("screenVideo");
+    const screenPreviewCanvas = document.getElementById("screenPreviewCanvas");
     const screenCanvas = document.getElementById("screenCanvas");
     const screenPreviewWrap = document.getElementById("screenPreviewWrap");
     const screenRoiBox = document.getElementById("screenRoiBox");
+    const screenRoiTopHandle = document.getElementById("screenRoiTopHandle");
     const screenRoiLeftHandle = document.getElementById("screenRoiLeftHandle");
     const screenRoiRightHandle = document.getElementById("screenRoiRightHandle");
+    const screenRoiBottomHandle = document.getElementById("screenRoiBottomHandle");
+    const screenMagnifierCanvas = document.getElementById("screenMagnifierCanvas");
     const screenPlaceholder = document.getElementById("screenPlaceholder");
     const screenStatus = document.getElementById("screenStatus");
     const screenResult = document.getElementById("screenResult");
     const screenStartCaptureBtn = document.getElementById("screenStartCaptureBtn");
-    const screenAutoFindBtn = document.getElementById("screenAutoFindBtn");
     const screenStartMeasureBtn = document.getElementById("screenStartMeasureBtn");
     const screenStopMeasureBtn = document.getElementById("screenStopMeasureBtn");
     const screenApplyBtn = document.getElementById("screenApplyBtn");
 
     let screenStream = null;
     let screenRoi = null;
+    let screenPreviewRoi = null;
     let screenDragStart = null;
     let screenResizeSide = null;
+    let screenResizePointerOffset = 0;
     let screenMeasureTimer = null;
     let screenMeasureInterval = null;
+    let screenPreviewAnimation = null;
     let screenMeasureStart = null;
     let screenStartRatio = null;
     let screenPrevRatio = null;
     let screenStartLevel = null;
     let screenCurrentMeasureLevel = null;
+    let screenMeasureHourglassLv = 0;
+    let screenMeasureHourglassMultiplier = 1;
     let screenTotalGainedExp = 0;
     let screenLevelUpCount = 0;
-    let screenPendingLevelUpRatio = null;
+    let screenPendingLevelUp = null;
     let screenLevelUpArmed = false;
     let screenRecentExpSamples = [];
     let screenLastResult = null;
+    const SCREEN_PREVIEW_CROP_TOP_RATIO = 2 / 3;
+    const SCREEN_PREVIEW_CROP_HEIGHT_RATIO = 1 / 3;
 
     function setScreenStatus(message) {
       screenStatus.textContent = message;
@@ -311,15 +335,116 @@
       screenResult.innerHTML = message;
     }
 
-    function getVideoPoint(event) {
-      const rect = screenVideo.getBoundingClientRect();
-      const scaleX = screenVideo.videoWidth / rect.width;
-      const scaleY = screenVideo.videoHeight / rect.height;
+    function getVideoLayout() {
+      const rect = screenPreviewCanvas.getBoundingClientRect();
+      const wrapRect = screenPreviewWrap.getBoundingClientRect();
+      const cropTop = screenVideo.videoHeight * SCREEN_PREVIEW_CROP_TOP_RATIO;
+      const cropHeight = screenVideo.videoHeight * SCREEN_PREVIEW_CROP_HEIGHT_RATIO;
       return {
-        x: (event.clientX - rect.left) * scaleX,
-        y: (event.clientY - rect.top) * scaleY,
-        viewX: event.clientX - rect.left,
-        viewY: event.clientY - rect.top
+        rect,
+        displayWidth: rect.width,
+        displayHeight: rect.height,
+        offsetX: rect.left - wrapRect.left,
+        offsetY: rect.top - wrapRect.top,
+        cropTop,
+        cropHeight
+      };
+    }
+
+    function getVideoPoint(event) {
+      const layout = getVideoLayout();
+      const rawViewX = event.clientX - layout.rect.left;
+      const rawViewY = event.clientY - layout.rect.top;
+      const viewX = Math.max(0, Math.min(layout.displayWidth, rawViewX));
+      const viewY = Math.max(0, Math.min(layout.displayHeight, rawViewY));
+      const scaleX = screenVideo.videoWidth / layout.displayWidth;
+      const scaleY = layout.cropHeight / layout.displayHeight;
+
+      return {
+        x: viewX * scaleX,
+        y: layout.cropTop + viewY * scaleY,
+        viewX,
+        viewY
+      };
+    }
+
+    function stopPreviewLoop() {
+      if (!screenPreviewAnimation) return;
+      cancelAnimationFrame(screenPreviewAnimation);
+      screenPreviewAnimation = null;
+    }
+
+    function drawPreviewFrame() {
+      if (!screenStream || !screenVideo.videoWidth || !screenVideo.videoHeight) {
+        screenPreviewAnimation = requestAnimationFrame(drawPreviewFrame);
+        return;
+      }
+
+      const cropTop = screenVideo.videoHeight * SCREEN_PREVIEW_CROP_TOP_RATIO;
+      const cropHeight = screenVideo.videoHeight * SCREEN_PREVIEW_CROP_HEIGHT_RATIO;
+      const cropRatio = screenVideo.videoWidth / cropHeight;
+      const cssWidth = Math.max(1, screenPreviewWrap.clientWidth);
+      const cssHeight = Math.max(180, Math.min(340, cssWidth / cropRatio));
+      const dpr = Math.max(1, window.devicePixelRatio || 1);
+      const canvasWidth = Math.round(cssWidth * dpr);
+      const canvasHeight = Math.round(cssHeight * dpr);
+
+      if (screenPreviewCanvas.width !== canvasWidth || screenPreviewCanvas.height !== canvasHeight) {
+        screenPreviewCanvas.width = canvasWidth;
+        screenPreviewCanvas.height = canvasHeight;
+        screenPreviewCanvas.style.width = cssWidth + "px";
+        screenPreviewCanvas.style.height = cssHeight + "px";
+      }
+
+      const ctx = screenPreviewCanvas.getContext("2d");
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+      ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+      ctx.drawImage(screenVideo, 0, cropTop, screenVideo.videoWidth, cropHeight, 0, 0, canvasWidth, canvasHeight);
+      drawPreviewRoi(ctx, canvasWidth, canvasHeight, cropTop, cropHeight);
+      screenPreviewAnimation = requestAnimationFrame(drawPreviewFrame);
+    }
+
+    function drawPreviewRoi(ctx, canvasWidth, canvasHeight, cropTop, cropHeight) {
+      const roi = screenPreviewRoi || screenRoi;
+      if (!roi || !screenVideo.videoWidth) return;
+
+      const x = roi.x / screenVideo.videoWidth * canvasWidth;
+      const y = (roi.y - cropTop) / cropHeight * canvasHeight;
+      const width = roi.width / screenVideo.videoWidth * canvasWidth;
+      const height = roi.height / cropHeight * canvasHeight;
+      const lineWidth = Math.max(2, 2 * (window.devicePixelRatio || 1));
+
+      ctx.save();
+      ctx.strokeStyle = "#ff2d2d";
+      ctx.fillStyle = "rgba(255, 45, 45, 0.12)";
+      ctx.lineWidth = lineWidth;
+      ctx.fillRect(x, y, width, height);
+      ctx.strokeRect(x, y, width, height);
+      ctx.restore();
+    }
+
+    function startPreviewLoop() {
+      stopPreviewLoop();
+      screenPreviewAnimation = requestAnimationFrame(drawPreviewFrame);
+    }
+
+    function getHourglassInput() {
+      const hourglassLv = Number(document.getElementById("screenHourglassLv").value);
+      if (!Number.isInteger(hourglassLv) || hourglassLv < 0 || hourglassLv > 20) {
+        return { error: "모래시계 레벨은 0~20 사이의 정수여야 합니다." };
+      }
+
+      return { hourglassLv, multiplier: 1 + (hourglassLv * 0.1) };
+    }
+
+    function getAdjustedExpNeed(level) {
+      const levelInfo = getExpNeedForLevel(level);
+      if (levelInfo.error) return levelInfo;
+      return {
+        level: levelInfo.level,
+        baseExpNeed: levelInfo.expNeed,
+        expNeed: levelInfo.expNeed * screenMeasureHourglassMultiplier
       };
     }
 
@@ -330,6 +455,11 @@
       screenRoiBox.style.height = height + "px";
       screenRoiBox.classList.add("show");
 
+      screenRoiTopHandle.style.left = left + "px";
+      screenRoiTopHandle.style.top = top + "px";
+      screenRoiTopHandle.style.width = width + "px";
+      screenRoiTopHandle.classList.add("show");
+
       screenRoiLeftHandle.style.left = left + "px";
       screenRoiLeftHandle.style.top = top + "px";
       screenRoiLeftHandle.style.height = height + "px";
@@ -339,44 +469,214 @@
       screenRoiRightHandle.style.top = top + "px";
       screenRoiRightHandle.style.height = height + "px";
       screenRoiRightHandle.classList.add("show");
+
+      screenRoiBottomHandle.style.left = left + "px";
+      screenRoiBottomHandle.style.top = (top + height) + "px";
+      screenRoiBottomHandle.style.width = width + "px";
+      screenRoiBottomHandle.classList.add("show");
     }
 
     function hideRoiBox() {
       screenRoiBox.classList.remove("show");
+      screenRoiTopHandle.classList.remove("show");
       screenRoiLeftHandle.classList.remove("show");
       screenRoiRightHandle.classList.remove("show");
+      screenRoiBottomHandle.classList.remove("show");
+      hideMagnifier();
     }
 
     function updateRoiBox(start, end) {
-      const left = Math.min(start.viewX, end.viewX);
-      const top = Math.min(start.viewY, end.viewY);
+      const layout = getVideoLayout();
+      const left = layout.offsetX + Math.min(start.viewX, end.viewX);
+      const top = layout.offsetY + Math.min(start.viewY, end.viewY);
       const width = Math.abs(end.viewX - start.viewX);
       const height = Math.abs(end.viewY - start.viewY);
+
+      screenPreviewRoi = {
+        x: Math.min(start.x, end.x),
+        y: Math.min(start.y, end.y),
+        width: Math.abs(end.x - start.x),
+        height: Math.abs(end.y - start.y)
+      };
 
       setRoiBoxStyle(left, top, width, height);
     }
 
     function showRoiFromVideoRoi(roi) {
-      const rect = screenVideo.getBoundingClientRect();
-      const scaleX = rect.width / screenVideo.videoWidth;
-      const scaleY = rect.height / screenVideo.videoHeight;
+      const layout = getVideoLayout();
+      const scaleX = layout.displayWidth / screenVideo.videoWidth;
+      const scaleY = layout.displayHeight / layout.cropHeight;
 
-      setRoiBoxStyle(roi.x * scaleX, roi.y * scaleY, roi.width * scaleX, roi.height * scaleY);
+      setRoiBoxStyle(
+        layout.offsetX + roi.x * scaleX,
+        layout.offsetY + (roi.y - layout.cropTop) * scaleY,
+        roi.width * scaleX,
+        roi.height * scaleY
+      );
+    }
+
+    function showMagnifier(point, guideSide) {
+      if (!screenVideo.videoWidth || !screenVideo.videoHeight) return;
+
+      const cssSize = window.matchMedia("(max-width: 640px)").matches ? 140 : 168;
+      const dpr = Math.max(1, window.devicePixelRatio || 1);
+      const canvasSize = Math.round(cssSize * dpr);
+      if (screenMagnifierCanvas.width !== canvasSize || screenMagnifierCanvas.height !== canvasSize) {
+        screenMagnifierCanvas.width = canvasSize;
+        screenMagnifierCanvas.height = canvasSize;
+      }
+      screenMagnifierCanvas.style.width = cssSize + "px";
+      screenMagnifierCanvas.style.height = cssSize + "px";
+
+      const zoom = 5;
+      const sourceSize = cssSize / zoom;
+      const desiredSourceX = point.x - sourceSize / 2;
+      const desiredSourceY = point.y - sourceSize / 2;
+      const sourceX = Math.max(0, desiredSourceX);
+      const sourceY = Math.max(0, desiredSourceY);
+      const sourceRight = Math.min(screenVideo.videoWidth, desiredSourceX + sourceSize);
+      const sourceBottom = Math.min(screenVideo.videoHeight, desiredSourceY + sourceSize);
+      const visibleSourceWidth = sourceRight - sourceX;
+      const visibleSourceHeight = sourceBottom - sourceY;
+      const destX = Math.max(0, -desiredSourceX / sourceSize * canvasSize);
+      const destY = Math.max(0, -desiredSourceY / sourceSize * canvasSize);
+      const destWidth = visibleSourceWidth / sourceSize * canvasSize;
+      const destHeight = visibleSourceHeight / sourceSize * canvasSize;
+      const guideX = canvasSize / 2;
+      const guideY = canvasSize / 2;
+      const ctx = screenMagnifierCanvas.getContext("2d");
+
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+      ctx.clearRect(0, 0, canvasSize, canvasSize);
+      ctx.fillStyle = "#111";
+      ctx.fillRect(0, 0, canvasSize, canvasSize);
+      ctx.drawImage(screenVideo, sourceX, sourceY, visibleSourceWidth, visibleSourceHeight, destX, destY, destWidth, destHeight);
+      ctx.strokeStyle = "rgba(255, 45, 45, 0.95)";
+      ctx.lineWidth = Math.max(1, dpr);
+      ctx.beginPath();
+      ctx.moveTo(guideX, 0);
+      ctx.lineTo(guideX, canvasSize);
+      ctx.moveTo(0, guideY);
+      ctx.lineTo(canvasSize, guideY);
+      ctx.stroke();
+      if (guideSide === "left" || guideSide === "right") {
+        ctx.lineWidth = Math.max(3, 3 * dpr);
+        ctx.beginPath();
+        ctx.moveTo(guideX, 0);
+        ctx.lineTo(guideX, canvasSize);
+        ctx.stroke();
+      } else if (guideSide === "top" || guideSide === "bottom") {
+        ctx.lineWidth = Math.max(3, 3 * dpr);
+        ctx.beginPath();
+        ctx.moveTo(0, guideY);
+        ctx.lineTo(canvasSize, guideY);
+        ctx.stroke();
+      }
+      ctx.strokeStyle = "rgba(255, 45, 45, 0.95)";
+      ctx.lineWidth = Math.max(2, 2 * dpr);
+      ctx.strokeRect(dpr, dpr, canvasSize - (2 * dpr), canvasSize - (2 * dpr));
+
+      const wrapRect = screenPreviewWrap.getBoundingClientRect();
+      const previewRect = screenPreviewCanvas.getBoundingClientRect();
+      const layout = getVideoLayout();
+      const offsetX = previewRect.left - wrapRect.left;
+      const offsetY = previewRect.top - wrapRect.top;
+      const margin = 12;
+      let left = offsetX + point.viewX + 18;
+      let top = offsetY + point.viewY - cssSize - 18;
+
+      if (left + cssSize + margin > wrapRect.width) left = offsetX + point.viewX - cssSize - 18;
+      if (top < margin) top = offsetY + point.viewY + 18;
+      left = Math.max(margin, Math.min(left, wrapRect.width - cssSize - margin));
+      top = Math.max(margin, Math.min(top, wrapRect.height - cssSize - margin));
+
+      screenMagnifierCanvas.style.left = left + "px";
+      screenMagnifierCanvas.style.top = top + "px";
+      screenMagnifierCanvas.classList.add("show");
+    }
+
+    function getResizeGuidePoint(side, point) {
+      if (!screenRoi) return point;
+
+      const left = screenRoi.x;
+      const right = screenRoi.x + screenRoi.width;
+      const top = screenRoi.y;
+      const bottom = screenRoi.y + screenRoi.height;
+      const x = Math.max(left, Math.min(right, point.x));
+      const y = Math.max(top, Math.min(bottom, point.y));
+      const layout = getVideoLayout();
+      const scaleX = layout.displayWidth / screenVideo.videoWidth;
+      const scaleY = layout.displayHeight / layout.cropHeight;
+
+      const guide = {
+        left: { x: left, y },
+        right: { x: right, y },
+        top: { x, y: top },
+        bottom: { x, y: bottom }
+      }[side] || point;
+
+      return {
+        x: guide.x,
+        y: guide.y,
+        viewX: guide.x * scaleX,
+        viewY: (guide.y - layout.cropTop) * scaleY
+      };
+    }
+
+    function hideMagnifier() {
+      screenMagnifierCanvas.classList.remove("show");
+    }
+
+    function clearScreenRoi() {
+      if (screenMeasureStart) {
+        stopScreenMeasure();
+        screenStartRatio = null;
+        screenMeasureStart = null;
+        screenPrevRatio = null;
+        screenCurrentMeasureLevel = null;
+        screenPendingLevelUp = null;
+      }
+      screenRoi = null;
+      screenPreviewRoi = null;
+      screenDragStart = null;
+      screenResizeSide = null;
+      screenResizePointerOffset = 0;
+      hideRoiBox();
+      setScreenStatus("영역을 삭제했습니다. 다시 드래그하세요.");
+    }
+
+    function getResizeControlPoint(point) {
+      if (!screenResizeSide) return point;
+
+      if (screenResizeSide === "left" || screenResizeSide === "right") {
+        return { ...point, x: point.x - screenResizePointerOffset };
+      }
+
+      return { ...point, y: point.y - screenResizePointerOffset };
     }
 
     function startResizeRoi(side, event) {
       if (!screenRoi || !screenVideo.videoWidth) return;
       screenResizeSide = side;
+      const point = getVideoPoint(event);
+      if (side === "left") screenResizePointerOffset = point.x - screenRoi.x;
+      if (side === "right") screenResizePointerOffset = point.x - (screenRoi.x + screenRoi.width);
+      if (side === "top") screenResizePointerOffset = point.y - screenRoi.y;
+      if (side === "bottom") screenResizePointerOffset = point.y - (screenRoi.y + screenRoi.height);
       event.preventDefault();
       event.stopPropagation();
-      setScreenStatus(side === "left" ? "왼쪽 경계를 조정 중입니다." : "오른쪽 경계를 조정 중입니다.");
+      showMagnifier(getResizeGuidePoint(side, getResizeControlPoint(point)), side);
+      const label = { left: "왼쪽", right: "오른쪽", top: "위쪽", bottom: "아래쪽" }[side];
+      setScreenStatus(`${label} 경계를 조정 중입니다.`);
     }
 
     function resizeRoi(event) {
       if (!screenResizeSide || !screenRoi) return;
 
-      const point = getVideoPoint(event);
+      const point = getResizeControlPoint(getVideoPoint(event));
       const minWidth = Math.max(10, screenVideo.videoWidth * 0.02);
+      const minHeight = Math.max(4, screenVideo.videoHeight * 0.004);
 
       if (screenResizeSide === "left") {
         const right = screenRoi.x + screenRoi.width;
@@ -387,7 +687,7 @@
           width: right - nextX,
           height: screenRoi.height
         };
-      } else {
+      } else if (screenResizeSide === "right") {
         const nextRight = Math.min(screenVideo.videoWidth, Math.max(point.x, screenRoi.x + minWidth));
         screenRoi = {
           x: screenRoi.x,
@@ -395,15 +695,35 @@
           width: nextRight - screenRoi.x,
           height: screenRoi.height
         };
+      } else if (screenResizeSide === "top") {
+        const bottom = screenRoi.y + screenRoi.height;
+        const nextY = Math.max(0, Math.min(point.y, bottom - minHeight));
+        screenRoi = {
+          x: screenRoi.x,
+          y: nextY,
+          width: screenRoi.width,
+          height: bottom - nextY
+        };
+      } else if (screenResizeSide === "bottom") {
+        const nextBottom = Math.min(screenVideo.videoHeight, Math.max(point.y, screenRoi.y + minHeight));
+        screenRoi = {
+          x: screenRoi.x,
+          y: screenRoi.y,
+          width: screenRoi.width,
+          height: nextBottom - screenRoi.y
+        };
       }
 
       showRoiFromVideoRoi(screenRoi);
+      showMagnifier(getResizeGuidePoint(screenResizeSide, point), screenResizeSide);
     }
 
     function stopResizeRoi() {
       if (!screenResizeSide) return;
       screenResizeSide = null;
-      setScreenStatus("영역 폭 조정 완료. 측정을 시작하세요.");
+      screenResizePointerOffset = 0;
+      hideMagnifier();
+      setScreenStatus("영역 조정 완료. 측정을 시작하세요.");
     }
 
     function captureRatio() {
@@ -420,6 +740,7 @@
         clearInterval(screenMeasureInterval);
         screenMeasureInterval = null;
       }
+      hideMagnifier();
       if (message) setScreenStatus(message);
     }
 
@@ -471,6 +792,10 @@
           <div class="result-row">
             <span class="result-label">현재 추정</span>
             <strong class="result-value">LV ${screenCurrentMeasureLevel} / ${(ratio * 100).toFixed(2)}%</strong>
+          </div>
+          <div class="result-row">
+            <span class="result-label">모래시계 배율</span>
+            <strong class="result-value">LV ${screenMeasureHourglassLv} / ${screenMeasureHourglassMultiplier.toFixed(1)}배</strong>
           </div>
           <div class="result-row">
             <span class="result-label">경과 시간</span>
@@ -532,41 +857,56 @@
       if (screenPrevRatio === null || screenCurrentMeasureLevel === null) return { ok: true, gainedExp: 0 };
 
       const drop = screenPrevRatio - ratio;
-      const levelInfo = getExpNeedForLevel(screenCurrentMeasureLevel);
+      const levelInfo = getAdjustedExpNeed(screenCurrentMeasureLevel);
       if (levelInfo.error) return levelInfo;
 
-      if (!screenLevelUpArmed && screenPrevRatio >= 0.7) {
+      if (!screenLevelUpArmed && screenPrevRatio >= 0.85) {
         screenLevelUpArmed = true;
       }
 
-      if (drop >= 0.3) {
-        if (!screenLevelUpArmed) {
-          return { ok: true, gainedExp: 0, ignored: true, reason: "level-up-disarmed" };
+      if (screenPendingLevelUp) {
+        if (ratio >= 0.5) {
+          screenPendingLevelUp = null;
+          return { ok: true, gainedExp: 0, ignored: true, reason: "level-up-cancelled" };
         }
 
-        if (screenPendingLevelUpRatio === null) {
-          screenPendingLevelUpRatio = ratio;
-          return { ok: true, gainedExp: 0, pendingLevelUp: true, reason: "level-up-candidate" };
+        if (Math.abs(ratio - screenPendingLevelUp.ratio) <= 0.06) {
+          screenPendingLevelUp.confirmCount++;
+        } else {
+          screenPendingLevelUp.ratio = ratio;
+          screenPendingLevelUp.confirmCount = 1;
         }
 
-        if (Math.abs(ratio - screenPendingLevelUpRatio) <= 0.08) {
+        if (screenPendingLevelUp.confirmCount >= 2) {
           const nextLevel = screenCurrentMeasureLevel + 1;
-          const nextLevelInfo = getExpNeedForLevel(nextLevel);
+          const nextLevelInfo = getAdjustedExpNeed(nextLevel);
           if (nextLevelInfo.error) return nextLevelInfo;
 
-          const gainedExp = (levelInfo.expNeed * Math.max(0, 1 - screenPrevRatio)) +
+          const gainedExp = (levelInfo.expNeed * Math.max(0, 1 - screenPendingLevelUp.prevRatio)) +
             (nextLevelInfo.expNeed * Math.max(0, ratio));
           screenTotalGainedExp += gainedExp;
           screenCurrentMeasureLevel = nextLevel;
           screenLevelUpCount++;
           screenPrevRatio = ratio;
-          screenPendingLevelUpRatio = null;
+          screenPendingLevelUp = null;
           screenLevelUpArmed = false;
           return { ok: true, gainedExp, levelUp: true, reason: "level-up-confirmed" };
         }
 
-        screenPendingLevelUpRatio = ratio;
-        return { ok: true, gainedExp: 0, pendingLevelUp: true, reason: "level-up-candidate-shifted" };
+        return { ok: true, gainedExp: 0, pendingLevelUp: true, reason: "level-up-confirming" };
+      }
+
+      if (drop >= 0.6 && screenLevelUpArmed && screenPrevRatio >= 0.85 && ratio <= 0.25) {
+        screenPendingLevelUp = {
+          prevRatio: screenPrevRatio,
+          ratio,
+          confirmCount: 1
+        };
+        return { ok: true, gainedExp: 0, pendingLevelUp: true, reason: "level-up-candidate" };
+      }
+
+      if (drop >= 0.3) {
+        return { ok: true, gainedExp: 0, ignored: true, reason: "drop-ignored" };
       }
 
       if (drop > 0 && drop < 0.3) {
@@ -581,8 +921,8 @@
         const gainedExp = levelInfo.expNeed * (ratio - screenPrevRatio);
         screenTotalGainedExp += gainedExp;
         screenPrevRatio = ratio;
-        screenPendingLevelUpRatio = null;
-        if (screenPrevRatio >= 0.7) screenLevelUpArmed = true;
+        screenPendingLevelUp = null;
+        if (screenPrevRatio >= 0.85) screenLevelUpArmed = true;
         return { ok: true, gainedExp };
       }
 
@@ -593,59 +933,55 @@
       try {
         stopCapture(screenStream);
         screenStream = await startCapture(screenVideo);
+        startPreviewLoop();
         screenPlaceholder.hidden = true;
         screenRoi = null;
+        screenPreviewRoi = null;
         hideRoiBox();
-        setScreenStatus("화면 선택 완료. 경험치 바 영역을 드래그하세요.");
+        setScreenStatus("화면 선택 완료. 하단 1/3 확대 미리보기에서 경험치 바 영역을 드래그하세요.");
 
         const [track] = screenStream.getVideoTracks();
         track.addEventListener("ended", () => {
           stopScreenMeasure("화면 공유가 중지되었습니다.");
+          stopPreviewLoop();
           screenStream = null;
           screenPlaceholder.hidden = false;
+          screenRoi = null;
+          screenPreviewRoi = null;
+          hideRoiBox();
         });
       } catch (e) {
         setScreenStatus(e.message || "화면 선택을 취소했습니다.");
       }
     });
 
-    screenAutoFindBtn.addEventListener("click", () => {
-      if (!screenStream) {
-        setScreenStatus("화면 선택을 먼저 시작하세요.");
-        return;
-      }
-
-      try {
-        drawFrameToCanvas(screenVideo, screenCanvas);
-        const found = findExpBarRoi(screenCanvas);
-        if (found.error) {
-          setScreenStatus(found.error);
-          return;
-        }
-
-        screenRoi = found.roi;
-        showRoiFromVideoRoi(screenRoi);
-        setScreenStatus("경험치 바 후보를 찾았습니다. 틀리면 직접 드래그로 다시 지정하세요.");
-      } catch (e) {
-        setScreenStatus(e.message || "자동 찾기에 실패했습니다.");
-      }
-    });
-
+    screenRoiTopHandle.addEventListener("pointerdown", (event) => startResizeRoi("top", event));
     screenRoiLeftHandle.addEventListener("pointerdown", (event) => startResizeRoi("left", event));
     screenRoiRightHandle.addEventListener("pointerdown", (event) => startResizeRoi("right", event));
+    screenRoiBottomHandle.addEventListener("pointerdown", (event) => startResizeRoi("bottom", event));
     window.addEventListener("pointermove", resizeRoi);
     window.addEventListener("pointerup", stopResizeRoi);
+    window.addEventListener("keydown", (event) => {
+      if (event.key !== "Delete" || !screenRoi) return;
+      if (["INPUT", "TEXTAREA", "SELECT"].includes(event.target.tagName) || event.target.isContentEditable) return;
+      clearScreenRoi();
+    });
 
     screenPreviewWrap.addEventListener("pointerdown", (event) => {
-      if (event.target === screenRoiLeftHandle || event.target === screenRoiRightHandle) return;
+      if ([screenRoiTopHandle, screenRoiLeftHandle, screenRoiRightHandle, screenRoiBottomHandle].includes(event.target)) return;
       if (!screenVideo.videoWidth) return;
+      if (screenRoi) {
+        setScreenStatus("이미 지정된 영역이 있습니다. 경계를 조절하거나 Delete 키로 지운 뒤 다시 선택하세요.");
+        return;
+      }
       screenDragStart = getVideoPoint(event);
       screenPreviewWrap.setPointerCapture(event.pointerId);
     });
 
     screenPreviewWrap.addEventListener("pointermove", (event) => {
       if (!screenDragStart) return;
-      updateRoiBox(screenDragStart, getVideoPoint(event));
+      const point = getVideoPoint(event);
+      updateRoiBox(screenDragStart, point);
     });
 
     screenPreviewWrap.addEventListener("pointerup", (event) => {
@@ -657,8 +993,18 @@
         width: Math.abs(end.x - screenDragStart.x),
         height: Math.abs(end.y - screenDragStart.y)
       };
+      if (screenRoi.width < 10 || screenRoi.height < 4) {
+        screenRoi = null;
+        screenPreviewRoi = null;
+        screenDragStart = null;
+        hideRoiBox();
+        setScreenStatus("영역이 너무 작습니다. 경험치 바 전체를 다시 드래그하세요.");
+        return;
+      }
       updateRoiBox(screenDragStart, end);
+      screenPreviewRoi = null;
       screenDragStart = null;
+      hideMagnifier();
       setScreenStatus("영역 지정 완료. 측정을 시작하세요.");
     });
 
@@ -668,11 +1014,17 @@
         setScreenStatus(levelInfo.error);
         return;
       }
+      const hourglassInfo = getHourglassInput();
+      if (hourglassInfo.error) {
+        setScreenStatus(hourglassInfo.error);
+        return;
+      }
       if (!screenStream || !screenRoi) {
         setScreenStatus("화면 선택과 경험치 바 영역 지정이 필요합니다.");
         return;
       }
 
+      hideMagnifier();
       stopScreenMeasure();
       const stableStart = await getStableStartRatio();
       if (stableStart.error) {
@@ -686,10 +1038,12 @@
       screenPrevRatio = stableStart.ratio;
       screenStartLevel = levelInfo.level;
       screenCurrentMeasureLevel = levelInfo.level;
+      screenMeasureHourglassLv = hourglassInfo.hourglassLv;
+      screenMeasureHourglassMultiplier = hourglassInfo.multiplier;
       screenTotalGainedExp = 0;
       screenLevelUpCount = 0;
-      screenPendingLevelUpRatio = null;
-      screenLevelUpArmed = screenPrevRatio >= 0.7;
+      screenPendingLevelUp = null;
+      screenLevelUpArmed = screenPrevRatio >= 0.85;
       screenRecentExpSamples = [];
       screenLastResult = null;
       setScreenStatus(`측정 중... 시작 진행률 ${(screenStartRatio * 100).toFixed(2)}%`);
@@ -759,7 +1113,9 @@
         endLevel: screenCurrentMeasureLevel,
         startRatio,
         endRatio: screenPrevRatio ?? detected.ratio,
-        rollingExpPerMinute: getRollingExpPerMinute()
+        rollingExpPerMinute: getRollingExpPerMinute(),
+        hourglassLv: screenMeasureHourglassLv,
+        hourglassMultiplier: screenMeasureHourglassMultiplier
       };
       screenStartRatio = null;
       screenMeasureStart = null;
@@ -782,6 +1138,10 @@
           <div class="result-row">
             <span class="result-label">종료 추정 레벨/진행률</span>
             <strong class="result-value">LV ${result.endLevel} / ${(result.endRatio * 100).toFixed(2)}%</strong>
+          </div>
+          <div class="result-row">
+            <span class="result-label">모래시계 배율</span>
+            <strong class="result-value">LV ${result.hourglassLv} / ${result.hourglassMultiplier.toFixed(1)}배</strong>
           </div>
           <div class="result-row">
             <span class="result-label">레벨업 감지</span>
