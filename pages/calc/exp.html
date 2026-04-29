@@ -970,6 +970,11 @@
       };
     }
 
+    function getRatioPercentPerMinute() {
+      const rates = screenRatioTrendSamples.map(sample => sample.ratioPerSecond).filter(Number.isFinite);
+      return getMedian(rates) * 60 * 100;
+    }
+
     function renderScreenTimingHelp(label, tooltip, direction = "right") {
       const directionClass = direction === "left" ? " screen-exp-help-left" : "";
       return `${label}<span class="screen-exp-help${directionClass}" tabindex="0" data-tooltip="${tooltip}">?</span>`;
@@ -1036,6 +1041,7 @@
       const totalAverage = elapsedSeconds > 0 ? screenTotalGainedExp / elapsedSeconds * 60 : 0;
       const rollingAverage = getRollingExpPerMinute();
       const timingRange = getTimingRange(screenTotalGainedExp, elapsedSeconds);
+      const ratioPercentPerMinute = getRatioPercentPerMinute();
       const statusText = decision?.reason || (decision?.levelUp ? "level-up-confirmed" : "normal");
 
       setScreenResult(`
@@ -1073,6 +1079,10 @@
               <strong class="result-value screen-exp-midpoint">${formatExp(timingRange.midpointExpPerMinute)} / 분</strong>
               ${renderScreenApplyButton(timingRange.midpointExpPerMinute, elapsedSeconds, screenMeasurementInvalidated)}
             </div>
+          </div>
+          <div class="result-row">
+            <span class="result-label">1분당 상승 경험치 퍼센트</span>
+            <strong class="result-value">${ratioPercentPerMinute.toFixed(2)}% / 분</strong>
           </div>
           <div class="result-row">
             <span class="result-label">최근 30초 평균</span>
