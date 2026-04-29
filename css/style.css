@@ -1454,6 +1454,40 @@ th {
   opacity: 0.65;
 }
 
+.screen-exp-disabled-tooltip {
+  position: relative;
+  display: inline-flex;
+}
+
+.screen-exp-disabled-tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  display: none;
+  width: max-content;
+  max-width: min(280px, 70vw);
+  padding: 9px 11px;
+  border: 1px solid var(--result-border);
+  border-radius: 10px;
+  background: var(--card-bg);
+  color: var(--result-text);
+  box-shadow: 0 8px 20px var(--shadow-card);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.45;
+  text-align: left;
+  transform: translateX(-50%);
+  white-space: normal;
+  z-index: 10;
+}
+
+.screen-exp-disabled-tooltip:hover::after,
+.screen-exp-disabled-tooltip:focus::after,
+.screen-exp-disabled-tooltip:focus-within::after {
+  display: block;
+}
+
 .screen-exp-help {
   position: relative;
   display: inline-flex;
@@ -1499,6 +1533,11 @@ th {
   display: block;
 }
 
+.screen-exp-help-left::after {
+  right: calc(100% + 8px);
+  left: auto;
+}
+
 @media (max-width: 640px) {
   .screen-exp-guide {
     padding: 18px 16px;
@@ -1517,6 +1556,10 @@ th {
   }
 
   .screen-exp-apply-value-btn {
+    width: 100%;
+  }
+
+  .screen-exp-disabled-tooltip {
     width: 100%;
   }
 

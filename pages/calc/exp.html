@@ -230,6 +230,7 @@
     await initExpData("../..");
 
     const SCREEN_GUIDE_COLLAPSED_KEY = "iryu_screen_exp_guide_collapsed";
+    const SCREEN_ROI_STORAGE_KEY = "iryu_screen_exp_roi";
 
     // === 탭 전환 ===
     document.querySelectorAll(".tab-btn").forEach(btn => {
@@ -520,6 +521,85 @@
       hideMagnifier();
     }
 
+    function isValidScreenRoi(roi, videoWidth = screenVideo.videoWidth, videoHeight = screenVideo.videoHeight) {
+      if (!roi || !videoWidth || !videoHeight) return false;
+      const minWidth = Math.max(10, videoWidth * 0.02);
+      const minHeight = Math.max(4, videoHeight * 0.004);
+      return Number.isFinite(roi.x) && Number.isFinite(roi.y) &&
+        Number.isFinite(roi.width) && Number.isFinite(roi.height) &&
+        roi.x >= 0 && roi.y >= 0 &&
+        roi.width >= minWidth && roi.height >= minHeight &&
+        roi.x + roi.width <= videoWidth && roi.y + roi.height <= videoHeight;
+    }
+
+    function saveScreenRoi() {
+      if (!isValidScreenRoi(screenRoi)) return;
+
+      const videoWidth = screenVideo.videoWidth;
+      const videoHeight = screenVideo.videoHeight;
+      localStorage.setItem(SCREEN_ROI_STORAGE_KEY, JSON.stringify({
+        x: screenRoi.x,
+        y: screenRoi.y,
+        width: screenRoi.width,
+        height: screenRoi.height,
+        videoWidth,
+        videoHeight,
+        ratioX: screenRoi.x / videoWidth,
+        ratioY: screenRoi.y / videoHeight,
+        ratioWidth: screenRoi.width / videoWidth,
+        ratioHeight: screenRoi.height / videoHeight
+      }));
+    }
+
+    function removeStoredScreenRoi() {
+      localStorage.removeItem(SCREEN_ROI_STORAGE_KEY);
+    }
+
+    function getStoredScreenRoi() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(SCREEN_ROI_STORAGE_KEY) || "null");
+        if (!saved || !screenVideo.videoWidth || !screenVideo.videoHeight) return null;
+
+        const hasRatios = [saved.ratioX, saved.ratioY, saved.ratioWidth, saved.ratioHeight].every(Number.isFinite);
+        const roi = hasRatios
+          ? {
+              x: saved.ratioX * screenVideo.videoWidth,
+              y: saved.ratioY * screenVideo.videoHeight,
+              width: saved.ratioWidth * screenVideo.videoWidth,
+              height: saved.ratioHeight * screenVideo.videoHeight
+            }
+          : {
+              x: saved.x,
+              y: saved.y,
+              width: saved.width,
+              height: saved.height
+            };
+
+        const normalized = {
+          x: Math.round(roi.x),
+          y: Math.round(roi.y),
+          width: Math.round(roi.width),
+          height: Math.round(roi.height)
+        };
+
+        return isValidScreenRoi(normalized) ? normalized : null;
+      } catch (e) {
+        removeStoredScreenRoi();
+        return null;
+      }
+    }
+
+    function applyStoredScreenRoi() {
+      const storedRoi = getStoredScreenRoi();
+      if (!storedRoi) return false;
+
+      screenRoi = storedRoi;
+      screenPreviewRoi = null;
+      showRoiFromVideoRoi(screenRoi);
+      setScreenStatus("저장된 영역을 불러왔습니다. 필요하면 경계를 조절하세요.");
+      return true;
+    }
+
     function updateRoiBox(start, end) {
       const layout = getVideoLayout();
       const left = layout.offsetX + Math.min(start.viewX, end.viewX);
@@ -677,6 +757,7 @@
       screenDragStart = null;
       screenResizeSide = null;
       screenResizePointerOffset = 0;
+      removeStoredScreenRoi();
       hideRoiBox();
       setScreenStatus("영역을 삭제했습니다. 다시 드래그하세요.");
     }
@@ -889,22 +970,23 @@
       };
     }
 
-    function renderScreenTimingHelp(label, tooltip) {
-      return `${label}<span class="screen-exp-help" tabindex="0" data-tooltip="${tooltip}">?</span>`;
+    function renderScreenTimingHelp(label, tooltip, direction = "right") {
+      const directionClass = direction === "left" ? " screen-exp-help-left" : "";
+      return `${label}<span class="screen-exp-help${directionClass}" tabindex="0" data-tooltip="${tooltip}">?</span>`;
     }
 
     function renderScreenTimingRange(timingRange, formatter) {
       return `
         <span class="screen-exp-timing-range">
-          <span class="screen-exp-min">${renderScreenTimingHelp(`MIN : ${formatter(timingRange.minExpPerMinute)}`, "젠타이밍 때문에 실제 측정 시간이 3초 더 길었다고 가정한 보수적인 1분당 경험치입니다.")}</span>
-          <span class="screen-exp-max">${renderScreenTimingHelp(`MAX : ${formatter(timingRange.maxExpPerMinute)}`, "젠타이밍 때문에 실제 측정 시간이 3초 더 짧았다고 가정한 최대 추정 1분당 경험치입니다.")}</span>
+          <span class="screen-exp-min">${renderScreenTimingHelp(`MIN : ${formatter(timingRange.minExpPerMinute)}`, "젠타이밍 때문에 실제 측정 시간이 3초 더 길었다고 가정한 보수적인 1분당 경험치입니다.", "left")}</span>
+          <span class="screen-exp-max">${renderScreenTimingHelp(`MAX : ${formatter(timingRange.maxExpPerMinute)}`, "젠타이밍 때문에 실제 측정 시간이 3초 더 짧았다고 가정한 최대 추정 1분당 경험치입니다.", "left")}</span>
         </span>
       `;
     }
 
     function getScreenApplyDisabledReason(elapsedSeconds, invalidated) {
       if (invalidated) return "레벨업 감지가 포함된 측정은 경험치 튐 가능성이 있어 적용할 수 없습니다.";
-      if (elapsedSeconds < 60) return "측정 시작 후 1분이 지나면 적용할 수 있습니다.";
+      if (elapsedSeconds < 60) return "1분 지나면 활성화됩니다.";
       return "";
     }
 
@@ -915,8 +997,10 @@
       const title = disabledReason || "경험치 계산기와 사이클 최적화의 1분당 경험치에 적용합니다.";
       const attr = disabled ? "disabled" : `data-apply-exp="${rounded}"`;
       const buttonClass = disabled ? "btn btn-gray" : "btn btn-green";
+      const button = `<button type="button" class="${buttonClass} screen-exp-apply-value-btn" ${attr} title="${title}">경험치 계산기에 적용</button>`;
 
-      return `<button type="button" class="${buttonClass} screen-exp-apply-value-btn" ${attr} title="${title}">경험치 계산기에 적용</button>`;
+      if (!disabled) return button;
+      return `<span class="screen-exp-disabled-tooltip" tabindex="0" data-tooltip="${title}">${button}</span>`;
     }
 
     function renderScreenDefaultResult() {
@@ -1139,7 +1223,9 @@
         screenRoi = null;
         screenPreviewRoi = null;
         hideRoiBox();
-        setScreenStatus("화면 선택 완료. 하단 1/3 확대 미리보기에서 경험치 바 영역을 드래그하세요.");
+        if (!applyStoredScreenRoi()) {
+          setScreenStatus("화면 선택 완료. 하단 1/3 확대 미리보기에서 경험치 바 영역을 드래그하세요.");
+        }
 
         const [track] = screenStream.getVideoTracks();
         track.addEventListener("ended", () => {
@@ -1224,7 +1310,16 @@
         setScreenStatus("화면 선택과 경험치 바 영역 지정이 필요합니다.");
         return;
       }
+      if (!isValidScreenRoi(screenRoi)) {
+        setScreenStatus("저장된 영역이 현재 화면과 맞지 않습니다. 경험치 바 영역을 다시 지정해 주세요.");
+        screenRoi = null;
+        screenPreviewRoi = null;
+        hideRoiBox();
+        removeStoredScreenRoi();
+        return;
+      }
 
+      saveScreenRoi();
       hideMagnifier();
       stopScreenMeasure();
       const stableStart = await getStableStartRatio();
