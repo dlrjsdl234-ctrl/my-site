@@ -961,12 +961,15 @@
       const safeElapsedSeconds = Math.max(1, elapsedSeconds);
       const slowerElapsedSeconds = safeElapsedSeconds + timingMarginSeconds;
       const fasterElapsedSeconds = Math.max(1, safeElapsedSeconds - timingMarginSeconds);
+      const minExpPerMinute = gainedExp / slowerElapsedSeconds * 60;
+      const maxExpPerMinute = gainedExp / fasterElapsedSeconds * 60;
 
       return {
         timingMarginSeconds,
-        minExpPerMinute: gainedExp / slowerElapsedSeconds * 60,
-        maxExpPerMinute: gainedExp / fasterElapsedSeconds * 60,
-        midpointExpPerMinute: gainedExp / safeElapsedSeconds * 60
+        averageExpPerMinute: gainedExp / safeElapsedSeconds * 60,
+        minExpPerMinute,
+        maxExpPerMinute,
+        midpointExpPerMinute: (minExpPerMinute + maxExpPerMinute) / 2
       };
     }
 
@@ -1038,9 +1041,9 @@
     renderScreenDefaultResult();
 
     function renderScreenLiveResult(ratio, elapsedSeconds, decision) {
-      const totalAverage = elapsedSeconds > 0 ? screenTotalGainedExp / elapsedSeconds * 60 : 0;
       const rollingAverage = getRollingExpPerMinute();
       const timingRange = getTimingRange(screenTotalGainedExp, elapsedSeconds);
+      const totalAverage = timingRange.averageExpPerMinute;
       const ratioPercentPerMinute = getRatioPercentPerMinute();
       const statusText = decision?.reason || (decision?.levelUp ? "level-up-confirmed" : "normal");
 
@@ -1070,7 +1073,7 @@
                 ${formatExp(totalAverage)} / 분
                 ${renderScreenTimingRange(timingRange, value => `${formatExp(value)} / 분`)}
               </strong>
-              ${renderScreenApplyButton(timingRange.midpointExpPerMinute, elapsedSeconds, screenMeasurementInvalidated)}
+              ${renderScreenApplyButton(totalAverage, elapsedSeconds, screenMeasurementInvalidated)}
             </div>
           </div>
           <div class="result-row">
@@ -1435,7 +1438,8 @@
 
       const result = {
         gainedExp: screenTotalGainedExp,
-        expPerMinute: timingRange.midpointExpPerMinute,
+        expPerMinute: timingRange.averageExpPerMinute,
+        midpointExpPerMinute: timingRange.midpointExpPerMinute,
         minExpPerMinute: timingRange.minExpPerMinute,
         maxExpPerMinute: timingRange.maxExpPerMinute,
         timingMarginSeconds: timingRange.timingMarginSeconds,
@@ -1497,8 +1501,8 @@
           <div class="result-row">
             <span class="result-label">${renderScreenTimingHelp("오차범위 고려 중간값", "MIN~MAX 범위의 중심 기준값입니다. 일반적으로 경험치 계산기에 적용하기 가장 무난한 값입니다.")}</span>
             <div class="screen-exp-result-action">
-              <strong class="result-value screen-exp-midpoint">${Math.round(result.expPerMinute).toLocaleString("ko-KR")}</strong>
-              ${renderScreenApplyButton(result.expPerMinute, result.elapsedSeconds, result.invalidated)}
+              <strong class="result-value screen-exp-midpoint">${Math.round(result.midpointExpPerMinute).toLocaleString("ko-KR")}</strong>
+              ${renderScreenApplyButton(result.midpointExpPerMinute, result.elapsedSeconds, result.invalidated)}
             </div>
           </div>
           <div class="result-row">
