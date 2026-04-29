@@ -351,9 +351,16 @@
     let screenLevelUpArmed = false;
     let screenMeasurementInvalidated = false;
     let screenRecentExpSamples = [];
+    let screenRatioTrendSamples = [];
+    let screenLastAcceptedSampleTime = null;
+    let screenLevelUpStabilizeUntil = 0;
+    let screenSampleInProgress = false;
     let screenLastResult = null;
     const SCREEN_PREVIEW_CROP_TOP_RATIO = 2 / 3;
     const SCREEN_PREVIEW_CROP_HEIGHT_RATIO = 1 / 3;
+    const SCREEN_SPIKE_RECHECK_COUNT = 3;
+    const SCREEN_SPIKE_RECHECK_DELAY_MS = 120;
+    const SCREEN_LEVEL_UP_STABILIZE_MS = 5000;
 
     function setScreenStatus(message) {
       screenStatus.textContent = message;
@@ -759,6 +766,65 @@
       return detectExpRatio(screenCanvas, screenRoi);
     }
 
+    function getMedian(values) {
+      if (values.length === 0) return 0;
+      const sorted = [...values].sort((a, b) => a - b);
+      return sorted[Math.floor(sorted.length / 2)];
+    }
+
+    function addRatioTrendSample(deltaRatio, elapsedSeconds) {
+      if (!Number.isFinite(deltaRatio) || !Number.isFinite(elapsedSeconds) || deltaRatio <= 0 || elapsedSeconds <= 0) return;
+
+      const now = Date.now();
+      screenRatioTrendSamples.push({ time: now, ratioPerSecond: deltaRatio / elapsedSeconds });
+      screenRatioTrendSamples = screenRatioTrendSamples.filter(sample => now - sample.time <= 45000).slice(-20);
+    }
+
+    function getAllowedRatioIncrease(elapsedSeconds) {
+      const safeElapsedSeconds = Math.max(1, elapsedSeconds || 1);
+      const recentRates = screenRatioTrendSamples.map(sample => sample.ratioPerSecond).filter(Number.isFinite);
+      const recentRate = getMedian(recentRates);
+      const trendLimit = recentRate > 0 ? recentRate * safeElapsedSeconds * 6 + 0.01 : 0;
+      const baseLimit = screenLevelUpStabilizeUntil > Date.now() ? 0.06 : 0.12;
+      const elapsedLimit = safeElapsedSeconds * (screenLevelUpStabilizeUntil > Date.now() ? 0.04 : 0.08);
+
+      return Math.max(0.015, Math.min(baseLimit, Math.max(trendLimit, elapsedLimit)));
+    }
+
+    function isSuspiciousRatioJump(ratio, sampledAt = Date.now()) {
+      if (screenPrevRatio === null || ratio <= screenPrevRatio) return false;
+
+      const elapsedSeconds = screenLastAcceptedSampleTime ? (sampledAt - screenLastAcceptedSampleTime) / 1000 : 1;
+      const delta = ratio - screenPrevRatio;
+      return delta > getAllowedRatioIncrease(elapsedSeconds);
+    }
+
+    async function getValidatedScreenSample(initialSample) {
+      const sampledAt = Date.now();
+      if (initialSample.error || !isSuspiciousRatioJump(initialSample.ratio, sampledAt)) {
+        return { ...initialSample, sampledAt };
+      }
+
+      setScreenStatus("갑작스러운 진행률 점프 감지. 픽셀을 다시 검사하는 중...");
+
+      for (let i = 0; i < SCREEN_SPIKE_RECHECK_COUNT; i++) {
+        await wait(SCREEN_SPIKE_RECHECK_DELAY_MS);
+        const rechecked = captureRatio();
+        const recheckedAt = Date.now();
+        if (!rechecked.error && !isSuspiciousRatioJump(rechecked.ratio, recheckedAt)) {
+          return { ...rechecked, sampledAt: recheckedAt, rechecked: true };
+        }
+      }
+
+      return {
+        ok: true,
+        ratio: screenPrevRatio,
+        sampledAt: Date.now(),
+        ignored: true,
+        reason: "spike-ignored"
+      };
+    }
+
     function stopScreenMeasure(message) {
       if (screenMeasureTimer) {
         clearTimeout(screenMeasureTimer);
@@ -968,9 +1034,11 @@
       return { ratio, samples: stableSamples.length };
     }
 
-    function addScreenMeasureSample(ratio) {
+    function addScreenMeasureSample(ratio, sampledAt = Date.now()) {
       if (screenPrevRatio === null || screenCurrentMeasureLevel === null) return { ok: true, gainedExp: 0 };
 
+      const prevRatio = screenPrevRatio;
+      const prevSampleTime = screenLastAcceptedSampleTime;
       const drop = screenPrevRatio - ratio;
       const levelInfo = getAdjustedExpNeed(screenCurrentMeasureLevel);
       if (levelInfo.error) return levelInfo;
@@ -983,6 +1051,12 @@
         if (ratio >= 0.5) {
           screenPendingLevelUp = null;
           return { ok: true, gainedExp: 0, ignored: true, reason: "level-up-cancelled" };
+        }
+
+        const pendingElapsedSeconds = screenLastAcceptedSampleTime ? (sampledAt - screenLastAcceptedSampleTime) / 1000 : 1;
+        const allowedPostLevelUpRatio = getAllowedRatioIncrease(pendingElapsedSeconds);
+        if (ratio > allowedPostLevelUpRatio) {
+          return { ok: true, gainedExp: 0, ignored: true, reason: "level-up-spike-ignored" };
         }
 
         if (Math.abs(ratio - screenPendingLevelUp.ratio) <= 0.06) {
@@ -1004,6 +1078,8 @@
           screenLevelUpCount++;
           screenMeasurementInvalidated = true;
           screenPrevRatio = ratio;
+          screenLastAcceptedSampleTime = sampledAt;
+          screenLevelUpStabilizeUntil = Date.now() + SCREEN_LEVEL_UP_STABILIZE_MS;
           screenPendingLevelUp = null;
           screenLevelUpArmed = false;
           return { ok: true, gainedExp, levelUp: true, reason: "level-up-confirmed" };
@@ -1013,6 +1089,11 @@
       }
 
       if (drop >= 0.6 && screenLevelUpArmed && screenPrevRatio >= 0.85 && ratio <= 0.25) {
+        const levelUpElapsedSeconds = screenLastAcceptedSampleTime ? (sampledAt - screenLastAcceptedSampleTime) / 1000 : 1;
+        if (ratio > getAllowedRatioIncrease(levelUpElapsedSeconds)) {
+          return { ok: true, gainedExp: 0, ignored: true, reason: "level-up-spike-ignored" };
+        }
+
         screenMeasurementInvalidated = true;
         screenPendingLevelUp = {
           prevRatio: screenPrevRatio,
@@ -1036,11 +1117,14 @@
 
       if (ratio > screenPrevRatio) {
         const gainedExp = levelInfo.expNeed * (ratio - screenPrevRatio);
+        const isStabilizing = screenLevelUpStabilizeUntil > Date.now();
         screenTotalGainedExp += gainedExp;
         screenPrevRatio = ratio;
+        screenLastAcceptedSampleTime = sampledAt;
+        if (prevSampleTime) addRatioTrendSample(ratio - prevRatio, (sampledAt - prevSampleTime) / 1000);
         screenPendingLevelUp = null;
         if (screenPrevRatio >= 0.85) screenLevelUpArmed = true;
-        return { ok: true, gainedExp };
+        return { ok: true, gainedExp, reason: isStabilizing ? "level-up-stabilizing" : "normal" };
       }
 
       return { ok: true, gainedExp: 0 };
@@ -1163,30 +1247,43 @@
       screenLevelUpArmed = screenPrevRatio >= 0.85;
       screenMeasurementInvalidated = false;
       screenRecentExpSamples = [];
+      screenRatioTrendSamples = [];
+      screenLastAcceptedSampleTime = Date.now();
+      screenLevelUpStabilizeUntil = 0;
+      screenSampleInProgress = false;
       screenLastResult = null;
       setScreenStatus(`측정 중... 시작 진행률 ${(screenStartRatio * 100).toFixed(2)}%`);
       renderScreenLiveResult(screenStartRatio, 0, { reason: "start" });
 
-      screenMeasureInterval = setInterval(() => {
-        const sampled = captureRatio();
-        if (sampled.error) {
-          return;
+      screenMeasureInterval = setInterval(async () => {
+        if (screenSampleInProgress) return;
+        screenSampleInProgress = true;
+
+        try {
+          const initialSample = captureRatio();
+          const sampled = await getValidatedScreenSample(initialSample);
+          if (sampled.error || !screenMeasureStart) return;
+
+          const added = sampled.ignored
+            ? { ok: true, gainedExp: 0, ignored: true, reason: sampled.reason }
+            : addScreenMeasureSample(sampled.ratio, sampled.sampledAt);
+          if (added.error) {
+            stopScreenMeasure(added.error);
+            return;
+          }
+
+          addRecentExpSample(added.gainedExp);
+
+          const elapsedSeconds = (Date.now() - screenMeasureStart) / 1000;
+          const pendingText = added.pendingLevelUp ? " / 레벨업 확인 중" : "";
+          const recheckText = sampled.rechecked ? " / 재검사 반영" : "";
+          setScreenStatus(
+            `측정 중... LV ${screenCurrentMeasureLevel} / 현재 인식된 경험치 퍼센트 ${(sampled.ratio * 100).toFixed(2)}% / ${formatMeasureElapsed(elapsedSeconds)}${pendingText}${recheckText}`
+          );
+          renderScreenLiveResult(sampled.ratio, elapsedSeconds, added);
+        } finally {
+          screenSampleInProgress = false;
         }
-
-        const added = addScreenMeasureSample(sampled.ratio);
-        if (added.error) {
-          stopScreenMeasure(added.error);
-          return;
-        }
-
-        addRecentExpSample(added.gainedExp);
-
-        const elapsedSeconds = (Date.now() - screenMeasureStart) / 1000;
-        const pendingText = added.pendingLevelUp ? " / 레벨업 확인 중" : "";
-        setScreenStatus(
-          `측정 중... LV ${screenCurrentMeasureLevel} / 현재 인식된 경험치 퍼센트 ${(sampled.ratio * 100).toFixed(2)}% / ${formatMeasureElapsed(elapsedSeconds)}${pendingText}`
-        );
-        renderScreenLiveResult(sampled.ratio, elapsedSeconds, added);
       }, 1000);
 
       screenMeasureTimer = setTimeout(() => {
@@ -1194,13 +1291,17 @@
       }, seconds * 1000);
     });
 
-    screenStopMeasureBtn.addEventListener("click", () => {
+    screenStopMeasureBtn.addEventListener("click", async () => {
       if (screenStartRatio === null || !screenMeasureStart) {
         setScreenStatus("진행 중인 측정이 없습니다.");
         return;
       }
 
-      const detected = captureRatio();
+      while (screenSampleInProgress) {
+        await wait(50);
+      }
+
+      const detected = await getValidatedScreenSample(captureRatio());
       const elapsedSeconds = (Date.now() - screenMeasureStart) / 1000;
       const startRatio = screenStartRatio;
 
@@ -1212,7 +1313,9 @@
         return;
       }
 
-      const added = addScreenMeasureSample(detected.ratio);
+      const added = detected.ignored
+        ? { ok: true, gainedExp: 0, ignored: true, reason: detected.reason }
+        : addScreenMeasureSample(detected.ratio, detected.sampledAt);
       stopScreenMeasure("측정 완료");
       addRecentExpSample(added.gainedExp);
 
