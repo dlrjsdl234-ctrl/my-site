@@ -44,13 +44,22 @@
       </section>
 
       <section class="calc-card image-tab-card">
-        <div class="result-title">기초 가이드</div>
+        <div class="image-guide-head">
+          <div>
+            <div class="result-title">기초 가이드</div>
+            <p class="image-guide-subtitle">원하는 가이드를 선택하면 아래에서 크게 볼 수 있습니다.</p>
+          </div>
+          <span class="image-guide-count">탭 7개 · 공략 6장</span>
+        </div>
 
         <div class="image-tab-menu" id="imageTabMenu"></div>
 
         <div class="image-viewer">
+          <button type="button" class="image-slide-btn image-slide-prev" id="imageSlidePrev" aria-label="이전 이미지">‹</button>
           <img id="tabImage" src="" alt="탭 이미지">
+          <button type="button" class="image-slide-btn image-slide-next" id="imageSlideNext" aria-label="다음 이미지">›</button>
         </div>
+        <div class="image-slide-dots" id="imageSlideDots" aria-label="공략 이미지 순서"></div>
 
         <div class="result-box image-caption" id="tabCaption">
           이미지를 선택해주세요.
@@ -121,7 +130,15 @@
     {
       title: "공략",
       image: "assets/tab/img1.png",
-      text: "기초 공략 가이드 입니다."
+      images: [
+        "assets/tab/img1.png",
+        "assets/tab/beginner-guide-1.png",
+        "assets/tab/beginner-guide-2.png",
+        "assets/tab/beginner-guide-3.png",
+        "assets/tab/beginner-guide-4.png",
+        "assets/tab/beginner-guide-5.png"
+      ],
+      text: "기초 공략 가이드입니다. 좌우 버튼 또는 스와이프로 이어지는 공략 이미지를 넘겨볼 수 있습니다."
     },
     {
       title: "스킬 및 환생 추천 트리",
@@ -158,12 +175,59 @@
   const imageTabMenu = document.getElementById("imageTabMenu");
   const tabImage = document.getElementById("tabImage");
   const tabCaption = document.getElementById("tabCaption");
+  const imageSlidePrev = document.getElementById("imageSlidePrev");
+  const imageSlideNext = document.getElementById("imageSlideNext");
+  const imageSlideDots = document.getElementById("imageSlideDots");
+  let activeTabIndex = 0;
+  let activeSlideIndex = 0;
+
+  function getActiveImages() {
+    const data = imageTabs[activeTabIndex];
+    return data.images || [data.image];
+  }
+
+  function renderImageSlide() {
+    const data = imageTabs[activeTabIndex];
+    const images = getActiveImages();
+    const hasSlides = images.length > 1;
+
+    if (activeSlideIndex >= images.length) {
+      activeSlideIndex = 0;
+    }
+
+    tabImage.src = images[activeSlideIndex];
+    tabImage.alt = hasSlides ? `${data.title} ${activeSlideIndex + 1}` : data.title;
+    imageSlidePrev.hidden = !hasSlides;
+    imageSlideNext.hidden = !hasSlides;
+    imageSlideDots.hidden = !hasSlides;
+
+    imageSlideDots.innerHTML = "";
+    images.forEach((_, index) => {
+      const dot = document.createElement("button");
+      dot.type = "button";
+      dot.className = "image-slide-dot";
+      dot.setAttribute("aria-label", `${index + 1}번째 공략 이미지`);
+      dot.classList.toggle("active", index === activeSlideIndex);
+      dot.addEventListener("click", () => {
+        activeSlideIndex = index;
+        renderImageSlide();
+      });
+      imageSlideDots.appendChild(dot);
+    });
+  }
+
+  function moveImageSlide(direction) {
+    const images = getActiveImages();
+    activeSlideIndex = (activeSlideIndex + direction + images.length) % images.length;
+    renderImageSlide();
+  }
 
   function renderImageTab(index) {
     const data = imageTabs[index];
+    activeTabIndex = index;
+    activeSlideIndex = 0;
 
-    tabImage.src = data.image;
-    tabImage.alt = data.title;
+    renderImageSlide();
     tabCaption.textContent = data.text;
 
     document.querySelectorAll(".image-tab-btn").forEach((btn, i) => {
@@ -185,6 +249,22 @@
   });
 
   renderImageTab(0);
+
+  imageSlidePrev.addEventListener("click", () => moveImageSlide(-1));
+  imageSlideNext.addEventListener("click", () => moveImageSlide(1));
+
+  let imageTouchStartX = 0;
+
+  tabImage.addEventListener("touchstart", (event) => {
+    imageTouchStartX = event.changedTouches[0].clientX;
+  }, { passive: true });
+
+  tabImage.addEventListener("touchend", (event) => {
+    const diff = event.changedTouches[0].clientX - imageTouchStartX;
+    if (Math.abs(diff) > 45 && getActiveImages().length > 1) {
+      moveImageSlide(diff > 0 ? -1 : 1);
+    }
+  }, { passive: true });
 
   // 기초 가이드 탭 이미지 클릭 시 확대
   tabImage.addEventListener("click", () => {
