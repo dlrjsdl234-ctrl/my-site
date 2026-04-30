@@ -2146,18 +2146,40 @@ th {
   position: absolute;
   top: 50%;
   z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 44px;
   height: 44px;
+  padding: 0;
   border: 1px solid rgba(255, 255, 255, 0.42);
   border-radius: 50%;
   background: rgba(15, 23, 42, 0.72);
   color: #fff;
   cursor: pointer;
-  font-size: 34px;
-  font-weight: 800;
-  line-height: 38px;
+  font-size: 0;
+  line-height: 1;
   transform: translateY(-50%);
   transition: 0.2s;
+}
+
+.image-slide-btn::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  border-top: 4px solid currentColor;
+  border-right: 4px solid currentColor;
+}
+
+.image-slide-prev::before {
+  transform: translate(-50%, -50%) rotate(-135deg);
+}
+
+.image-slide-next::before {
+  transform: translate(-50%, -50%) rotate(45deg);
 }
 
 .image-slide-btn:hover {
@@ -2239,8 +2261,12 @@ th {
   .image-slide-btn {
     width: 36px;
     height: 36px;
-    font-size: 28px;
-    line-height: 30px;
+  }
+
+  .image-slide-btn::before {
+    width: 8px;
+    height: 8px;
+    border-width: 3px;
   }
 
   .image-slide-prev {
