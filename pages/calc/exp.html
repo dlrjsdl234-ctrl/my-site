@@ -492,6 +492,13 @@
       };
     }
 
+    function syncCurrentLevelInputs(level) {
+      const value = String(level);
+      document.getElementById("currentLv").value = value;
+      document.getElementById("screenCurrentLv").value = value;
+      saveAll();
+    }
+
     function setRoiBoxStyle(left, top, width, height) {
       screenRoiBox.style.left = left + "px";
       screenRoiBox.style.top = top + "px";
@@ -1249,6 +1256,7 @@
             (nextLevelInfo.expNeed * Math.max(0, ratio));
           screenTotalGainedExp += gainedExp;
           screenCurrentMeasureLevel = nextLevel;
+          syncCurrentLevelInputs(nextLevel);
           screenLevelUpCount++;
           screenMeasurementInvalidated = true;
           screenPrevRatio = ratio;
