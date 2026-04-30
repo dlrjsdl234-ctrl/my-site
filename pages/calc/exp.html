@@ -363,6 +363,9 @@
     const SCREEN_SPIKE_RECHECK_COUNT = 3;
     const SCREEN_SPIKE_RECHECK_DELAY_MS = 120;
     const SCREEN_LEVEL_UP_STABILIZE_MS = 5000;
+    const SCREEN_SPIKE_WARMUP_MS = 5000;
+    const SCREEN_MIN_TREND_SAMPLES = 3;
+    const SCREEN_RECHECK_CONSISTENCY_RATIO = 0.08;
 
     function setScreenStatus(message) {
       screenStatus.textContent = message;
@@ -866,19 +869,36 @@
       const safeElapsedSeconds = Math.max(1, elapsedSeconds || 1);
       const recentRates = screenRatioTrendSamples.map(sample => sample.ratioPerSecond).filter(Number.isFinite);
       const recentRate = getMedian(recentRates);
-      const trendLimit = recentRate > 0 ? recentRate * safeElapsedSeconds * 6 + 0.01 : 0;
-      const baseLimit = screenLevelUpStabilizeUntil > Date.now() ? 0.06 : 0.12;
-      const elapsedLimit = safeElapsedSeconds * (screenLevelUpStabilizeUntil > Date.now() ? 0.04 : 0.08);
+      const trendLimit = recentRate > 0 ? recentRate * safeElapsedSeconds * 6 + 0.03 : 0;
+      const baseLimit = screenLevelUpStabilizeUntil > Date.now() ? 0.45 : 0.75;
+      const elapsedLimit = safeElapsedSeconds * (screenLevelUpStabilizeUntil > Date.now() ? 0.18 : 0.3);
 
-      return Math.max(0.015, Math.min(baseLimit, Math.max(trendLimit, elapsedLimit)));
+      return Math.max(0.03, Math.min(baseLimit, Math.max(trendLimit, elapsedLimit)));
     }
 
     function isSuspiciousRatioJump(ratio, sampledAt = Date.now()) {
       if (screenPrevRatio === null || ratio <= screenPrevRatio) return false;
 
+      const isWarmup = screenMeasureStart && sampledAt - screenMeasureStart <= SCREEN_SPIKE_WARMUP_MS;
       const elapsedSeconds = screenLastAcceptedSampleTime ? (sampledAt - screenLastAcceptedSampleTime) / 1000 : 1;
       const delta = ratio - screenPrevRatio;
+      if (isWarmup || screenRatioTrendSamples.length < SCREEN_MIN_TREND_SAMPLES) {
+        return delta > 0.8;
+      }
+
       return delta > getAllowedRatioIncrease(elapsedSeconds);
+    }
+
+    function getConsistentRecheckedSample(samples) {
+      const validSamples = samples.filter(sample => !sample.error && Number.isFinite(sample.ratio));
+      if (validSamples.length < 2) return null;
+
+      const medianRatio = getMedian(validSamples.map(sample => sample.ratio));
+      const consistentSamples = validSamples.filter(sample => Math.abs(sample.ratio - medianRatio) <= SCREEN_RECHECK_CONSISTENCY_RATIO);
+      if (consistentSamples.length < 2) return null;
+
+      const sample = consistentSamples[consistentSamples.length - 1];
+      return { ...sample, ratio: medianRatio, sampledAt: sample.sampledAt, rechecked: true };
     }
 
     async function getValidatedScreenSample(initialSample) {
@@ -888,15 +908,20 @@
       }
 
       setScreenStatus("갑작스러운 진행률 점프 감지. 픽셀을 다시 검사하는 중...");
+      const samples = [{ ...initialSample, sampledAt }];
 
       for (let i = 0; i < SCREEN_SPIKE_RECHECK_COUNT; i++) {
         await wait(SCREEN_SPIKE_RECHECK_DELAY_MS);
         const rechecked = captureRatio();
         const recheckedAt = Date.now();
+        samples.push({ ...rechecked, sampledAt: recheckedAt });
         if (!rechecked.error && !isSuspiciousRatioJump(rechecked.ratio, recheckedAt)) {
           return { ...rechecked, sampledAt: recheckedAt, rechecked: true };
         }
       }
+
+      const consistentSample = getConsistentRecheckedSample(samples);
+      if (consistentSample) return consistentSample;
 
       return {
         ok: true,
@@ -1146,18 +1171,12 @@
       }
 
       if (screenPendingLevelUp) {
-        if (ratio >= 0.5) {
+        if (ratio >= 0.75) {
           screenPendingLevelUp = null;
           return { ok: true, gainedExp: 0, ignored: true, reason: "level-up-cancelled" };
         }
 
-        const pendingElapsedSeconds = screenLastAcceptedSampleTime ? (sampledAt - screenLastAcceptedSampleTime) / 1000 : 1;
-        const allowedPostLevelUpRatio = getAllowedRatioIncrease(pendingElapsedSeconds);
-        if (ratio > allowedPostLevelUpRatio) {
-          return { ok: true, gainedExp: 0, ignored: true, reason: "level-up-spike-ignored" };
-        }
-
-        if (Math.abs(ratio - screenPendingLevelUp.ratio) <= 0.06) {
+        if (Math.abs(ratio - screenPendingLevelUp.ratio) <= SCREEN_RECHECK_CONSISTENCY_RATIO) {
           screenPendingLevelUp.confirmCount++;
         } else {
           screenPendingLevelUp.ratio = ratio;
@@ -1186,12 +1205,7 @@
         return { ok: true, gainedExp: 0, pendingLevelUp: true, reason: "level-up-confirming" };
       }
 
-      if (drop >= 0.6 && screenLevelUpArmed && screenPrevRatio >= 0.85 && ratio <= 0.25) {
-        const levelUpElapsedSeconds = screenLastAcceptedSampleTime ? (sampledAt - screenLastAcceptedSampleTime) / 1000 : 1;
-        if (ratio > getAllowedRatioIncrease(levelUpElapsedSeconds)) {
-          return { ok: true, gainedExp: 0, ignored: true, reason: "level-up-spike-ignored" };
-        }
-
+      if (drop >= 0.35 && screenLevelUpArmed && screenPrevRatio >= 0.85 && ratio <= 0.65) {
         screenMeasurementInvalidated = true;
         screenPendingLevelUp = {
           prevRatio: screenPrevRatio,
@@ -1209,7 +1223,7 @@
         return { ok: true, gainedExp: 0, ignored: true, reason: "small-drop" };
       }
 
-      if (ratio - screenPrevRatio > 0.25) {
+      if (ratio - screenPrevRatio > 0.8) {
         return { ok: true, gainedExp: 0, ignored: true, reason: "large-jump" };
       }
 
