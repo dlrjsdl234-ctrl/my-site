@@ -88,11 +88,32 @@
   <img id="overlayImg" src="" alt="">
 </div>
 <script>
+  const imgOverlay = document.getElementById("imgOverlay");
+  const overlayImg = document.getElementById("overlayImg");
+
+  function openImageOverlay(src, alt = "") {
+    overlayImg.src = src;
+    overlayImg.alt = alt;
+    imgOverlay.classList.add("show");
+  }
+
+  // 기여자 이미지 클릭 시 확대
   document.querySelectorAll(".contributor-img").forEach(img => {
     img.addEventListener("click", () => {
-      document.getElementById("overlayImg").src = img.src;
-      document.getElementById("imgOverlay").classList.add("show");
+      openImageOverlay(img.src, img.alt);
     });
+  });
+
+  // 확대된 이미지 자체를 눌렀을 때 닫히지 않게 처리
+  overlayImg.addEventListener("click", (event) => {
+    event.stopPropagation();
+  });
+
+  // ESC 키로 닫기
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      imgOverlay.classList.remove("show");
+    }
   });
 </script>
 <script>
@@ -164,6 +185,11 @@
   });
 
   renderImageTab(0);
+
+  // 기초 가이드 탭 이미지 클릭 시 확대
+  tabImage.addEventListener("click", () => {
+    openImageOverlay(tabImage.src, tabImage.alt);
+  });
 </script>
 </body>
 </html>

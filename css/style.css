@@ -2291,3 +2291,29 @@ th {
     padding: 7px 5px;
   }
 }
+
+
+/* ==============================
+   이미지 클릭 확대 개선
+   - 기여자 이미지 + 기초 가이드 탭 이미지 공통 사용
+   ============================== */
+.image-viewer img {
+  cursor: zoom-in;
+}
+
+.img-overlay.show {
+  animation: imageOverlayFadeIn 0.15s ease-out;
+}
+
+.img-overlay img {
+  cursor: default;
+}
+
+@keyframes imageOverlayFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
