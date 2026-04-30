@@ -24,6 +24,10 @@
       <div class="calc-card">
         <div class="result-title">RP 스킬 계산</div>
 
+        <div class="button-row" style="margin-bottom: 14px;">
+          <button type="button" id="resetBtn" class="btn btn-gray">초기화</button>
+        </div>
+
         <div class="rp-skill-wrap table-wrap">
           <table id="rpSkillTable" class="rp-skill-table">
             <thead>
@@ -148,6 +152,27 @@
         saveSkillState();
       }
     });
+  }
+
+  function resetAll() {
+    const rows = document.querySelectorAll("#rpSkillTable tbody tr");
+
+    rows.forEach(tr => {
+      tr.querySelector(".current-lv").value = 0;
+      tr.querySelector(".target-lv").value = 0;
+      tr.querySelector(".need-rp").textContent = "0";
+    });
+
+    const totalCell = document.querySelector(".grand-total");
+    if (totalCell) totalCell.textContent = "0";
+
+    saveInputs("rpskill", {});
+  }
+
+  const resetBtn = document.getElementById("resetBtn");
+
+  if (resetBtn) {
+    resetBtn.addEventListener("click", resetAll);
   }
 </script>
 </body>
