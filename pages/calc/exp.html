@@ -159,6 +159,7 @@
                   <li><strong class="screen-exp-emphasis">초록색 진행 영역과 회색 빈 영역</strong>을 기준으로 맞추되, 정확히 딱 맞추기 어렵다면 경험치 바 안쪽을 <strong>대략적으로</strong> 잡아도 됩니다.</li>
                   <li>한 번 선택한 뒤에는 상하좌우 손잡이로 빨간 선을 조절합니다. 돋보기의 굵은 십자선이 조절 중인 기준선입니다.</li>
                   <li>다시 선택하려면 `Delete` 키로 영역을 지웁니다.</li>
+                  <li><strong class="screen-exp-warning">측정 중에는 경험치 바 영역 위에 마우스 포인터를 두지 마세요.</strong> 포인터가 캡처 영역에 겹치면 픽셀 인식이 흔들릴 수 있습니다.</li>
                   <li>현재 레벨, 모래시계 레벨, 측정 시간을 확인한 뒤 `측정 시작`을 누릅니다. <strong class="screen-exp-warning">명확한 지표 수집을 위해 3분 이상 측정을 권장합니다.</strong></li>
                   <li>테스트 결과 경험치 퍼센트 인식 오차는 대체로 <strong>0.1% 미만</strong>이지만, 측정 결과를 맹신하지 말고 <u>2~3번 반복 측정</u>해서 비교해 주세요.</li>
                 </ol>
@@ -209,7 +210,7 @@
               <div class="screen-exp-resize-handle screen-exp-resize-right" id="screenRoiRightHandle" title="오른쪽 폭 조정"></div>
               <div class="screen-exp-resize-handle screen-exp-resize-bottom" id="screenRoiBottomHandle" title="아래쪽 높이 조정"></div>
               <canvas class="screen-exp-magnifier" id="screenMagnifierCanvas"></canvas>
-              <div class="screen-exp-placeholder" id="screenPlaceholder">화면 선택 후 하단 확대 미리보기에서 경험치 바 영역을 드래그하세요.</div>
+              <div class="screen-exp-placeholder" id="screenPlaceholder"><span>화면 선택 후 하단 확대 미리보기에서 경험치 바 영역을 드래그하세요.</span></div>
             </div>
             <canvas id="screenCanvas" hidden></canvas>
 

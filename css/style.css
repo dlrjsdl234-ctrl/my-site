@@ -1615,9 +1615,24 @@ th {
   align-items: center;
   justify-content: center;
   padding: 20px;
-  color: var(--text-sub);
+  color: var(--result-text);
   text-align: center;
   pointer-events: none;
+}
+
+.screen-exp-placeholder span {
+  display: block;
+  max-width: 520px;
+  padding: 18px 22px;
+  border: 1px solid var(--result-border);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--card-bg) 90%, transparent);
+  box-shadow: 0 10px 28px var(--shadow-card);
+  font-size: 17px;
+  font-weight: 900;
+  line-height: 1.6;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(6px);
 }
 
 .screen-exp-roi {
