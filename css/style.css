@@ -1912,6 +1912,58 @@ th {
   background: var(--rp-tfoot-bg);
 }
 
+.discord-format-table {
+  border-collapse: separate;
+  border-spacing: 0 8px;
+  min-width: 0;
+}
+
+.discord-format-table th {
+  border: 0;
+  border-radius: 12px;
+  padding: 12px 16px;
+  text-align: left;
+}
+
+.discord-format-table td {
+  border: 1px solid var(--list-border);
+  border-radius: 12px;
+  background: var(--result-bg);
+  padding: 14px 16px;
+  text-align: left;
+  transition: 0.18s ease;
+}
+
+.discord-format-table tr:hover td {
+  border-color: var(--result-highlight);
+  box-shadow: 0 8px 20px rgba(29, 123, 224, 0.12);
+  transform: translateY(-1px);
+}
+
+.discord-format-table strong {
+  display: block;
+  color: var(--result-value-color);
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 16px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 640px) {
+  .discord-format-table {
+    border-spacing: 0 6px;
+  }
+
+  .discord-format-table th,
+  .discord-format-table td {
+    padding: 11px 12px;
+  }
+
+  .discord-format-table strong {
+    font-size: 13px;
+  }
+}
+
 /* ==============================
    메뉴 섹션 헤더
    ============================== */
