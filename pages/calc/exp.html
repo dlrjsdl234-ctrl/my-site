@@ -923,6 +923,10 @@
     function isLevelUpCandidateDrop(drop, ratio, sampledAt = Date.now()) {
       if (screenPrevRatio === null || drop <= 0) return false;
 
+      if (screenLevelUpArmed && screenPrevRatio >= 0.85 && ratio <= 0.25 && drop >= SCREEN_MIN_LEVEL_UP_DROP) {
+        return true;
+      }
+
       const trend = getRecentRatioTrend(sampledAt);
       if (trend.positiveSteps < 1) return false;
 
