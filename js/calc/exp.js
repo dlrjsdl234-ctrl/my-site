@@ -112,12 +112,13 @@ export function calculateLevelUpTime(currentLv, targetLv, expPerMinute, hourglas
   };
 }
 
-export function calculateLevelAtMinutes(currentLv, currentExp, expPerMinute, hourglassLv, minutesUntil) {
+export function calculateLevelAtMinutes(currentLv, currentExp, expPerMinute, hourglassLv, minutesUntil, maxLevel = null) {
   currentLv = Number(currentLv);
   currentExp = Number(currentExp);
   expPerMinute = Number(expPerMinute);
   hourglassLv = Number(hourglassLv);
   minutesUntil = Number(minutesUntil);
+  maxLevel = maxLevel === null || maxLevel === "" || maxLevel === undefined ? null : Number(maxLevel);
 
   if (!Number.isInteger(currentLv) || currentLv < 1) {
     return { error: "현재 레벨은 1 이상의 정수로 입력하세요." };
@@ -137,8 +138,37 @@ export function calculateLevelAtMinutes(currentLv, currentExp, expPerMinute, hou
   if (currentLv >= expNeed.length) {
     return { error: "현재 레벨 데이터가 없습니다." };
   }
+  if (maxLevel !== null) {
+    if (!Number.isInteger(maxLevel) || maxLevel < 1) {
+      return { error: "현재 나의 만렙은 1 이상의 정수로 입력하세요." };
+    }
+    if (maxLevel >= expNeed.length) {
+      return { error: "현재 나의 만렙 데이터가 없습니다." };
+    }
+    if (currentLv > maxLevel) {
+      return { error: "현재 레벨은 현재 나의 만렙보다 클 수 없습니다." };
+    }
+  }
 
   const multiplier = 1 + (hourglassLv * 0.1);
+
+  if (maxLevel !== null && currentLv === maxLevel) {
+    return {
+      currentLv,
+      currentExp,
+      level: maxLevel,
+      expInLevel: 0,
+      nextLevelExp: 0,
+      expPercent: 100,
+      totalGainedExp: 0,
+      minutesUntil,
+      multiplier,
+      reachedMaxLevel: true,
+      cappedByMaxLevel: true,
+      minutesToMaxLevel: 0
+    };
+  }
+
   const currentLevelNeed = expNeed[currentLv] * multiplier;
 
   if (!Number.isFinite(currentLevelNeed) || currentLevelNeed <= 0) {
@@ -150,9 +180,39 @@ export function calculateLevelAtMinutes(currentLv, currentExp, expPerMinute, hou
 
   let level = currentLv;
   let expInLevel = currentExp + (expPerMinute * minutesUntil);
+  let expUntilMaxLevel = maxLevel === null ? Infinity : Math.max(0, (expNeed[currentLv] * multiplier) - currentExp);
+  if (maxLevel !== null) {
+    for (let lv = currentLv + 1; lv < maxLevel; lv++) {
+      const need = expNeed[lv] * multiplier;
+      if (!Number.isFinite(need) || need <= 0) {
+        return { error: "현재 나의 만렙까지 필요한 경험치 데이터가 없습니다." };
+      }
+      expUntilMaxLevel += need;
+    }
+  }
+  const minutesToMaxLevel = maxLevel === null ? null : expUntilMaxLevel / expPerMinute;
+  const cappedByMaxLevel = maxLevel !== null && minutesToMaxLevel <= minutesUntil;
+
+  if (cappedByMaxLevel) {
+    return {
+      currentLv,
+      currentExp,
+      level: maxLevel,
+      expInLevel: 0,
+      nextLevelExp: 0,
+      expPercent: 100,
+      totalGainedExp: expUntilMaxLevel,
+      minutesUntil: minutesToMaxLevel,
+      multiplier,
+      reachedMaxLevel: true,
+      cappedByMaxLevel: true,
+      minutesToMaxLevel
+    };
+  }
+
   let reachedMaxLevel = false;
 
-  while (level < expNeed.length) {
+  while (level < expNeed.length && (maxLevel === null || level < maxLevel)) {
     const needForLevel = expNeed[level] * multiplier;
     if (!Number.isFinite(needForLevel) || needForLevel <= 0) {
       reachedMaxLevel = true;
@@ -164,7 +224,7 @@ export function calculateLevelAtMinutes(currentLv, currentExp, expPerMinute, hou
   }
 
   const nextNeed = expNeed[level] * multiplier;
-  const hasNextLevelData = Number.isFinite(nextNeed) && nextNeed > 0 && !reachedMaxLevel;
+  const hasNextLevelData = Number.isFinite(nextNeed) && nextNeed > 0 && !reachedMaxLevel && (maxLevel === null || level < maxLevel);
   const expPercent = hasNextLevelData ? (expInLevel / nextNeed) * 100 : 100;
 
   return {
@@ -177,7 +237,9 @@ export function calculateLevelAtMinutes(currentLv, currentExp, expPerMinute, hou
     totalGainedExp: expPerMinute * minutesUntil,
     minutesUntil,
     multiplier,
-    reachedMaxLevel: !hasNextLevelData
+    reachedMaxLevel: !hasNextLevelData,
+    cappedByMaxLevel: false,
+    minutesToMaxLevel
   };
 }
 

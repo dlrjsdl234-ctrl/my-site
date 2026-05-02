@@ -74,6 +74,11 @@
               </div>
 
               <div class="form-row">
+                <label for="forecastMaxLv">현재 나의 만렙</label>
+                <input type="number" id="forecastMaxLv" placeholder="현재 도달 가능한 최대 레벨 예)200" min="1" value="300">
+              </div>
+
+              <div class="form-row">
                 <label for="forecastExpPerMinute">1분당 경험치</label>
                 <input type="number" id="forecastExpPerMinute" placeholder="1분당 경험치를 입력하세요 예)30000000" min="1">
               </div>
@@ -282,7 +287,7 @@
 
     // === 입력 ID 정의 ===
     const TAB1_IDS = ["currentLv", "targetLv", "expPerMinute", "hourglassLv"];
-    const FORECAST_IDS = ["forecastCurrentLv", "forecastCurrentExp", "forecastExpPerMinute", "forecastTargetTime", "forecastHourglassLv"];
+    const FORECAST_IDS = ["forecastCurrentLv", "forecastCurrentExp", "forecastMaxLv", "forecastExpPerMinute", "forecastTargetTime", "forecastHourglassLv"];
     const TAB2_IDS = ["sweepExp", "sweepCount", "totalHours", "cycleExpPerMinute", "cycleHourglassLv"];
     const TAB3_IDS = ["firstExp", "encyExp", "holySymbol", "numAnimal", "animalTime"];
     const SCREEN_IDS = ["screenCurrentLv", "screenHourglassLv", "screenMeasureSeconds"];
@@ -1793,6 +1798,8 @@
 
       const currentLv = Number(document.getElementById("forecastCurrentLv").value);
       const currentExp = Number(document.getElementById("forecastCurrentExp").value || 0);
+      const maxLvValue = document.getElementById("forecastMaxLv").value;
+      const maxLv = maxLvValue.trim() === "" ? null : Number(maxLvValue);
       const expPerMinute = Number(document.getElementById("forecastExpPerMinute").value);
       const hourglassLv = Number(document.getElementById("forecastHourglassLv").value);
       const targetDate = getTargetDateTime(document.getElementById("forecastTargetTime").value);
@@ -1808,38 +1815,54 @@
         resultEl.innerText = "목표 날짜/시간은 현재보다 이후로 입력하세요.";
         return;
       }
-      const timeResult = calculateLevelAtMinutes(currentLv, currentExp, expPerMinute, hourglassLv, minutesUntil);
+      const timeResult = calculateLevelAtMinutes(currentLv, currentExp, expPerMinute, hourglassLv, minutesUntil, maxLv);
 
       if (!timeResult || timeResult.error) {
         resultEl.innerText = timeResult?.error || "오류 발생";
         return;
       }
 
+      const effectiveTargetDate = timeResult.cappedByMaxLevel
+        ? new Date(now.getTime() + timeResult.minutesUntil * 60000)
+        : targetDate;
+      const targetLabel = timeResult.cappedByMaxLevel ? "만렙 달성 예상 시간" : "목표 시각";
+      const durationLabel = timeResult.cappedByMaxLevel ? "만렙까지 남은 시간" : "남은 시간";
+      const gainedLabel = timeResult.cappedByMaxLevel ? "만렙까지 획득 경험치" : "목표 시각까지 획득 경험치";
+      const expDisplay = timeResult.cappedByMaxLevel
+        ? "만렙 달성"
+        : `${Math.round(timeResult.expInLevel).toLocaleString("ko-KR")} / ${Math.round(timeResult.nextLevelExp).toLocaleString("ko-KR")}`;
+
       resultEl.innerHTML = `
         <div class="result-section">
           <div class="result-title">특정 시각 예상</div>
           <div class="result-row">
-            <span class="result-label">목표 시각</span>
-            <strong class="result-value highlight">${formatDate(targetDate)}</strong>
+            <span class="result-label">${targetLabel}</span>
+            <strong class="result-value highlight">${formatDate(effectiveTargetDate)}</strong>
           </div>
           <div class="result-row">
-            <span class="result-label">남은 시간</span>
+            <span class="result-label">${durationLabel}</span>
             <strong class="result-value">${formatDuration(timeResult.minutesUntil)}</strong>
           </div>
+          ${maxLv === null ? "" : `
+          <div class="result-row">
+            <span class="result-label">현재 나의 만렙</span>
+            <strong class="result-value">LV ${maxLv}</strong>
+          </div>
+          `}
           <div class="result-row">
             <span class="result-label">예상 레벨</span>
             <strong class="result-value highlight">LV ${timeResult.level}</strong>
           </div>
           <div class="result-row">
             <span class="result-label">예상 현재 경험치</span>
-            <strong class="result-value">${Math.round(timeResult.expInLevel).toLocaleString("ko-KR")} / ${Math.round(timeResult.nextLevelExp).toLocaleString("ko-KR")}</strong>
+            <strong class="result-value">${expDisplay}</strong>
           </div>
           <div class="result-row">
             <span class="result-label">예상 경험치 퍼센트</span>
             <strong class="result-value">${timeResult.expPercent.toFixed(2)}%</strong>
           </div>
           <div class="result-row">
-            <span class="result-label">목표 시각까지 획득 경험치</span>
+            <span class="result-label">${gainedLabel}</span>
             <strong class="result-value">${Math.round(timeResult.totalGainedExp).toLocaleString("ko-KR")}</strong>
           </div>
         </div>
