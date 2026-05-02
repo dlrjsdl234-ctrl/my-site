@@ -68,20 +68,16 @@ export function getExpNeedForLevel(level) {
   return { level, expNeed: exp };
 }
 
-export function calculateLevelUpTime(currentLv, targetLv, expPerMinute, hourglassLv, currentExp = 0) {
+export function calculateLevelUpTime(currentLv, targetLv, expPerMinute, hourglassLv) {
   expPerMinute = Number(expPerMinute);
   hourglassLv = Number(hourglassLv);
-  currentExp = Number(currentExp);
 
-  if (!Number.isFinite(expPerMinute) || !Number.isFinite(hourglassLv) || !Number.isFinite(currentExp)) {
+  if (!Number.isFinite(expPerMinute) || !Number.isFinite(hourglassLv)) {
     return { error: "경험치와 모래시계 레벨은 숫자로 입력하세요." };
   }
 
   if (expPerMinute <= 0) {
     return { error: "1분당 경험치는 0보다 커야 합니다." };
-  }
-  if (currentExp < 0) {
-    return { error: "현재 경험치는 0 이상의 숫자로 입력하세요." };
   }
 
   if (!Number.isInteger(hourglassLv) || hourglassLv < 0 || hourglassLv > 20) {
@@ -92,16 +88,7 @@ export function calculateLevelUpTime(currentLv, targetLv, expPerMinute, hourglas
   if (expInfo.error) return expInfo;
 
   const multiplier = 1 + (hourglassLv * 0.1);
-  const currentLevelNeed = expNeed[expInfo.currentLv] * multiplier;
-  if (!Number.isFinite(currentLevelNeed) || currentLevelNeed <= 0) {
-    return { error: "현재 레벨의 경험치 데이터가 없습니다." };
-  }
-  if (currentExp >= currentLevelNeed) {
-    return { error: "현재 경험치는 현재 레벨의 필요 경험치보다 작아야 합니다." };
-  }
-
-  const adjustedRequiredExp = (expInfo.requiredExp * multiplier) - currentExp;
-  const baseRequiredExp = Math.max(0, expInfo.requiredExp - (currentExp / multiplier));
+  const adjustedRequiredExp = expInfo.requiredExp * multiplier;
   const totalMinutes = adjustedRequiredExp / expPerMinute;
   const totalHours = totalMinutes / 60;
   const totalDays = totalMinutes / 1440;
@@ -113,7 +100,7 @@ export function calculateLevelUpTime(currentLv, targetLv, expPerMinute, hourglas
   return {
     currentLv: expInfo.currentLv,
     targetLv: expInfo.targetLv,
-    baseRequiredExp,
+    baseRequiredExp: expInfo.requiredExp,
     multiplier,
     requiredExp: adjustedRequiredExp,
     totalMinutes,

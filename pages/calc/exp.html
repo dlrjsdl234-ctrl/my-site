@@ -25,6 +25,7 @@
         <section class="calc-card">
           <div class="tab-bar">
             <button class="tab-btn active" data-tab="expCalc">경험치 계산</button>
+            <button class="tab-btn" data-tab="expForecast">날짜별 예상</button>
             <!--<button class="tab-btn" data-tab="expMinute">1분당 경험치 계산</button>-->
             <button class="tab-btn" data-tab="cycleOpt">사이클 최적화</button>
             <button class="tab-btn" data-tab="screenExp">화면 인식(beta)</button>
@@ -38,11 +39,6 @@
               </div>
 
               <div class="form-row">
-                <label for="currentExp">현재 경험치</label>
-                <input type="number" id="currentExp" placeholder="현재 레벨에서 쌓인 경험치 예)150000000" min="0" value="0">
-              </div>
-
-              <div class="form-row">
                 <label for="targetLv">목표 레벨</label>
                 <input type="number" id="targetLv" placeholder="목표 레벨을 입력하세요 예)455" min="1">
               </div>
@@ -50,11 +46,6 @@
               <div class="form-row">
                 <label for="expPerMinute">1분당 경험치</label>
                 <input type="number" id="expPerMinute" placeholder="1분당 경험치를 입력하세요 예)30000000" min="1">
-              </div>
-
-              <div class="form-row">
-                <label for="targetTime">목표 날짜/시간</label>
-                <input type="datetime-local" id="targetTime">
               </div>
 
               <div class="form-row">
@@ -68,6 +59,41 @@
             </div>
 
             <div id="result" class="result-box">여기에 결과가 표시됩니다.</div>
+          </div>
+
+          <div class="tab-content" id="tab-expForecast">
+            <div class="form-list">
+              <div class="form-row">
+                <label for="forecastCurrentLv">현재 레벨</label>
+                <input type="number" id="forecastCurrentLv" placeholder="현재 레벨을 입력하세요 예)120" min="1">
+              </div>
+
+              <div class="form-row">
+                <label for="forecastCurrentExp">현재 경험치</label>
+                <input type="number" id="forecastCurrentExp" placeholder="현재 레벨에서 쌓인 경험치 예)150000000" min="0" value="0">
+              </div>
+
+              <div class="form-row">
+                <label for="forecastExpPerMinute">1분당 경험치</label>
+                <input type="number" id="forecastExpPerMinute" placeholder="1분당 경험치를 입력하세요 예)30000000" min="1">
+              </div>
+
+              <div class="form-row">
+                <label for="forecastTargetTime">목표 날짜/시간</label>
+                <input type="datetime-local" id="forecastTargetTime">
+              </div>
+
+              <div class="form-row">
+                <label for="forecastHourglassLv">모래시계 레벨</label>
+                <input type="number" id="forecastHourglassLv" value="0" min="0" max="20">
+              </div>
+            </div>
+
+            <div class="action-area">
+              <button type="button" class="btn btn-green btn-large" onclick="calcExpForecast()">계산하기</button>
+            </div>
+
+            <div id="forecastResult" class="result-box">여기에 결과가 표시됩니다.</div>
           </div>
 
            <div class="tab-content" id="tab-expMinute">
@@ -255,20 +281,22 @@
     });
 
     // === 입력 ID 정의 ===
-    const TAB1_IDS = ["currentLv", "currentExp", "targetLv", "expPerMinute", "targetTime", "hourglassLv"];
+    const TAB1_IDS = ["currentLv", "targetLv", "expPerMinute", "hourglassLv"];
+    const FORECAST_IDS = ["forecastCurrentLv", "forecastCurrentExp", "forecastExpPerMinute", "forecastTargetTime", "forecastHourglassLv"];
     const TAB2_IDS = ["sweepExp", "sweepCount", "totalHours", "cycleExpPerMinute", "cycleHourglassLv"];
     const TAB3_IDS = ["firstExp", "encyExp", "holySymbol", "numAnimal", "animalTime"];
     const SCREEN_IDS = ["screenCurrentLv", "screenHourglassLv", "screenMeasureSeconds"];
     const SHARED_GROUPS = [
-      ["currentLv", "screenCurrentLv"],
-      ["expPerMinute", "cycleExpPerMinute"],
-      ["hourglassLv", "cycleHourglassLv", "screenHourglassLv"]
+      ["currentLv", "forecastCurrentLv", "screenCurrentLv"],
+      ["expPerMinute", "forecastExpPerMinute", "cycleExpPerMinute"],
+      ["hourglassLv", "forecastHourglassLv", "cycleHourglassLv", "screenHourglassLv"]
     ];
 
     // === 저장 함수 ===
     function saveAll() {
       const data = {};
       for (const id of TAB1_IDS) data[id] = document.getElementById(id).value;
+      for (const id of FORECAST_IDS) data[id] = document.getElementById(id).value;
       for (const id of ["sweepExp", "sweepCount", "totalHours"]) data[id] = document.getElementById(id).value;
       for (const id of TAB3_IDS) data[id] = document.getElementById(id).value;
       for (const id of SCREEN_IDS) data[id] = document.getElementById(id).value;
@@ -280,6 +308,15 @@
     if (saved) {
       for (const id of TAB1_IDS) {
         if (saved[id] !== undefined) document.getElementById(id).value = saved[id];
+      }
+      for (const id of FORECAST_IDS) {
+        if (saved[id] !== undefined) document.getElementById(id).value = saved[id];
+      }
+      if (saved.currentExp !== undefined && saved.forecastCurrentExp === undefined) {
+        document.getElementById("forecastCurrentExp").value = saved.currentExp;
+      }
+      if (saved.targetTime !== undefined && saved.forecastTargetTime === undefined) {
+        document.getElementById("forecastTargetTime").value = saved.targetTime;
       }
       for (const id of ["sweepExp", "sweepCount", "totalHours"]) {
         if (saved[id] !== undefined) document.getElementById(id).value = saved[id];
@@ -298,16 +335,16 @@
       }
     }
 
-    const targetTimeInput = document.getElementById("targetTime");
-    if (!targetTimeInput.value) {
+    const forecastTargetTimeInput = document.getElementById("forecastTargetTime");
+    if (!forecastTargetTimeInput.value) {
       const now = new Date();
       now.setSeconds(0, 0);
       const offsetMs = now.getTimezoneOffset() * 60000;
-      targetTimeInput.value = new Date(now.getTime() - offsetMs).toISOString().slice(0, 16);
+      forecastTargetTimeInput.value = new Date(now.getTime() - offsetMs).toISOString().slice(0, 16);
     }
 
     // === 입력 변경 시 저장 + 공유 입력 동기화 ===
-    for (const id of [...TAB1_IDS, ...TAB2_IDS, ...TAB3_IDS, ...SCREEN_IDS]) {
+    for (const id of [...TAB1_IDS, ...FORECAST_IDS, ...TAB2_IDS, ...TAB3_IDS, ...SCREEN_IDS]) {
       document.getElementById(id).addEventListener("change", () => {
         for (const group of SHARED_GROUPS) {
           if (!group.includes(id)) continue;
@@ -1681,26 +1718,21 @@
       const resultEl = document.getElementById("result");
 
       const currentLv = Number(document.getElementById("currentLv").value);
-      const currentExp = Number(document.getElementById("currentExp").value || 0);
-      const targetLvValue = document.getElementById("targetLv").value;
       const targetLv = Number(document.getElementById("targetLv").value);
       const expPerMinute = Number(document.getElementById("expPerMinute").value);
       const hourglassLv = Number(document.getElementById("hourglassLv").value);
-      const targetDate = getTargetDateTime(document.getElementById("targetTime").value);
-      const sections = [];
 
-      if (targetLvValue.trim() !== "") {
-        const result = calculateLevelUpTime(currentLv, targetLv, expPerMinute, hourglassLv, currentExp);
+      const result = calculateLevelUpTime(currentLv, targetLv, expPerMinute, hourglassLv);
 
-        if (!result || result.error) {
-          resultEl.innerText = result?.error || "오류 발생";
-          return;
-        }
+      if (!result || result.error) {
+        resultEl.innerText = result?.error || "오류 발생";
+        return;
+      }
 
-        const now = new Date();
-        const targetTime = new Date(now.getTime() + result.totalMinutes * 60000);
+      const now = new Date();
+      const targetTime = new Date(now.getTime() + result.totalMinutes * 60000);
 
-        sections.push(`
+      resultEl.innerHTML = `
         <div class="result-section">
           <div class="result-title">경험치 정보</div>
           <div class="result-row">
@@ -1753,8 +1785,17 @@
             <strong class="result-value highlight">${formatDate(targetTime)}</strong>
           </div>
         </div>
-        `);
-      }
+      `;
+    };
+
+    window.calcExpForecast = function () {
+      const resultEl = document.getElementById("forecastResult");
+
+      const currentLv = Number(document.getElementById("forecastCurrentLv").value);
+      const currentExp = Number(document.getElementById("forecastCurrentExp").value || 0);
+      const expPerMinute = Number(document.getElementById("forecastExpPerMinute").value);
+      const hourglassLv = Number(document.getElementById("forecastHourglassLv").value);
+      const targetDate = getTargetDateTime(document.getElementById("forecastTargetTime").value);
 
       if (!targetDate) {
         resultEl.innerText = "목표 날짜와 시간을 올바르게 입력하세요.";
@@ -1774,7 +1815,7 @@
         return;
       }
 
-      sections.push(`
+      resultEl.innerHTML = `
         <div class="result-section">
           <div class="result-title">특정 시각 예상</div>
           <div class="result-row">
@@ -1802,9 +1843,7 @@
             <strong class="result-value">${Math.round(timeResult.totalGainedExp).toLocaleString("ko-KR")}</strong>
           </div>
         </div>
-      `);
-
-      resultEl.innerHTML = sections.join("");
+      `;
     };
 
     // === 1분당 경험치 계산 ===
