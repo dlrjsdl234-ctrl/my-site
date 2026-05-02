@@ -68,16 +68,20 @@ export function getExpNeedForLevel(level) {
   return { level, expNeed: exp };
 }
 
-export function calculateLevelUpTime(currentLv, targetLv, expPerMinute, hourglassLv) {
+export function calculateLevelUpTime(currentLv, targetLv, expPerMinute, hourglassLv, currentExp = 0) {
   expPerMinute = Number(expPerMinute);
   hourglassLv = Number(hourglassLv);
+  currentExp = Number(currentExp);
 
-  if (!Number.isFinite(expPerMinute) || !Number.isFinite(hourglassLv)) {
+  if (!Number.isFinite(expPerMinute) || !Number.isFinite(hourglassLv) || !Number.isFinite(currentExp)) {
     return { error: "경험치와 모래시계 레벨은 숫자로 입력하세요." };
   }
 
   if (expPerMinute <= 0) {
     return { error: "1분당 경험치는 0보다 커야 합니다." };
+  }
+  if (currentExp < 0) {
+    return { error: "현재 경험치는 0 이상의 숫자로 입력하세요." };
   }
 
   if (!Number.isInteger(hourglassLv) || hourglassLv < 0 || hourglassLv > 20) {
@@ -88,7 +92,16 @@ export function calculateLevelUpTime(currentLv, targetLv, expPerMinute, hourglas
   if (expInfo.error) return expInfo;
 
   const multiplier = 1 + (hourglassLv * 0.1);
-  const adjustedRequiredExp = expInfo.requiredExp * multiplier;
+  const currentLevelNeed = expNeed[expInfo.currentLv] * multiplier;
+  if (!Number.isFinite(currentLevelNeed) || currentLevelNeed <= 0) {
+    return { error: "현재 레벨의 경험치 데이터가 없습니다." };
+  }
+  if (currentExp >= currentLevelNeed) {
+    return { error: "현재 경험치는 현재 레벨의 필요 경험치보다 작아야 합니다." };
+  }
+
+  const adjustedRequiredExp = (expInfo.requiredExp * multiplier) - currentExp;
+  const baseRequiredExp = Math.max(0, expInfo.requiredExp - (currentExp / multiplier));
   const totalMinutes = adjustedRequiredExp / expPerMinute;
   const totalHours = totalMinutes / 60;
   const totalDays = totalMinutes / 1440;
@@ -100,7 +113,7 @@ export function calculateLevelUpTime(currentLv, targetLv, expPerMinute, hourglas
   return {
     currentLv: expInfo.currentLv,
     targetLv: expInfo.targetLv,
-    baseRequiredExp: expInfo.requiredExp,
+    baseRequiredExp,
     multiplier,
     requiredExp: adjustedRequiredExp,
     totalMinutes,
@@ -109,6 +122,75 @@ export function calculateLevelUpTime(currentLv, targetLv, expPerMinute, hourglas
     days,
     hours,
     minutes
+  };
+}
+
+export function calculateLevelAtMinutes(currentLv, currentExp, expPerMinute, hourglassLv, minutesUntil) {
+  currentLv = Number(currentLv);
+  currentExp = Number(currentExp);
+  expPerMinute = Number(expPerMinute);
+  hourglassLv = Number(hourglassLv);
+  minutesUntil = Number(minutesUntil);
+
+  if (!Number.isInteger(currentLv) || currentLv < 1) {
+    return { error: "현재 레벨은 1 이상의 정수로 입력하세요." };
+  }
+  if (!Number.isFinite(currentExp) || currentExp < 0) {
+    return { error: "현재 경험치는 0 이상의 숫자로 입력하세요." };
+  }
+  if (!Number.isFinite(expPerMinute) || expPerMinute <= 0) {
+    return { error: "1분당 경험치는 0보다 커야 합니다." };
+  }
+  if (!Number.isInteger(hourglassLv) || hourglassLv < 0 || hourglassLv > 20) {
+    return { error: "모래시계 레벨은 0~20 사이의 정수여야 합니다." };
+  }
+  if (!Number.isFinite(minutesUntil) || minutesUntil < 0) {
+    return { error: "목표 시각을 올바르게 입력하세요." };
+  }
+  if (currentLv >= expNeed.length) {
+    return { error: "현재 레벨 데이터가 없습니다." };
+  }
+
+  const multiplier = 1 + (hourglassLv * 0.1);
+  const currentLevelNeed = expNeed[currentLv] * multiplier;
+
+  if (!Number.isFinite(currentLevelNeed) || currentLevelNeed <= 0) {
+    return { error: "현재 레벨의 경험치 데이터가 없습니다." };
+  }
+  if (currentExp >= currentLevelNeed) {
+    return { error: "현재 경험치는 현재 레벨의 필요 경험치보다 작아야 합니다." };
+  }
+
+  let level = currentLv;
+  let expInLevel = currentExp + (expPerMinute * minutesUntil);
+  let reachedMaxLevel = false;
+
+  while (level < expNeed.length) {
+    const needForLevel = expNeed[level] * multiplier;
+    if (!Number.isFinite(needForLevel) || needForLevel <= 0) {
+      reachedMaxLevel = true;
+      break;
+    }
+    if (expInLevel < needForLevel) break;
+    expInLevel -= needForLevel;
+    level += 1;
+  }
+
+  const nextNeed = expNeed[level] * multiplier;
+  const hasNextLevelData = Number.isFinite(nextNeed) && nextNeed > 0 && !reachedMaxLevel;
+  const expPercent = hasNextLevelData ? (expInLevel / nextNeed) * 100 : 100;
+
+  return {
+    currentLv,
+    currentExp,
+    level,
+    expInLevel: hasNextLevelData ? expInLevel : 0,
+    nextLevelExp: hasNextLevelData ? nextNeed : 0,
+    expPercent,
+    totalGainedExp: expPerMinute * minutesUntil,
+    minutesUntil,
+    multiplier,
+    reachedMaxLevel: !hasNextLevelData
   };
 }
 
