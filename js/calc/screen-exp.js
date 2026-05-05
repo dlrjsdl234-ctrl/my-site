@@ -8,7 +8,7 @@ export async function startCapture(videoEl) {
   }
 
   const stream = await navigator.mediaDevices.getDisplayMedia({
-    video: { frameRate: 10 },
+    video: { frameRate: 5 },
     audio: false
   });
 
@@ -75,6 +75,39 @@ export function detectExpRatio(canvasEl, roi) {
 
   const ratio = clamp((filledUntil + 1) / columns.length, 0, 1);
   return { ratio, roi: normalized };
+}
+
+export function captureExpRatio(videoEl, roi, canvasEl) {
+  const normalized = normalizeRoi(roi, videoEl.videoWidth, videoEl.videoHeight);
+  if (!normalized) {
+    return { error: "경험치 바 영역을 먼저 지정하세요." };
+  }
+
+  const maxWidth = 360;
+  const scale = Math.min(1, maxWidth / normalized.width);
+  const width = Math.max(10, Math.round(normalized.width * scale));
+  const height = Math.max(4, Math.round(normalized.height * scale));
+
+  canvasEl.width = width;
+  canvasEl.height = height;
+
+  const ctx = canvasEl.getContext("2d", { willReadFrequently: true });
+  ctx.drawImage(
+    videoEl,
+    normalized.x,
+    normalized.y,
+    normalized.width,
+    normalized.height,
+    0,
+    0,
+    width,
+    height
+  );
+
+  const detected = detectExpRatio(canvasEl, { x: 0, y: 0, width, height });
+  if (detected.error) return detected;
+
+  return { ...detected, roi: normalized };
 }
 
 export function calculateExpPerMinute(expNeed, startRatio, endRatio, elapsedSeconds) {
