@@ -1051,6 +1051,58 @@
       return captureExpRatio(screenVideo, screenRoi, screenCanvas);
     }
 
+    function captureRatioForRoi(roi) {
+      return captureExpRatio(screenVideo, roi, screenCanvas);
+    }
+
+    function clampScreenRoi(roi) {
+      if (!roi || !screenVideo.videoWidth || !screenVideo.videoHeight) return null;
+
+      const x = Math.max(0, Math.min(screenVideo.videoWidth, roi.x));
+      const y = Math.max(0, Math.min(screenVideo.videoHeight, roi.y));
+      const width = Math.max(0, Math.min(roi.width, screenVideo.videoWidth - x));
+      const height = Math.max(0, Math.min(roi.height, screenVideo.videoHeight - y));
+      const normalized = {
+        x: Math.round(x),
+        y: Math.round(y),
+        width: Math.round(width),
+        height: Math.round(height)
+      };
+
+      return isValidScreenRoi(normalized) ? normalized : null;
+    }
+
+    function getStartRoiCandidates(baseRoi) {
+      const offsets = [
+        { x: 0, y: 0, width: 0, height: 0 },
+        { x: 0, y: 1, width: 0, height: -2 },
+        { x: 0, y: 2, width: 0, height: -4 },
+        { x: -2, y: 0, width: 4, height: 0 },
+        { x: -2, y: 1, width: 4, height: -2 },
+        { x: -3, y: 2, width: 6, height: -4 },
+        { x: 0, y: -1, width: 0, height: 2 }
+      ];
+      const seen = new Set();
+      const candidates = [];
+
+      for (const offset of offsets) {
+        const candidate = clampScreenRoi({
+          x: baseRoi.x + offset.x,
+          y: baseRoi.y + offset.y,
+          width: baseRoi.width + offset.width,
+          height: baseRoi.height + offset.height
+        });
+        if (!candidate) continue;
+
+        const key = `${candidate.x}:${candidate.y}:${candidate.width}:${candidate.height}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        candidates.push(candidate);
+      }
+
+      return candidates;
+    }
+
     function getMedian(values) {
       if (values.length === 0) return 0;
       const sorted = [...values].sort((a, b) => a - b);
@@ -1596,33 +1648,83 @@
       `);
     }
 
-    async function getStableStartRatio() {
+    async function evaluateStableStartRoi(roi, options = {}) {
       const samples = [];
-      const sampleCount = 5;
+      const sampleCount = options.sampleCount || 5;
+      const delayMs = options.delayMs ?? 300;
+      const tolerance = options.tolerance ?? 0.04;
+      const minStableSamples = options.minStableSamples || 3;
+      let lastError = null;
 
       for (let i = 0; i < sampleCount; i++) {
-        const detected = captureRatio();
+        const detected = captureRatioForRoi(roi);
         if (!detected.error) {
           samples.push(detected.ratio);
+        } else {
+          lastError = detected.error;
         }
-        setScreenStatus(`시작 진행률 안정화 중... ${i + 1}/${sampleCount}`);
-        if (i < sampleCount - 1) await wait(300);
+        setScreenStatus(`${options.status || "시작 진행률 안정화 중"}... ${i + 1}/${sampleCount}`);
+        if (i < sampleCount - 1) await wait(delayMs);
       }
 
-      if (samples.length < 3) {
-        return { error: "시작 진행률을 안정적으로 감지하지 못했습니다. 영역을 다시 조정해 주세요." };
+      if (samples.length < minStableSamples) {
+        return { error: lastError || "시작 진행률을 안정적으로 감지하지 못했습니다.", samples, roi };
       }
 
-      samples.sort((a, b) => a - b);
-      const median = samples[Math.floor(samples.length / 2)];
-      const stableSamples = samples.filter(value => Math.abs(value - median) <= 0.04);
+      const sorted = [...samples].sort((a, b) => a - b);
+      const median = sorted[Math.floor(sorted.length / 2)];
+      const stableSamples = sorted.filter(value => Math.abs(value - median) <= tolerance);
+      const spread = sorted[sorted.length - 1] - sorted[0];
 
-      if (stableSamples.length < 3) {
-        return { error: "시작 진행률이 불안정합니다. 빨간 영역을 경험치 바 내부에 맞춰 주세요." };
+      if (stableSamples.length < minStableSamples) {
+        return { error: "시작 진행률이 불안정합니다.", samples, roi, spread };
       }
 
       const ratio = stableSamples.reduce((sum, value) => sum + value, 0) / stableSamples.length;
-      return { ratio, samples: stableSamples.length };
+      return { ratio, samples: stableSamples.length, roi, spread };
+    }
+
+    async function getStableStartRatio() {
+      const originalRoi = screenRoi;
+      const primary = await evaluateStableStartRoi(originalRoi, {
+        sampleCount: 5,
+        delayMs: 300,
+        tolerance: 0.04,
+        minStableSamples: 3,
+        status: "시작 진행률 안정화 중"
+      });
+      if (!primary.error) return primary;
+
+      const candidates = getStartRoiCandidates(originalRoi).slice(1);
+      let bestFailure = primary;
+
+      for (let i = 0; i < candidates.length; i++) {
+        const candidate = candidates[i];
+        const result = await evaluateStableStartRoi(candidate, {
+          sampleCount: 4,
+          delayMs: 120,
+          tolerance: 0.06,
+          minStableSamples: 3,
+          status: `영역 오차 보정 중 (${i + 1}/${candidates.length})`
+        });
+
+        if (!result.error) {
+          screenRoi = candidate;
+          showRoiFromVideoRoi(screenRoi);
+          saveScreenRoi();
+          return { ...result, adjustedRoi: true };
+        }
+
+        if ((result.samples?.length || 0) > (bestFailure.samples?.length || 0)) {
+          bestFailure = result;
+        }
+      }
+
+      const sampleText = (bestFailure.samples || [])
+        .map(value => `${(value * 100).toFixed(2)}%`)
+        .join(", ");
+      const suffix = sampleText ? ` 샘플: ${sampleText}` : "";
+      return { error: `시작 진행률이 불안정합니다. 빨간 영역을 경험치 바 내부에 맞춰 주세요.${suffix}` };
     }
 
     function addScreenMeasureSample(ratio, sampledAt = Date.now()) {
