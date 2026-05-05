@@ -28,6 +28,7 @@
             <button class="tab-btn" data-tab="expForecast">날짜별 예상</button>
             <!--<button class="tab-btn" data-tab="expMinute">1분당 경험치 계산</button>-->
             <button class="tab-btn" data-tab="cycleOpt">사이클 최적화</button>
+            <button class="tab-btn" data-tab="sweepLevel">소탕 레벨 계산</button>
             <button class="tab-btn" data-tab="screenExp">경험치 측정기</button>
           </div>
 
@@ -183,6 +184,35 @@
             <div id="cycleResult" class="result-box">여기에 결과가 표시됩니다.</div>
           </div>
 
+          <div class="tab-content" id="tab-sweepLevel">
+            <div class="form-list">
+              <div class="form-row">
+                <label for="sweepLevelExp">소탕 시 획득 경험치</label>
+                <input type="number" id="sweepLevelExp" placeholder="소탕 1회 경험치 예)500000000" min="0">
+              </div>
+
+              <div class="form-row">
+                <label for="sweepLevelCount">소탕 횟수</label>
+                <select id="sweepLevelCount" class="styled-select">
+                  <option value="1">1회</option>
+                  <option value="2">2회</option>
+                  <option value="3">3회</option>
+                </select>
+              </div>
+
+              <div class="form-row">
+                <label for="sweepLevelHourglassLv">모래시계 레벨</label>
+                <input type="number" id="sweepLevelHourglassLv" value="0" min="0" max="20">
+              </div>
+            </div>
+
+            <div class="action-area">
+              <button type="button" class="btn btn-green btn-large" onclick="calcSweepLevel()">계산하기</button>
+            </div>
+
+            <div id="sweepLevelResult" class="result-box">여기에 결과가 표시됩니다.</div>
+          </div>
+
           <div class="tab-content" id="tab-screenExp">
             <p class="beta-notice">
               화면 캡처는 브라우저 안에서만 처리되며 서버로 전송되지 않습니다. 경험치 바 색상과 이펙트에 따라 오차가 있을 수 있습니다.
@@ -290,11 +320,12 @@
     const FORECAST_IDS = ["forecastCurrentLv", "forecastCurrentExp", "forecastMaxLv", "forecastExpPerMinute", "forecastTargetTime", "forecastHourglassLv"];
     const TAB2_IDS = ["sweepExp", "sweepCount", "totalHours", "cycleExpPerMinute", "cycleHourglassLv"];
     const TAB3_IDS = ["firstExp", "encyExp", "holySymbol", "numAnimal", "animalTime"];
+    const SWEEP_LEVEL_IDS = ["sweepLevelExp", "sweepLevelCount", "sweepLevelHourglassLv"];
     const SCREEN_IDS = ["screenCurrentLv", "screenHourglassLv", "screenMeasureSeconds"];
     const SHARED_GROUPS = [
       ["currentLv", "forecastCurrentLv", "screenCurrentLv"],
       ["expPerMinute", "forecastExpPerMinute", "cycleExpPerMinute"],
-      ["hourglassLv", "forecastHourglassLv", "cycleHourglassLv", "screenHourglassLv"]
+      ["hourglassLv", "forecastHourglassLv", "cycleHourglassLv", "sweepLevelHourglassLv", "screenHourglassLv"]
     ];
 
     // === 저장 함수 ===
@@ -304,6 +335,7 @@
       for (const id of FORECAST_IDS) data[id] = document.getElementById(id).value;
       for (const id of ["sweepExp", "sweepCount", "totalHours"]) data[id] = document.getElementById(id).value;
       for (const id of TAB3_IDS) data[id] = document.getElementById(id).value;
+      for (const id of SWEEP_LEVEL_IDS) data[id] = document.getElementById(id).value;
       for (const id of SCREEN_IDS) data[id] = document.getElementById(id).value;
       saveInputs("exp", data);
     }
@@ -329,6 +361,9 @@
       for (const id of TAB3_IDS) {
         if (saved[id] !== undefined) document.getElementById(id).value = saved[id];
       }
+      for (const id of SWEEP_LEVEL_IDS) {
+        if (saved[id] !== undefined) document.getElementById(id).value = saved[id];
+      }
       for (const id of SCREEN_IDS) {
         if (saved[id] !== undefined) document.getElementById(id).value = saved[id];
       }
@@ -349,7 +384,7 @@
     }
 
     // === 입력 변경 시 저장 + 공유 입력 동기화 ===
-    for (const id of [...TAB1_IDS, ...FORECAST_IDS, ...TAB2_IDS, ...TAB3_IDS, ...SCREEN_IDS]) {
+    for (const id of [...TAB1_IDS, ...FORECAST_IDS, ...TAB2_IDS, ...TAB3_IDS, ...SWEEP_LEVEL_IDS, ...SCREEN_IDS]) {
       document.getElementById(id).addEventListener("change", () => {
         for (const group of SHARED_GROUPS) {
           if (!group.includes(id)) continue;
@@ -2355,6 +2390,88 @@
           <div class="result-title">결과</div>
           <div class="summary-box">
             도달 레벨: <strong>LV ${result.cycleLevel}</strong>
+          </div>
+        </div>
+      `;
+    };
+
+    // === 소탕 레벨 계산 ===
+    window.calcSweepLevel = function () {
+      const resultEl = document.getElementById("sweepLevelResult");
+      const sweepExp = Number(document.getElementById("sweepLevelExp").value);
+      const sweepCount = Number(document.getElementById("sweepLevelCount").value);
+      const hourglassLv = Number(document.getElementById("sweepLevelHourglassLv").value);
+
+      if (!Number.isFinite(sweepExp) || sweepExp < 0) {
+        resultEl.innerText = "소탕 시 획득 경험치는 0 이상으로 입력하세요.";
+        return;
+      }
+      if (!Number.isInteger(sweepCount) || sweepCount < 1 || sweepCount > 3) {
+        resultEl.innerText = "소탕 횟수는 1~3 사이의 정수로 선택하세요.";
+        return;
+      }
+      if (!Number.isInteger(hourglassLv) || hourglassLv < 0 || hourglassLv > 20) {
+        resultEl.innerText = "모래시계 레벨은 0~20 사이의 정수로 입력하세요.";
+        return;
+      }
+
+      const multiplier = 1 + (hourglassLv * 0.1);
+      const totalExp = sweepExp * sweepCount;
+      let level = 1;
+      let expInLevel = totalExp;
+      let nextLevelExp = 0;
+      let reachedMaxLevel = false;
+
+      while (true) {
+        const levelInfo = getExpNeedForLevel(level);
+        if (levelInfo.error) {
+          reachedMaxLevel = true;
+          expInLevel = 0;
+          nextLevelExp = 0;
+          break;
+        }
+
+        nextLevelExp = levelInfo.expNeed * multiplier;
+        if (expInLevel < nextLevelExp) break;
+        expInLevel -= nextLevelExp;
+        level += 1;
+      }
+
+      const expPercent = nextLevelExp > 0 ? (expInLevel / nextLevelExp) * 100 : 100;
+      const usedExp = totalExp - expInLevel;
+
+      resultEl.innerHTML = `
+        <div class="result-section">
+          <div class="result-title">소탕 정보</div>
+          <div class="result-row">
+            <span class="result-label">총 소탕 경험치</span>
+            <strong class="result-value">${Math.round(totalExp).toLocaleString("ko-KR")}</strong>
+          </div>
+          <div class="result-row">
+            <span class="result-label">소탕 횟수</span>
+            <strong class="result-value">${sweepCount.toLocaleString("ko-KR")}회</strong>
+          </div>
+          <div class="result-row">
+            <span class="result-label">모래시계 배율</span>
+            <strong class="result-value">${multiplier.toFixed(1)}배</strong>
+          </div>
+        </div>
+        <div class="result-section">
+          <div class="result-title">결과</div>
+          <div class="summary-box">
+            도달 레벨: <strong>LV ${level}</strong>${reachedMaxLevel ? " 이상" : ""}
+          </div>
+          <div class="result-row">
+            <span class="result-label">현재 레벨 경험치</span>
+            <strong class="result-value">${Math.round(expInLevel).toLocaleString("ko-KR")}</strong>
+          </div>
+          <div class="result-row">
+            <span class="result-label">현재 레벨 진행률</span>
+            <strong class="result-value">${expPercent.toFixed(2)}%</strong>
+          </div>
+          <div class="result-row">
+            <span class="result-label">레벨업에 사용된 경험치</span>
+            <strong class="result-value">${Math.round(usedExp).toLocaleString("ko-KR")}</strong>
           </div>
         </div>
       `;
