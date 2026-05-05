@@ -17,6 +17,9 @@ const MENU = [
   { label: "유물 계산기", href: "/pages/calc/artifact.html" },
   { label: "RP 스킬 계산기", href: "/pages/calc/rpskill.html" },
 
+  { section: "기능" },
+  { label: "레벨업 알림", href: "/pages/tools/level-alert.html" },
+
   { section: "테이블" },
   { label: "초월정보", href: "/pages/tables/transcend.html" },
   { label: "몬스터DB", href: "/pages/tables/monster.html" },
