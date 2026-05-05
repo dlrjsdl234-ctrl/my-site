@@ -442,15 +442,17 @@ function buildDiscordMessage(targetLevel, currentLevel) {
 }
 
 function formatElapsedDuration(elapsedMs) {
-  const totalMinutes = Math.max(0, Math.floor(elapsedMs / 60000));
-  const days = Math.floor(totalMinutes / 1440);
-  const hours = Math.floor((totalMinutes % 1440) / 60);
-  const minutes = totalMinutes % 60;
+  const totalSeconds = Math.max(0, Math.floor(elapsedMs / 1000));
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
 
   const parts = [];
   if (days > 0) parts.push(`${days.toLocaleString("ko-KR")}일`);
-  if (hours > 0 || days > 0) parts.push(`${hours.toLocaleString("ko-KR")}시간`);
-  parts.push(`${minutes.toLocaleString("ko-KR")}분`);
+  if (hours > 0) parts.push(`${hours.toLocaleString("ko-KR")}시간`);
+  if (minutes > 0) parts.push(`${minutes.toLocaleString("ko-KR")}분`);
+  if (seconds > 0 || parts.length === 0) parts.push(`${seconds.toLocaleString("ko-KR")}초`);
   return parts.join(" ");
 }
 
