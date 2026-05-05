@@ -35,12 +35,13 @@ let watchInProgress = false;
 let notified = false;
 let ocrWorker = null;
 let lastCandidateLevel = null;
-let stableCandidateCount = 0;
 let confirmedLevel = null;
 let lastOcrText = "";
 let alertAudioContext = null;
 let watchStartedAt = null;
 let watchStartLevel = null;
+let targetCandidateLevel = null;
+let targetStableCount = 0;
 
 loadSavedInputs();
 renderDefaultResult();
@@ -164,11 +165,12 @@ async function startWatch() {
   notified = false;
   hideAlertOverlay();
   lastCandidateLevel = null;
-  stableCandidateCount = 0;
   confirmedLevel = null;
   lastOcrText = "";
   watchStartedAt = Date.now();
   watchStartLevel = null;
+  targetCandidateLevel = null;
+  targetStableCount = 0;
   stopWatch();
   try {
     await ensureOcrWorker();
@@ -206,20 +208,22 @@ async function runWatchSample() {
       return;
     }
 
-    updateStableLevel(recognized.level);
-    const reached = confirmedLevel !== null && confirmedLevel >= targetLevel;
+    const targetCheck = updateTargetStableLevel(recognized.level, targetLevel);
+    const reached = targetCheck.reached;
     renderResult({
       targetLevel,
       candidateLevel: recognized.level,
       confirmedLevel,
-      stableCandidateCount,
+      targetStableCount: targetCheck.count,
       requiredStableCount: getRequiredStableCount(),
       text: lastOcrText,
-      reached
+      reached,
+      verifyingTarget: targetCheck.verifyingTarget
     });
 
     if (!reached) {
-      setStatus(`감시 중... 현재 후보 LV ${recognized.level.toLocaleString("ko-KR")}`);
+      const verifyText = targetCheck.verifyingTarget ? ` / 목표 도달 검증 ${targetCheck.count}/${getRequiredStableCount()}` : "";
+      setStatus(`감시 중... 현재 후보 LV ${recognized.level.toLocaleString("ko-KR")}${verifyText}`);
       return;
     }
 
@@ -316,18 +320,31 @@ function parseLevel(text) {
   return Number(matches[0]);
 }
 
-function updateStableLevel(level) {
-  if (level === lastCandidateLevel) {
-    stableCandidateCount += 1;
-  } else {
-    lastCandidateLevel = level;
-    stableCandidateCount = 1;
+function updateTargetStableLevel(level, targetLevel) {
+  if (watchStartLevel === null) watchStartLevel = level;
+  lastCandidateLevel = level;
+
+  if (level < targetLevel) {
+    targetCandidateLevel = null;
+    targetStableCount = 0;
+    return { reached: false, count: 0, verifyingTarget: false };
   }
 
-  if (stableCandidateCount >= getRequiredStableCount()) {
-    confirmedLevel = level;
-    if (watchStartLevel === null) watchStartLevel = level;
+  if (level === targetCandidateLevel) {
+    targetStableCount += 1;
+  } else {
+    targetCandidateLevel = level;
+    targetStableCount = 1;
   }
+
+  const requiredCount = getRequiredStableCount();
+  const displayCount = Math.min(targetStableCount, requiredCount);
+  if (targetStableCount >= requiredCount) {
+    confirmedLevel = level;
+    return { reached: true, count: requiredCount, verifyingTarget: true };
+  }
+
+  return { reached: false, count: displayCount, verifyingTarget: true };
 }
 
 async function sendLevelNotify(targetLevel, currentLevel) {
@@ -640,6 +657,9 @@ function renderResult(state) {
     : `LV ${Number(state.candidateLevel).toLocaleString("ko-KR")}`;
   const target = state.targetLevel ? `LV ${Number(state.targetLevel).toLocaleString("ko-KR")}` : "-";
   const notifyText = state.notified ? (state.notifyMethod || "알림 완료") : (state.reached ? "도달 감지" : "대기 중");
+  const verifyText = state.verifyingTarget
+    ? `${Math.min(state.targetStableCount || 0, state.requiredStableCount || getRequiredStableCount())} / ${state.requiredStableCount || getRequiredStableCount()}`
+    : "목표 레벨 감지 대기";
 
   resultEl.innerHTML = `
     <div class="result-section">
@@ -656,8 +676,8 @@ function renderResult(state) {
         <strong class="result-value highlight">${confirmed}</strong>
       </div>
       <div class="result-row">
-        <span class="result-label">확정 진행</span>
-        <strong class="result-value">${state.stableCandidateCount || 0} / ${state.requiredStableCount || getRequiredStableCount()}</strong>
+        <span class="result-label">목표 도달 검증</span>
+        <strong class="result-value">${verifyText}</strong>
       </div>
       <div class="result-row">
         <span class="result-label">알림 상태</span>
