@@ -39,6 +39,8 @@ let stableCandidateCount = 0;
 let confirmedLevel = null;
 let lastOcrText = "";
 let alertAudioContext = null;
+let watchStartedAt = null;
+let watchStartLevel = null;
 
 loadSavedInputs();
 renderDefaultResult();
@@ -165,6 +167,8 @@ async function startWatch() {
   stableCandidateCount = 0;
   confirmedLevel = null;
   lastOcrText = "";
+  watchStartedAt = Date.now();
+  watchStartLevel = null;
   stopWatch();
   try {
     await ensureOcrWorker();
@@ -322,6 +326,7 @@ function updateStableLevel(level) {
 
   if (stableCandidateCount >= getRequiredStableCount()) {
     confirmedLevel = level;
+    if (watchStartLevel === null) watchStartLevel = level;
   }
 }
 
@@ -346,7 +351,7 @@ async function sendLevelNotify(targetLevel, currentLevel) {
 
   setStatus("목표 레벨 도달. 브라우저 알림음 재생 후 Discord DM을 발송하는 중입니다.");
 
-  const message = `이류월드 레벨업 알림: 목표 LV ${targetLevel.toLocaleString("ko-KR")}에 도달했습니다. 현재 OCR 인식 레벨은 LV ${currentLevel.toLocaleString("ko-KR")}입니다.`;
+  const message = buildDiscordMessage(targetLevel, currentLevel);
   let res = null;
   try {
     res = await fetch("/api/notify", {
@@ -401,6 +406,35 @@ async function sendLevelNotify(targetLevel, currentLevel) {
     notified: true,
     notifyMethod: "Discord DM + 브라우저 알림음"
   });
+}
+
+function buildDiscordMessage(targetLevel, currentLevel) {
+  const startLevel = watchStartLevel ?? currentLevel;
+  const elapsedMs = watchStartedAt ? Math.max(0, Date.now() - watchStartedAt) : 0;
+  const elapsedText = formatElapsedDuration(elapsedMs);
+
+  return [
+    "## 이류월드 레벨업 알림",
+    "목표 레벨에 도달했습니다.",
+    "",
+    `목표 레벨: **LV ${targetLevel.toLocaleString("ko-KR")}**`,
+    `측정 시작 레벨: **LV ${startLevel.toLocaleString("ko-KR")}**`,
+    `측정 종료 레벨: **LV ${currentLevel.toLocaleString("ko-KR")}**`,
+    `총 걸린 시간: **${elapsedText}**`
+  ].join("\n");
+}
+
+function formatElapsedDuration(elapsedMs) {
+  const totalMinutes = Math.max(0, Math.floor(elapsedMs / 60000));
+  const days = Math.floor(totalMinutes / 1440);
+  const hours = Math.floor((totalMinutes % 1440) / 60);
+  const minutes = totalMinutes % 60;
+
+  const parts = [];
+  if (days > 0) parts.push(`${days.toLocaleString("ko-KR")}일`);
+  if (hours > 0 || days > 0) parts.push(`${hours.toLocaleString("ko-KR")}시간`);
+  parts.push(`${minutes.toLocaleString("ko-KR")}분`);
+  return parts.join(" ");
 }
 
 function startRoiDrag(event) {
