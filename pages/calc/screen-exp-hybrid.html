@@ -227,12 +227,16 @@
     let levelSignature = null;
     let levelCheckState = "-";
     let levelUpStabilizeUntil = 0;
+    let levelUpGainGraceUntil = 0;
 
     const RATIO_BATCH_COUNT = 5;
     const RATIO_BATCH_DELAY_MS = 70;
     const RATIO_MAX_BATCH_SPREAD = 0.028;
     const LIVE_AVERAGE_ALPHA = 0.22;
     const LEVEL_UP_STABILIZE_MS = 1500;
+    const NORMAL_MAX_GAIN_DELTA = 0.08;
+    const LEVEL_UP_GAIN_GRACE_MS = 6000;
+    const LEVEL_UP_MAX_GAIN_DELTA = 0.22;
     const LEVEL_SIGNATURE_WIDTH = 120;
     const LEVEL_SIGNATURE_HEIGHT = 40;
     const LEVEL_SIGNATURE_CHANGE_THRESHOLD = 0.14;
@@ -1237,12 +1241,17 @@
         let statusMessage = null;
         if (ratio > prevRatio) {
           const delta = ratio - prevRatio;
-          if (delta <= 0.08) {
+          const isLevelUpGainGrace = Date.now() < levelUpGainGraceUntil;
+          const maxGainDelta = isLevelUpGainGrace ? LEVEL_UP_MAX_GAIN_DELTA : NORMAL_MAX_GAIN_DELTA;
+          if (delta <= maxGainDelta) {
             totalGained += expNeed * delta;
             prevRatio = ratio;
             displayRatio = ratio;
+            if (isLevelUpGainGrace && delta > NORMAL_MAX_GAIN_DELTA) {
+              statusMessage = `레벨업 직후 추가 증가 반영: +${(delta * 100).toFixed(2)}%`;
+            }
           } else {
-            statusMessage = "갑작스러운 큰 증가를 무시했습니다. 영역이나 이펙트를 확인하세요.";
+            statusMessage = `갑작스러운 큰 증가를 무시했습니다. 증가량 ${(delta * 100).toFixed(2)}%`;
           }
         } else if (prevRatio - ratio > LEVEL_UP_LOOSE_DROP) {
           const levelCheck = checkLevelAreaChanged();
@@ -1272,6 +1281,7 @@
           levelSignature = levelCheck.signature || captureLevelSignature();
           levelCheckState = levelCheck.available ? `LV 변화 확인: LV ${currentLevel}` : "LV 확인 없이 레벨업";
           levelUpStabilizeUntil = Date.now() + LEVEL_UP_STABILIZE_MS;
+          levelUpGainGraceUntil = levelUpStabilizeUntil + LEVEL_UP_GAIN_GRACE_MS;
           saveAll();
           statusMessage = `레벨업 감지: LV ${currentLevel}`;
         } else if (prevRatio - ratio > 0.08) {
@@ -1348,6 +1358,7 @@
       displayedAverage = 0;
       sampleInProgress = false;
       levelUpStabilizeUntil = 0;
+      levelUpGainGraceUntil = 0;
       resetLevelSignature();
       startTime = Date.now();
       measuring = true;
@@ -1365,6 +1376,7 @@
       stopTimer = null;
       sampleInProgress = false;
       levelUpStabilizeUntil = 0;
+      levelUpGainGraceUntil = 0;
       if (!measuring) return;
       measuring = false;
       if (showResult) {
