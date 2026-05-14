@@ -30,6 +30,7 @@ export async function initRPSkillData(basePath) {
 }
 
 export function getSkillMeta() {
+  console.log(skillMeta)
   return skillMeta;
 }
 
