@@ -882,6 +882,10 @@ th {
     width: 100%;
   }
 
+  .rp-skill-controls .btn {
+    width: auto;
+  }
+
   .tab-btn {
     font-size: 14px;
     padding: 12px 14px;
@@ -2196,6 +2200,18 @@ html[data-theme="dark"] .level-alert-modal {
 .rp-skill-wrap {
   margin-top: 16px;
   overflow-x: auto;
+}
+
+.rp-skill-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.rp-skill-controls .btn {
+  flex: 0 0 auto;
 }
 
 .rp-skill-table {

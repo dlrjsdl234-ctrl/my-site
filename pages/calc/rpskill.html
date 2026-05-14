@@ -24,7 +24,17 @@
       <div class="calc-card">
         <div class="result-title">RP 스킬 계산</div>
 
-        <div class="button-row" style="margin-bottom: 14px;">
+        <div class="rp-skill-controls">
+          <select id="transcendLevel" class="table-dropdown">
+            <option value="0">0초월</option>
+            <option value="1">1초월</option>
+            <option value="2">2초월</option>
+            <option value="3">3초월</option>
+            <option value="4">4초월</option>
+            <option value="5">5초월</option>
+            <option value="6">6초월</option>
+            <option value="7">7초월</option>
+          </select>
           <button type="button" id="resetBtn" class="btn btn-gray">초기화</button>
         </div>
 
@@ -65,18 +75,47 @@
     return Number(value || 0).toLocaleString("ko-KR");
   }
 
+  function getTranscendLevel() {
+    const select = document.getElementById("transcendLevel");
+    return Number(select?.value) || 0;
+  }
+
+  function getSkillMax(skill) {
+    const level = getTranscendLevel();
+    return Number(skill.maxLevels?.[level]) || 0;
+  }
+
   function renderTable() {
     const tbody = document.querySelector("#rpSkillTable tbody");
     if (!tbody) return;
 
-    tbody.innerHTML = skills.map(skill => `
-      <tr data-table-key="${skill.tableKey}" data-max="${skill.max}">
-        <td class="skill-name">${skill.name} 최대 ${skill.max}</td>
-        <td><input class="current-lv" type="number" min="0" max="${skill.max}" placeholder="0"></td>
-        <td><input class="target-lv" type="number" min="0" max="${skill.max}" placeholder="0"></td>
+    tbody.innerHTML = skills.map(skill => {
+      const max = getSkillMax(skill);
+      return `
+      <tr data-table-key="${skill.tableKey}" data-max="${max}" ${max <= 0 ? "hidden" : ""}>
+        <td class="skill-name">${skill.name} 최대 ${max}</td>
+        <td><input class="current-lv" type="number" min="0" max="${max}" placeholder="0"></td>
+        <td><input class="target-lv" type="number" min="0" max="${max}" placeholder="0"></td>
         <td class="need-rp highlight">0</td>
       </tr>
-    `).join("");
+    `;
+    }).join("");
+  }
+
+  function updateMaxLevels() {
+    const rows = document.querySelectorAll("#rpSkillTable tbody tr");
+    rows.forEach(tr => {
+      const skill = skills.find(item => item.tableKey === tr.dataset.tableKey);
+      if (!skill) return;
+
+      const max = getSkillMax(skill);
+      tr.dataset.max = max;
+      tr.hidden = max <= 0;
+      tr.querySelector(".skill-name").textContent = `${skill.name} 최대 ${max}`;
+      tr.querySelectorAll("input[type='number']").forEach(input => {
+        input.max = max;
+      });
+    });
   }
 
   function clamp(value, min, max) {
@@ -88,6 +127,8 @@
     let total = 0;
 
     rows.forEach(tr => {
+      if (tr.hidden) return;
+
       const tableKey = tr.dataset.tableKey;
       const max = Number(tr.dataset.max) || 0;
       const currentInput = tr.querySelector(".current-lv");
@@ -110,7 +151,9 @@
 
   function saveSkillState() {
     const rows = document.querySelectorAll("#rpSkillTable tbody tr");
+    const transcendSelect = document.getElementById("transcendLevel");
     const data = {};
+    data.transcendLevel = transcendSelect?.value || "0";
     rows.forEach(tr => {
       const key = tr.dataset.tableKey;
       data[key] = {
@@ -124,6 +167,10 @@
   function restoreSkillState() {
     const saved = loadInputs("rpskill");
     if (!saved) return;
+    const transcendSelect = document.getElementById("transcendLevel");
+    if (transcendSelect && saved.transcendLevel !== undefined) {
+      transcendSelect.value = saved.transcendLevel;
+    }
     const rows = document.querySelectorAll("#rpSkillTable tbody tr");
     rows.forEach(tr => {
       const key = tr.dataset.tableKey;
@@ -136,6 +183,7 @@
 
   renderTable();
   restoreSkillState();
+  updateMaxLevels();
   recalcAll();
 
   const table = document.getElementById("rpSkillTable");
@@ -154,8 +202,21 @@
     });
   }
 
+  const transcendSelect = document.getElementById("transcendLevel");
+  if (transcendSelect) {
+    transcendSelect.addEventListener("change", () => {
+      updateMaxLevels();
+      recalcAll();
+      saveSkillState();
+    });
+  }
+
   function resetAll() {
     const rows = document.querySelectorAll("#rpSkillTable tbody tr");
+
+    const transcendSelect = document.getElementById("transcendLevel");
+    if (transcendSelect) transcendSelect.value = "0";
+    updateMaxLevels();
 
     rows.forEach(tr => {
       tr.querySelector(".current-lv").value = 0;
