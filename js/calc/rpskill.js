@@ -68,6 +68,11 @@ function getCumulativeValue(tableKey, level) {
   return Number(String(row[cumCol]).replace(/,/g, "")) || 0;
 }
 
+export function calcSkillCurrentRP(tableKey, currentLv, maxLv) {
+  const current = Math.min(Math.max(Number(currentLv) || 0, 0), maxLv);
+  return getCumulativeValue(tableKey, current);
+}
+
 export function calcSkillRP(tableKey, currentLv, targetLv, maxLv) {
   const current = Math.min(Math.max(Number(currentLv) || 0, 0), maxLv);
   const target = Math.min(Math.max(Number(targetLv) || 0, 0), maxLv);

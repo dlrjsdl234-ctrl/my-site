@@ -933,6 +933,7 @@ th {
     overflow-wrap: anywhere;
   }
 
+  .rp-skill-wrap .current-total,
   .rp-skill-wrap .grand-total {
     font-size: 16px;
     white-space: normal;
@@ -1060,6 +1061,7 @@ th {
     font-size: 13px;
   }
 
+  .rp-skill-wrap .current-total,
   .rp-skill-wrap .grand-total {
     font-size: 14px;
   }
@@ -2214,6 +2216,13 @@ html[data-theme="dark"] .level-alert-modal {
   flex: 0 0 auto;
 }
 
+.rp-skill-action-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .rp-skill-table {
   width: 100%;
   border-collapse: collapse;
@@ -2270,12 +2279,30 @@ html[data-theme="dark"] .level-alert-modal {
   color: var(--result-highlight);
 }
 
+.current-total,
 .grand-total {
   text-align: right;
   font-size: 20px;
   font-weight: 900;
   color: var(--grand-total-color);
   white-space: nowrap;
+}
+
+.current-total {
+  color: var(--need-rp-color);
+}
+
+.total-label {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--result-label-color);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.current-total strong,
+.grand-total strong {
+  display: block;
 }
 
 .rp-skill-table tfoot td {

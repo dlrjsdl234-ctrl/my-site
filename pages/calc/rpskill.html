@@ -35,7 +35,11 @@
             <option value="6">6초월</option>
             <option value="7">7초월</option>
           </select>
-          <button type="button" id="resetBtn" class="btn btn-gray">초기화</button>
+          <div class="rp-skill-action-buttons">
+            <button type="button" id="syncCurrentBtn" class="btn btn-gray" title="현재 Lv를 목표 Lv와 동일하게 맞춥니다">목표 달성 처리</button>
+            <button type="button" id="maxTargetBtn" class="btn btn-gray" title="sp증가량은 40 미만일 때 40으로 처리됩니다&#10;강화 확률 증가와 강화횟수는 현재 값을 유지합니다">목표 Lv 최대</button>
+            <button type="button" id="resetBtn" class="btn btn-gray">초기화</button>
+          </div>
         </div>
 
         <div class="rp-skill-wrap table-wrap">
@@ -51,8 +55,15 @@
             <tbody></tbody>
             <tfoot>
               <tr>
-                <td colspan="3"><strong>총합</strong></td>
-                <td class="grand-total">0</td>
+                <td colspan="2"><strong>총합</strong></td>
+                <td class="current-total">
+                  <span class="total-label">현재 누적 RP</span>
+                  <strong>0</strong>
+                </td>
+                <td class="grand-total">
+                  <span class="total-label">필요 RP</span>
+                  <strong>0</strong>
+                </td>
               </tr>
             </tfoot>
           </table>
@@ -64,7 +75,7 @@
 </div>
 
 <script type="module">
-  import { initRPSkillData, getSkillMeta, calcSkillRP } from "../../js/calc/rpskill.js";
+  import { initRPSkillData, getSkillMeta, calcSkillCurrentRP, calcSkillRP } from "../../js/calc/rpskill.js";
   import { saveInputs, loadInputs } from "../../js/storage.js";
 
   await initRPSkillData("../..");
@@ -124,6 +135,7 @@
 
   function recalcAll() {
     const rows = document.querySelectorAll("#rpSkillTable tbody tr");
+    let currentTotal = 0;
     let total = 0;
 
     rows.forEach(tr => {
@@ -141,12 +153,15 @@
       targetInput.value = target;
 
       const needRP = calcSkillRP(tableKey, current, target, max);
+      currentTotal += calcSkillCurrentRP(tableKey, current, max);
       resultCell.textContent = formatNumber(needRP);
       total += needRP;
     });
 
+    const currentTotalCell = document.querySelector(".current-total strong");
     const totalCell = document.querySelector(".grand-total");
-    if (totalCell) totalCell.textContent = formatNumber(total);
+    if (currentTotalCell) currentTotalCell.textContent = formatNumber(currentTotal);
+    if (totalCell) totalCell.querySelector("strong").textContent = formatNumber(total);
   }
 
   function saveSkillState() {
@@ -211,6 +226,45 @@
     });
   }
 
+  function setTargetsToMax() {
+    const rows = document.querySelectorAll("#rpSkillTable tbody tr");
+
+    rows.forEach(tr => {
+      if (tr.hidden) return;
+
+      const skill = skills.find(item => item.tableKey === tr.dataset.tableKey);
+      if (skill?.name === "강화 확률 증가" || skill?.name === "강화횟수") return;
+
+      const max = Number(tr.dataset.max) || 0;
+      const targetInput = tr.querySelector(".target-lv");
+      if (skill?.name === "SP 증가량") {
+        const target = Number(targetInput.value) || 0;
+        targetInput.value = target < 40 ? 40 : target;
+        return;
+      }
+
+      targetInput.value = max;
+    });
+
+    recalcAll();
+    saveSkillState();
+  }
+
+  function syncCurrentToTarget() {
+    const rows = document.querySelectorAll("#rpSkillTable tbody tr");
+
+    rows.forEach(tr => {
+      if (tr.hidden) return;
+
+      const currentInput = tr.querySelector(".current-lv");
+      const targetInput = tr.querySelector(".target-lv");
+      currentInput.value = targetInput.value || 0;
+    });
+
+    recalcAll();
+    saveSkillState();
+  }
+
   function resetAll() {
     const rows = document.querySelectorAll("#rpSkillTable tbody tr");
 
@@ -224,13 +278,25 @@
       tr.querySelector(".need-rp").textContent = "0";
     });
 
-    const totalCell = document.querySelector(".grand-total");
+    const currentTotalCell = document.querySelector(".current-total strong");
+    const totalCell = document.querySelector(".grand-total strong");
+    if (currentTotalCell) currentTotalCell.textContent = "0";
     if (totalCell) totalCell.textContent = "0";
 
     saveInputs("rpskill", {});
   }
 
   const resetBtn = document.getElementById("resetBtn");
+  const maxTargetBtn = document.getElementById("maxTargetBtn");
+  const syncCurrentBtn = document.getElementById("syncCurrentBtn");
+
+  if (maxTargetBtn) {
+    maxTargetBtn.addEventListener("click", setTargetsToMax);
+  }
+
+  if (syncCurrentBtn) {
+    syncCurrentBtn.addEventListener("click", syncCurrentToTarget);
+  }
 
   if (resetBtn) {
     resetBtn.addEventListener("click", resetAll);
