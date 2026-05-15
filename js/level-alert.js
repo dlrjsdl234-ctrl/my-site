@@ -6,6 +6,9 @@ const ROI_STORAGE_KEY = "iryu_level_alert_roi";
 const SAMPLE_INTERVAL_MS = 1000;
 const OCR_SCALE = 4;
 const REQUIRED_STABLE_COUNT = 10;
+const REQUIRED_NON_BLACK_COUNT = 5;
+const ERROR_PIXEL_X = 50;
+const ERROR_PIXEL_Y = 50;
 
 const authBox = document.getElementById("levelAuthBox");
 const targetLevelInput = document.getElementById("targetLevel");
@@ -24,6 +27,10 @@ const resultEl = document.getElementById("levelResult");
 const alertOverlay = document.getElementById("levelAlertOverlay");
 const alertOverlayTarget = document.getElementById("levelAlertOverlayTarget");
 const alertOverlayCurrent = document.getElementById("levelAlertOverlayCurrent");
+const rawPixelCanvas = document.createElement("canvas");
+rawPixelCanvas.width = 1;
+rawPixelCanvas.height = 1;
+const rawPixelCtx = rawPixelCanvas.getContext("2d", { willReadFrequently: true });
 
 let discordUser = null;
 let stream = null;
@@ -42,6 +49,9 @@ let watchStartedAt = null;
 let watchStartLevel = null;
 let targetCandidateLevel = null;
 let targetStableCount = 0;
+let lastRawPixelColor = null;
+let errorNotified = false;
+let nonBlackStableCount = 0;
 
 loadSavedInputs();
 renderDefaultResult();
@@ -132,6 +142,7 @@ async function startLevelCapture() {
     const [track] = stream.getVideoTracks();
     track.addEventListener("ended", () => {
       stopWatch("화면 공유가 중지되었습니다.");
+      sendErrorNotify("메이플 월드 창이 꺼진 것 같습니다!!");
       stopPreviewLoop();
       stream = null;
       roi = null;
@@ -171,6 +182,9 @@ async function startWatch() {
   watchStartLevel = null;
   targetCandidateLevel = null;
   targetStableCount = 0;
+  lastRawPixelColor = null;
+  errorNotified = false;
+  nonBlackStableCount = 0;
   stopWatch();
   try {
     await ensureOcrWorker();
@@ -201,6 +215,14 @@ async function runWatchSample() {
 
   try {
     const targetLevel = Number(targetLevelInput.value);
+    lastRawPixelColor = sampleRawPixelColor(ERROR_PIXEL_X, ERROR_PIXEL_Y);
+    if (updateNonBlackStableState(lastRawPixelColor)) {
+      if (!errorNotified) {
+        errorNotified = true;
+        await sendErrorNotify("절전모드가 해제되었습니다!!! 마을로 팅겨있을 가능성 높음");
+      }
+      return;
+    }
     const recognized = await recognizeLevel();
     if (recognized.error) {
       renderResult({ error: recognized.error });
@@ -425,6 +447,53 @@ async function sendLevelNotify(targetLevel, currentLevel) {
   });
 }
 
+async function sendErrorNotify(message = "오류 발생!!") {
+  stopWatch();
+  notified = true;
+
+  if (!discordUser) {
+    setStatus(message);
+    return;
+  }
+
+  let res = null;
+  try {
+    res = await fetch("/api/notify", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ message })
+    });
+  } catch (_) {
+    setStatus(message);
+    return;
+  }
+
+  let data = null;
+  try {
+    data = await res.json();
+  } catch (_) {
+    data = null;
+  }
+
+  if (res.status === 401) {
+    discordUser = null;
+    renderLoggedOut();
+    setStatus(message);
+    return;
+  }
+  if (!res.ok) {
+    setStatus(message);
+    renderResult({
+      error: data?.error === "dm_channel_failed"
+        ? "DM 채널 생성에 실패했습니다. 정식 Discord 서버에 봇이 초대되어 있는지 확인해 주세요."
+        : `DM 발송 실패: ${data?.error || res.status}`
+    });
+    return;
+  }
+
+  setStatus(message);
+}
+
 function buildDiscordMessage(targetLevel, currentLevel) {
   const startLevel = watchStartLevel ?? currentLevel;
   const elapsedMs = watchStartedAt ? Math.max(0, Date.now() - watchStartedAt) : 0;
@@ -630,6 +699,22 @@ function getRequiredStableCount() {
   return REQUIRED_STABLE_COUNT;
 }
 
+function sampleRawPixelColor(x, y) {
+  if (!video.videoWidth || !video.videoHeight || !rawPixelCtx) return null;
+  if (x < 0 || y < 0 || x >= video.videoWidth || y >= video.videoHeight) return null;
+
+  rawPixelCtx.clearRect(0, 0, 1, 1);
+  rawPixelCtx.drawImage(video, x, y, 1, 1, 0, 0, 1, 1);
+  const data = rawPixelCtx.getImageData(0, 0, 1, 1).data;
+  return {
+    x,
+    y,
+    r: data[0],
+    g: data[1],
+    b: data[2]
+  };
+}
+
 function renderDefaultResult() {
   resultEl.innerHTML = `
     <div class="result-section">
@@ -647,7 +732,14 @@ function renderDefaultResult() {
 
 function renderResult(state) {
   if (state.error) {
-    resultEl.innerHTML = `<span class="screen-exp-warning">${escapeHtml(state.error)}</span>`;
+    resultEl.innerHTML = `
+      <div class="result-section">
+        <div class="result-row">
+          <span class="result-label">감시 오류</span>
+          <strong class="result-value screen-exp-warning">${escapeHtml(state.error)}</strong>
+        </div>
+      </div>
+    `;
     return;
   }
 
@@ -691,6 +783,20 @@ function renderResult(state) {
       </div>
     </div>
   `;
+}
+
+function isNonBlackPixel(pixel) {
+  return !!pixel && (pixel.r !== 0 || pixel.g !== 0 || pixel.b !== 0);
+}
+
+function updateNonBlackStableState(pixel) {
+  if (!isNonBlackPixel(pixel)) {
+    nonBlackStableCount = 0;
+    return false;
+  }
+
+  nonBlackStableCount += 1;
+  return nonBlackStableCount >= REQUIRED_NON_BLACK_COUNT;
 }
 
 function setStatus(message) {
