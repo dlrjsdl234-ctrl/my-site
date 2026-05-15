@@ -38,7 +38,7 @@
           </select>
           <div class="rp-skill-action-buttons">
             <button type="button" id="syncCurrentBtn" class="btn btn-gray" title="현재 Lv를 목표 Lv와 동일하게 맞춥니다">목표 달성 처리</button>
-            <button type="button" id="maxTargetBtn" class="btn btn-gray" title="sp증가량은 40 미만일 때 40으로 처리됩니다&#10;강화 확률 증가와 강화횟수는 현재 값을 유지합니다">목표 Lv 최대</button>
+            <button type="button" id="maxTargetBtn" class="btn btn-gray" title="현재 초월 기준 최대 Lv로 목표 Lv를 맞춥니다">목표 Lv 최대</button>
             <button type="button" id="resetBtn" class="btn btn-gray">초기화</button>
           </div>
         </div>
@@ -233,18 +233,8 @@
     rows.forEach(tr => {
       if (tr.hidden) return;
 
-      const skill = skills.find(item => item.tableKey === tr.dataset.tableKey);
-      if (skill?.name === "강화 확률 증가" || skill?.name === "강화횟수") return;
-
       const max = Number(tr.dataset.max) || 0;
-      const targetInput = tr.querySelector(".target-lv");
-      if (skill?.name === "SP 증가량") {
-        const target = Number(targetInput.value) || 0;
-        targetInput.value = target < 40 ? 40 : target;
-        return;
-      }
-
-      targetInput.value = max;
+      tr.querySelector(".target-lv").value = max;
     });
 
     recalcAll();
@@ -268,10 +258,6 @@
 
   function resetAll() {
     const rows = document.querySelectorAll("#rpSkillTable tbody tr");
-
-    const transcendSelect = document.getElementById("transcendLevel");
-    if (transcendSelect) transcendSelect.value = "0";
-    updateMaxLevels();
 
     rows.forEach(tr => {
       tr.querySelector(".current-lv").value = 0;
