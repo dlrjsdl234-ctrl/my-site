@@ -16,7 +16,7 @@ export async function initRPSkillData(basePath) {
   skillMeta = meta.map(row => ({
     tableKey: row.tableKey,
     name: row.skillName,
-    max: Number(row.maxLevel)
+    maxLevels: Array.from({ length: 9 }, (_, i) => Number(row[`maxLevel${i}`]) || 0)
   }));
 
   // 각 테이블 CSV 로딩
@@ -66,6 +66,11 @@ function getCumulativeValue(tableKey, level) {
   if (!row) return 0;
 
   return Number(String(row[cumCol]).replace(/,/g, "")) || 0;
+}
+
+export function calcSkillCurrentRP(tableKey, currentLv, maxLv) {
+  const current = Math.min(Math.max(Number(currentLv) || 0, 0), maxLv);
+  return getCumulativeValue(tableKey, current);
 }
 
 export function calcSkillRP(tableKey, currentLv, targetLv, maxLv) {
