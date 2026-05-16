@@ -357,6 +357,25 @@ input[type="text"]:focus,
   box-shadow: 0 0 0 4px var(--focus-ring);
 }
 
+.checkbox-row .checkbox-control {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.checkbox-row input[type="checkbox"] {
+  flex: 0 0 auto;
+  width: 20px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0;
+  accent-color: var(--main-blue);
+}
+
 .timer-row {
   display: flex;
   align-items: center;
@@ -637,6 +656,60 @@ input[type="text"]:focus,
   font-weight: 700;
   word-break: break-word;
   color: var(--mini-value-color);
+}
+
+.hanpo-summary-grid {
+  margin-bottom: 18px;
+}
+
+.hanpo-summary-card {
+  border-color: var(--time-card-border);
+  background: linear-gradient(180deg, var(--time-card-bg-from), var(--time-card-bg-to));
+}
+
+.hanpo-summary-value {
+  font-size: 24px;
+  font-weight: 900;
+}
+
+.hanpo-summary-value.highlight {
+  color: var(--result-highlight);
+}
+
+.detail-toggle {
+  margin-top: 8px;
+}
+
+.detail-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  list-style: none;
+  cursor: pointer;
+}
+
+.detail-toggle-btn::-webkit-details-marker {
+  display: none;
+}
+
+.detail-toggle[open] .detail-toggle-btn {
+  margin-bottom: 12px;
+}
+
+.detail-toggle-open {
+  display: none;
+}
+
+.detail-toggle[open] .detail-toggle-closed {
+  display: none;
+}
+
+.detail-toggle[open] .detail-toggle-open {
+  display: inline;
+}
+
+.detail-toggle-body {
+  padding-top: 4px;
 }
 
 /* 기본 초월 정보는 조금 좁게, 특성/유물 정보는 조금 넓게 */
