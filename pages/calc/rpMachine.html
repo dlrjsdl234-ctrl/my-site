@@ -62,6 +62,13 @@
             <label for="currentLevel">내 현재 레벨</label>
             <input type="number" id="currentLevel" placeholder="현재 레벨을 입력하세요 예)200" min="1" max="530">
           </div>
+          <div class="form-row checkbox-row">
+            <label for="rebirthBlessingEnabled">윤회의 축복 여부</label>
+            <div class="checkbox-control">
+              <input type="checkbox" id="rebirthBlessingEnabled" checked>
+              <span>적용</span>
+            </div>
+          </div>
         </div>
 
         <div class="action-area">
@@ -82,6 +89,7 @@
   await initHanpoData("../..");
 
   const INPUT_IDS = ["targetHanpo", "rpShop", "encyclopedia", "artifactRing", "vip", "transcendLevel", "hourglassLevel", "currentLevel"];
+  const CHECKBOX_IDS = ["rebirthBlessingEnabled"];
 
   // 저장된 값 복원
   const saved = loadInputs("rpMachine");
@@ -89,15 +97,21 @@
     for (const id of INPUT_IDS) {
       if (saved[id] !== undefined) document.getElementById(id).value = saved[id];
     }
+    for (const id of CHECKBOX_IDS) {
+      if (saved[id] !== undefined) document.getElementById(id).checked = saved[id] === true || saved[id] === "true";
+    }
+  }
+
+  function saveAll() {
+    const data = {};
+    for (const id of INPUT_IDS) data[id] = document.getElementById(id).value;
+    for (const id of CHECKBOX_IDS) data[id] = document.getElementById(id).checked;
+    saveInputs("rpMachine", data);
   }
 
   // 입력 변경 시 저장
-  for (const id of INPUT_IDS) {
-    document.getElementById(id).addEventListener("change", () => {
-      const data = {};
-      for (const id of INPUT_IDS) data[id] = document.getElementById(id).value;
-      saveInputs("rpMachine", data);
-    });
+  for (const id of [...INPUT_IDS, ...CHECKBOX_IDS]) {
+    document.getElementById(id).addEventListener("change", saveAll);
   }
 
   function fmt(n) {
@@ -115,6 +129,7 @@
       artifactRingPercent: Number(document.getElementById("artifactRing").value) || 0,
       vipPercent: Number(document.getElementById("vip").value) || 0,
       transcendLevel: Number(document.getElementById("transcendLevel").value) || 0,
+      rebirthBlessingEnabled: document.getElementById("rebirthBlessingEnabled").checked,
       hourglassLevel: Number(document.getElementById("hourglassLevel").value) || 0,
       currentLevel: Number(document.getElementById("currentLevel").value) || 500,
     };
@@ -122,6 +137,27 @@
     const r = calculateHanpo(params);
 
     resultEl.innerHTML = `
+      <div class="quick-info-grid hanpo-summary-grid">
+        <div class="mini-box hanpo-summary-card">
+          <div class="mini-title">원하는 환포 획득 레벨</div>
+          <div class="mini-value hanpo-summary-value highlight">${r.acquiredLevel !== null ? r.acquiredLevel : "해당 없음"}</div>
+        </div>
+        <div class="mini-box hanpo-summary-card">
+          <div class="mini-title">${r.acquiredLevel !== null ? `${r.acquiredLevel} 레벨 달성시 획득 환포` : "획득 환포"}</div>
+          <div class="mini-value hanpo-summary-value highlight">${fmt(r.actualHanpo)}</div>
+        </div>
+        <div class="mini-box hanpo-summary-card">
+          <div class="mini-title">현재 레벨(${r.currentLevel}) 환포</div>
+          <div class="mini-value hanpo-summary-value highlight">${fmt(r.currentHanpoWithMult)}</div>
+        </div>
+      </div>
+
+      <details class="detail-toggle">
+        <summary class="btn btn-gray detail-toggle-btn">
+          <span class="detail-toggle-closed">자세히 보기</span>
+          <span class="detail-toggle-open">접기</span>
+        </summary>
+        <div class="detail-toggle-body">
       <div class="result-section">
         <div class="result-title">배율 정보</div>
         <div class="result-row">
@@ -141,27 +177,31 @@
           <strong class="result-value">${r.hourglassMult.toFixed(2)}</strong>
         </div>
         <div class="result-row">
+          <span class="result-label">윤회 축복 배율</span>
+          <strong class="result-value">${r.rebirthMult.toFixed(2)}</strong>
+        </div>
+        <div class="result-row">
           <span class="result-label">최종 배율 (R)</span>
-          <strong class="result-value highlight">${r.finalMultiplier.toFixed(4)}</strong>
+          <strong class="result-value highlight">${r.appliedMultiplier.toFixed(4)}</strong>
         </div>
       </div>
 
       <div class="result-section">
         <div class="result-title">환포 계산 결과</div>
         <div class="result-row">
-          <span class="result-label">기준 환포 (A÷R)</span>
+          <span class="result-label">기준 환포 (A÷적용 배율)</span>
           <strong class="result-value">${fmt(r.baseHanpoNeeded)}</strong>
-        </div>
-        <div class="result-row">
-          <span class="result-label">획득 레벨</span>
-          <strong class="result-value highlight">${r.acquiredLevel !== null ? r.acquiredLevel : "해당 없음"}</strong>
         </div>
         <div class="result-row">
           <span class="result-label">해당 레벨 기본 환포</span>
           <strong class="result-value">${fmt(r.acquiredBaseHanpo)}</strong>
         </div>
         <div class="result-row">
-          <span class="result-label">실제 획득 환포 (기본×D2)</span>
+          <span class="result-label">획득 레벨</span>
+          <strong class="result-value highlight">${r.acquiredLevel !== null ? r.acquiredLevel : "해당 없음"}</strong>
+        </div>
+        <div class="result-row">
+          <span class="result-label">실제 획득 환포 (윤회 축복 ${r.rebirthBlessingEnabled ? "포함" : "미포함"})</span>
           <strong class="result-value">${fmt(r.actualHanpo)}</strong>
         </div>
       </div>
@@ -173,18 +213,12 @@
           <strong class="result-value">${fmt(r.currentBaseHanpo)}</strong>
         </div>
         <div class="result-row">
-          <span class="result-label">배율 적용 환포 (기본×D2)</span>
-          <strong class="result-value">${fmt(r.currentHanpoWithMult)}</strong>
-        </div>
-        <div class="result-row">
-          <span class="result-label">윤회 축복 배율</span>
-          <strong class="result-value">${r.rebirthMult.toFixed(2)}</strong>
-        </div>
-        <div class="result-row">
-          <span class="result-label">윤회 축복 환포</span>
-          <strong class="result-value highlight">${fmt(r.rebirthHanpo)}</strong>
+          <span class="result-label">배율 적용 환포 (윤회 축복 ${r.rebirthBlessingEnabled ? "포함" : "미포함"})</span>
+          <strong class="result-value highlight">${fmt(r.currentHanpoWithMult)}</strong>
         </div>
       </div>
+        </div>
+      </details>
     `;
   };
 </script>

@@ -98,6 +98,7 @@ function getHanpoAtLevel(level) {
  * @param {number} params.artifactRingPercent - 유물(반지) 수치 (%)
  * @param {number} params.vipPercent - VIP 수치 (%)
  * @param {number} params.transcendLevel - 초월 레벨 (0~10)
+ * @param {boolean} params.rebirthBlessingEnabled - 윤회의 축복 적용 여부
  * @param {number} params.hourglassLevel - 모래시계 레벨 (0~20)
  * @param {number} params.currentLevel - 내 현재 레벨
  */
@@ -105,7 +106,7 @@ export function calculateHanpo(params) {
   const {
     targetHanpo, rpShopPercent, encyclopediaPercent,
     artifactRingPercent, vipPercent,
-    transcendLevel, hourglassLevel, currentLevel
+    transcendLevel, rebirthBlessingEnabled = true, hourglassLevel, currentLevel
   } = params;
 
   // 환포 배율 (D) = (100 + RP상점 + 도감 + 유물 + VIP) / 100
@@ -123,26 +124,25 @@ export function calculateHanpo(params) {
   // 최종 배율 (R = D2 * X)
   const finalMultiplier = combinedMult * hourglassMult;
 
-  // 기준 환포 (B = A / R)
-  const baseHanpoNeeded = targetHanpo / finalMultiplier;
+  // 윤회 축복 배율
+  const rebirthMult = rebirthBlessingEnabled ? getRebirthMultiplier(transcendLevel) : 1;
+  const appliedMultiplier = finalMultiplier * rebirthMult;
+
+  // 기준 환포 (B = A / 적용 배율)
+  const baseHanpoNeeded = targetHanpo / appliedMultiplier;
 
   // 획득 레벨 찾기
   const found = findLevelForHanpo(baseHanpoNeeded);
   const acquiredLevel = found ? found.level : null;
   const acquiredBaseHanpo = found ? found.hanpo : 0;
 
-  // 실제 획득 환포 (B * D2)
-  const actualHanpo = acquiredBaseHanpo * finalMultiplier;
+  // 실제 획득 환포
+  const actualHanpo = acquiredBaseHanpo * appliedMultiplier;
 
   // 현재 레벨 기본 환포
   const currentBaseHanpo = getHanpoAtLevel(currentLevel);
 
-  // 현재 레벨 배율 적용 환포
-  const currentHanpoWithMult = currentBaseHanpo * finalMultiplier;
-
-  // 윤회 축복 배율
-  const rebirthMult = getRebirthMultiplier(transcendLevel);
-  const rebirthHanpo = currentHanpoWithMult * rebirthMult;
+  const currentHanpoWithMult = currentBaseHanpo * appliedMultiplier;
 
   return {
     hanpoMultiplier,
@@ -150,6 +150,7 @@ export function calculateHanpo(params) {
     combinedMult,
     hourglassMult,
     finalMultiplier,
+    appliedMultiplier,
     baseHanpoNeeded,
     acquiredLevel,
     acquiredBaseHanpo,
@@ -157,7 +158,7 @@ export function calculateHanpo(params) {
     currentLevel,
     currentBaseHanpo,
     currentHanpoWithMult,
+    rebirthBlessingEnabled,
     rebirthMult,
-    rebirthHanpo
   };
 }
