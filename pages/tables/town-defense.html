@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
@@ -24,6 +24,7 @@
       <div class="calc-card">
         <div class="tab-bar">
           <button class="tab-btn active" data-tab="defense">몬스터 디펜스</button>
+          <button class="tab-btn" data-tab="equipmentRaid">장비레이드 던전</button>
           <button class="tab-btn" data-tab="scroll">주문서 던전</button>
           <button class="tab-btn" data-tab="pet">펫 던전</button>
         </div>
@@ -35,6 +36,14 @@
             </div>
           </div>
         </div>
+        <div id="equipmentRaid" class="tab-content">
+          <div class="article-content">
+            <div class="article-section">
+              <div id="equipmentRaidTableContainer">데이터 로딩 중...</div>
+            </div>
+          </div>
+        </div>
+
 
         <!-- 주문서 던전 -->
         <div id="scroll" class="tab-content">
@@ -176,6 +185,7 @@
 <script type="module">
   import { renderTable } from "../../js/table-viewer.js";
   renderTable("../../datas/town-defense.csv", "tableContainer", { search: false });
+  renderTable("../../datas/equipment-raid.csv", "equipmentRaidTableContainer", { search: false });
 </script>
 <script>
   const tabButtons = document.querySelectorAll(".tab-btn");
@@ -195,3 +205,5 @@
 </script>
 </body>
 </html>
+
+
