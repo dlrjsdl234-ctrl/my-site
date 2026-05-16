@@ -232,11 +232,16 @@
     const RATIO_BATCH_COUNT = 5;
     const RATIO_BATCH_DELAY_MS = 70;
     const RATIO_MAX_BATCH_SPREAD = 0.028;
+    const RATIO_DIRECTIONAL_TOLERANCE = 0.012;
+    const RATIO_DIRECTIONAL_MIN_MOVE = 0.018;
+    const START_STABLE_SPREAD = 0.025;
+    const START_MOVING_MIN_MOVE = 0.035;
     const LIVE_AVERAGE_ALPHA = 0.22;
     const LEVEL_UP_STABILIZE_MS = 1500;
     const NORMAL_MAX_GAIN_DELTA = 0.08;
+    const DIRECTIONAL_MAX_GAIN_DELTA = 0.18;
     const LEVEL_UP_GAIN_GRACE_MS = 6000;
-    const LEVEL_UP_MAX_GAIN_DELTA = 0.22;
+    const LEVEL_UP_MAX_GAIN_DELTA = 0.3;
     const LEVEL_SIGNATURE_WIDTH = 120;
     const LEVEL_SIGNATURE_HEIGHT = 40;
     const LEVEL_SIGNATURE_CHANGE_THRESHOLD = 0.14;
@@ -873,6 +878,31 @@
       return sorted[Math.floor(sorted.length / 2)];
     }
 
+    function average(values) {
+      if (!values.length) return null;
+      return values.reduce((sum, value) => sum + value, 0) / values.length;
+    }
+
+    function getDirectionalRatioMove(samples) {
+      if (samples.length < 3) return null;
+      let upwardBreaks = 0;
+      let downwardBreaks = 0;
+      for (let i = 1; i < samples.length; i++) {
+        const diff = samples[i] - samples[i - 1];
+        if (diff < -RATIO_DIRECTIONAL_TOLERANCE) upwardBreaks++;
+        if (diff > RATIO_DIRECTIONAL_TOLERANCE) downwardBreaks++;
+      }
+      const move = samples[samples.length - 1] - samples[0];
+      const maxBreaks = Math.max(1, Math.floor(samples.length / 4));
+      if (move >= RATIO_DIRECTIONAL_MIN_MOVE && upwardBreaks <= maxBreaks) {
+        return { direction: "up", ratio: samples[samples.length - 1], move };
+      }
+      if (-move >= RATIO_DIRECTIONAL_MIN_MOVE && downwardBreaks <= maxBreaks) {
+        return { direction: "down", ratio: samples[samples.length - 1], move };
+      }
+      return null;
+    }
+
     function getSmoothedAverage(rawAverage) {
       if (!Number.isFinite(rawAverage) || rawAverage <= 0) {
         displayedAverage = 0;
@@ -1151,11 +1181,18 @@
         await new Promise(resolve => setTimeout(resolve, 450));
       }
       if (samples.length < 8) return { error: "시작 기준을 안정적으로 잡지 못했습니다." };
-      samples.sort((a, b) => a - b);
-      const median = samples[Math.floor(samples.length / 2)];
-      const stable = samples.filter(value => Math.abs(value - median) <= 0.025);
-      if (stable.length < 8) return { error: "시작 진행률이 흔들립니다. 영역을 더 안쪽으로 잡아 주세요." };
-      return { ratio: stable.reduce((sum, value) => sum + value, 0) / stable.length };
+      const baseline = median(samples);
+      const stable = samples.filter(value => Math.abs(value - baseline) <= START_STABLE_SPREAD);
+      if (stable.length >= 8) return { ratio: average(stable) };
+
+      const directional = getDirectionalRatioMove(samples);
+      const totalMove = samples[samples.length - 1] - samples[0];
+      if (directional?.direction === "up" && totalMove >= START_MOVING_MIN_MOVE) {
+        const recentSamples = samples.slice(-3);
+        return { ratio: average(recentSamples) };
+      }
+
+      return { error: "시작 진행률이 흔들립니다. 영역을 더 안쪽으로 잡아 주세요." };
     }
 
     async function captureStableRatioBatch() {
@@ -1181,6 +1218,15 @@
       const ratio = median(samples);
       const spread = Math.max(...samples) - Math.min(...samples);
       if (spread > RATIO_MAX_BATCH_SPREAD) {
+        const directional = getDirectionalRatioMove(samples);
+        if (directional) {
+          return {
+            ratio: directional.ratio,
+            spread,
+            moving: true,
+            direction: directional.direction
+          };
+        }
         return { unstable: true, ratio, spread };
       }
 
@@ -1242,13 +1288,18 @@
         if (ratio > prevRatio) {
           const delta = ratio - prevRatio;
           const isLevelUpGainGrace = Date.now() < levelUpGainGraceUntil;
-          const maxGainDelta = isLevelUpGainGrace ? LEVEL_UP_MAX_GAIN_DELTA : NORMAL_MAX_GAIN_DELTA;
+          const isDirectionalGain = detected.moving && detected.direction === "up";
+          const maxGainDelta = isLevelUpGainGrace
+            ? LEVEL_UP_MAX_GAIN_DELTA
+            : (isDirectionalGain ? DIRECTIONAL_MAX_GAIN_DELTA : NORMAL_MAX_GAIN_DELTA);
           if (delta <= maxGainDelta) {
             totalGained += expNeed * delta;
             prevRatio = ratio;
             displayRatio = ratio;
             if (isLevelUpGainGrace && delta > NORMAL_MAX_GAIN_DELTA) {
               statusMessage = `레벨업 직후 추가 증가 반영: +${(delta * 100).toFixed(2)}%`;
+            } else if (isDirectionalGain && delta > NORMAL_MAX_GAIN_DELTA) {
+              statusMessage = `빠른 경험치 증가 반영: +${(delta * 100).toFixed(2)}%`;
             }
           } else {
             statusMessage = `갑작스러운 큰 증가를 무시했습니다. 증가량 ${(delta * 100).toFixed(2)}%`;
