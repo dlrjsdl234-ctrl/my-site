@@ -3007,3 +3007,97 @@ html[data-theme="dark"] .level-alert-modal {
     opacity: 1;
   }
 }
+
+/* ==============================
+   슈퍼 던전 위치 안내
+   ============================== */
+.boss-guide-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.boss-guide-tab {
+  border: 1px solid var(--border-color, #d8dde7);
+  border-radius: 8px;
+  background: var(--card-bg, #fff);
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  padding: 10px 16px;
+}
+
+.boss-guide-tab.active {
+  background: var(--primary-color, #4f6bff);
+  border-color: var(--primary-color, #4f6bff);
+  color: #fff;
+}
+
+.boss-guide-panel {
+  display: none;
+}
+
+.boss-guide-panel.active {
+  display: block;
+}
+
+.boss-guide-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding-left: 0;
+  list-style-position: inside;
+}
+
+.boss-guide-list li {
+  border: 1px solid var(--border, #d8dde7);
+  border-radius: 8px;
+  background: #eef4ff;
+  color: #142033;
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1.55;
+  padding: 10px 12px;
+}
+
+html[data-theme="dark"] .boss-guide-list li {
+  border-color: rgba(148, 180, 255, 0.55);
+  background: rgba(91, 176, 255, 0.16);
+  color: #f2f7ff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+}
+
+.boss-guide-images {
+  display: grid;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.boss-guide-figure {
+  margin: 0;
+}
+
+.boss-guide-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--border-color, #d8dde7);
+  border-radius: 8px;
+  background: #111827;
+}
+
+.boss-guide-figure figcaption {
+  display: block;
+  border: 1px solid var(--border-color, #d8dde7);
+  border-radius: 8px;
+  background: rgba(20, 24, 34, 0.9);
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1.45;
+  margin-top: 8px;
+  padding: 10px 12px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}

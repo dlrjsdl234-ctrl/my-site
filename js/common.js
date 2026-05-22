@@ -27,6 +27,7 @@ const MENU = [
   { label: "잡팁", href: "/pages/tables/tips.html" },
   { label: "RP스킬 투자순서", href: "/pages/tables/rpskill-order.html" },
   { label: "데일리 던전", href: "/pages/tables/town-defense.html" },
+  { label: "슈던 사냥터 자리", href: "/pages/tables/super-dungeon-place.html" },
   { label: "SP 스킬", href: "/pages/tables/sp-skill.html" },
   { label: "RP 스킬", href: "/pages/tables/rpskill-perf.html" },
   { label: "유물", href: "/pages/tables/artifact-info.html" },
