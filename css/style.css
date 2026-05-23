@@ -3069,6 +3069,25 @@ html[data-theme="dark"] .boss-guide-list li {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
 }
 
+.boss-guide-tip {
+  border: 1px solid var(--border, #d8dde7);
+  border-radius: 8px;
+  background: #fff7d6;
+  color: #392b00;
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.55;
+  margin: 10px 0 0;
+  padding: 10px 12px;
+}
+
+html[data-theme="dark"] .boss-guide-tip {
+  border-color: rgba(255, 215, 128, 0.55);
+  background: rgba(255, 199, 74, 0.18);
+  color: #fff3c4;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+}
+
 .boss-guide-images {
   display: grid;
   gap: 16px;
