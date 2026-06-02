@@ -189,12 +189,12 @@
       <div class="result-section">
         <div class="result-title">환포 계산 결과</div>
         <div class="result-row">
-          <span class="result-label">기준 환포 (A÷적용 배율)</span>
-          <strong class="result-value">${fmt(r.baseHanpoNeeded)}</strong>
-        </div>
-        <div class="result-row">
           <span class="result-label">해당 레벨 기본 환포</span>
           <strong class="result-value">${fmt(r.acquiredBaseHanpo)}</strong>
+        </div>
+        <div class="result-row">
+          <span class="result-label">최종 배율 적용 환포</span>
+          <strong class="result-value">${fmt(r.acquiredFinalHanpo)}</strong>
         </div>
         <div class="result-row">
           <span class="result-label">획득 레벨</span>
@@ -211,6 +211,10 @@
         <div class="result-row">
           <span class="result-label">기본 환포</span>
           <strong class="result-value">${fmt(r.currentBaseHanpo)}</strong>
+        </div>
+        <div class="result-row">
+          <span class="result-label">최종 배율 적용 환포</span>
+          <strong class="result-value">${fmt(r.currentFinalHanpo)}</strong>
         </div>
         <div class="result-row">
           <span class="result-label">배율 적용 환포 (윤회 축복 ${r.rebirthBlessingEnabled ? "포함" : "미포함"})</span>

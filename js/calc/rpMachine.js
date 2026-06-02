@@ -68,25 +68,23 @@ export function getRebirthMultiplier(level) {
 }
 
 /**
- * 주어진 기본 환포 이상을 제공하는 최소 레벨 찾기
- */
-function findLevelForHanpo(targetBaseHanpo) {
-  let result = null;
-  for (const entry of hanpoData) {
-    if (entry.hanpo >= targetBaseHanpo) {
-      result = entry;
-      break;
-    }
-  }
-  return result;
-}
-
-/**
  * 특정 레벨의 환포 조회
  */
 function getHanpoAtLevel(level) {
   const entry = hanpoData.find(e => e.level === level);
   return entry ? entry.hanpo : 0;
+}
+
+function applyFinalMultiplier(baseHanpo, finalMultiplier) {
+  return Math.floor(baseHanpo * finalMultiplier);
+}
+
+function applyRebirthMultiplier(finalAppliedHanpo, rebirthMult) {
+  return Math.floor(finalAppliedHanpo * rebirthMult);
+}
+
+function applyAllMultipliers(baseHanpo, finalMultiplier, rebirthMult) {
+  return applyRebirthMultiplier(applyFinalMultiplier(baseHanpo, finalMultiplier), rebirthMult);
 }
 
 /**
@@ -128,21 +126,20 @@ export function calculateHanpo(params) {
   const rebirthMult = rebirthBlessingEnabled ? getRebirthMultiplier(transcendLevel) : 1;
   const appliedMultiplier = finalMultiplier * rebirthMult;
 
-  // 기준 환포 (B = A / 적용 배율)
-  const baseHanpoNeeded = targetHanpo / appliedMultiplier;
-
   // 획득 레벨 찾기
-  const found = findLevelForHanpo(baseHanpoNeeded);
+  const found = hanpoData.find(entry => applyAllMultipliers(entry.hanpo, finalMultiplier, rebirthMult) >= targetHanpo) || null;
   const acquiredLevel = found ? found.level : null;
   const acquiredBaseHanpo = found ? found.hanpo : 0;
+  const acquiredFinalHanpo = applyFinalMultiplier(acquiredBaseHanpo, finalMultiplier);
 
   // 실제 획득 환포
-  const actualHanpo = Math.floor(acquiredBaseHanpo * appliedMultiplier);
+  const actualHanpo = applyRebirthMultiplier(acquiredFinalHanpo, rebirthMult);
 
   // 현재 레벨 기본 환포
   const currentBaseHanpo = getHanpoAtLevel(currentLevel);
 
-  const currentHanpoWithMult = Math.floor(currentBaseHanpo * appliedMultiplier);
+  const currentFinalHanpo = applyFinalMultiplier(currentBaseHanpo, finalMultiplier);
+  const currentHanpoWithMult = applyRebirthMultiplier(currentFinalHanpo, rebirthMult);
 
   return {
     hanpoMultiplier,
@@ -151,12 +148,13 @@ export function calculateHanpo(params) {
     hourglassMult,
     finalMultiplier,
     appliedMultiplier,
-    baseHanpoNeeded,
     acquiredLevel,
     acquiredBaseHanpo,
+    acquiredFinalHanpo,
     actualHanpo,
     currentLevel,
     currentBaseHanpo,
+    currentFinalHanpo,
     currentHanpoWithMult,
     rebirthBlessingEnabled,
     rebirthMult,
