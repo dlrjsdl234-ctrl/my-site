@@ -137,12 +137,12 @@ export function calculateHanpo(params) {
   const acquiredBaseHanpo = found ? found.hanpo : 0;
 
   // 실제 획득 환포
-  const actualHanpo = acquiredBaseHanpo * appliedMultiplier;
+  const actualHanpo = Math.floor(acquiredBaseHanpo * appliedMultiplier);
 
   // 현재 레벨 기본 환포
   const currentBaseHanpo = getHanpoAtLevel(currentLevel);
 
-  const currentHanpoWithMult = currentBaseHanpo * appliedMultiplier;
+  const currentHanpoWithMult = Math.floor(currentBaseHanpo * appliedMultiplier);
 
   return {
     hanpoMultiplier,

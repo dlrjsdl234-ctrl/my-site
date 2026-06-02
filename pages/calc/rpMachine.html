@@ -116,7 +116,7 @@
 
   function fmt(n) {
     if (n === null || n === undefined) return "-";
-    return Math.round(n).toLocaleString("ko-KR");
+    return Math.floor(n).toLocaleString("ko-KR");
   }
 
   window.doCalc = function () {
@@ -182,7 +182,7 @@
         </div>
         <div class="result-row">
           <span class="result-label">최종 배율 (R)</span>
-          <strong class="result-value highlight">${r.appliedMultiplier.toFixed(4)}</strong>
+          <strong class="result-value highlight">${r.finalMultiplier.toFixed(4)}</strong>
         </div>
       </div>
 
