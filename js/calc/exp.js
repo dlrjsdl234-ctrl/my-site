@@ -80,8 +80,8 @@ export function calculateLevelUpTime(currentLv, targetLv, expPerMinute, hourglas
     return { error: "1분당 경험치는 0보다 커야 합니다." };
   }
 
-  if (!Number.isInteger(hourglassLv) || hourglassLv < 0 || hourglassLv > 20) {
-    return { error: "모래시계 레벨은 0~20 사이의 정수여야 합니다." };
+  if (!Number.isInteger(hourglassLv) || hourglassLv < 0 || hourglassLv > 30) {
+    return { error: "모래시계 레벨은 0~30 사이의 정수여야 합니다." };
   }
 
   const expInfo = getRequiredExpBetweenLevels(currentLv, targetLv);
@@ -129,8 +129,8 @@ export function calculateLevelAtMinutes(currentLv, currentExp, expPerMinute, hou
   if (!Number.isFinite(expPerMinute) || expPerMinute <= 0) {
     return { error: "1분당 경험치는 0보다 커야 합니다." };
   }
-  if (!Number.isInteger(hourglassLv) || hourglassLv < 0 || hourglassLv > 20) {
-    return { error: "모래시계 레벨은 0~20 사이의 정수여야 합니다." };
+  if (!Number.isInteger(hourglassLv) || hourglassLv < 0 || hourglassLv > 30) {
+    return { error: "모래시계 레벨은 0~30 사이의 정수여야 합니다." };
   }
   if (!Number.isFinite(minutesUntil) || minutesUntil < 0) {
     return { error: "목표 시각을 올바르게 입력하세요." };
@@ -248,7 +248,7 @@ export function calculateLevelAtMinutes(currentLv, currentExp, expPerMinute, hou
  * LV 1에서 시작하여 주어진 시간 동안 사냥 + 소탕으로 도달 가능한 최고 레벨 산출
  *
  * @param {number} expPerMinute - 1분당 경험치
- * @param {number} hourglassLv - 모래시계 레벨 (0~20)
+ * @param {number} hourglassLv - 모래시계 레벨 (0~30)
  * @param {number} sweepExp - 소탕 1회당 경험치
  * @param {number} sweepCount - 소탕 횟수 (1~3)
  * @param {number} totalHours - 총 시간 (시간 단위)
@@ -263,8 +263,8 @@ export function calculateCycleLevel(expPerMinute, hourglassLv, sweepExp, sweepCo
   if (!Number.isFinite(expPerMinute) || expPerMinute <= 0) {
     return { error: "1분당 경험치는 0보다 커야 합니다." };
   }
-  if (!Number.isInteger(hourglassLv) || hourglassLv < 0 || hourglassLv > 20) {
-    return { error: "모래시계 레벨은 0~20 사이의 정수여야 합니다." };
+  if (!Number.isInteger(hourglassLv) || hourglassLv < 0 || hourglassLv > 30) {
+    return { error: "모래시계 레벨은 0~30 사이의 정수여야 합니다." };
   }
   if (!Number.isFinite(sweepExp) || sweepExp < 0) {
     return { error: "소탕 경험치는 0 이상이어야 합니다." };
