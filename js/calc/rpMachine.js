@@ -97,7 +97,7 @@ function applyAllMultipliers(baseHanpo, finalMultiplier, rebirthMult) {
  * @param {number} params.vipPercent - VIP 수치 (%)
  * @param {number} params.transcendLevel - 초월 레벨 (0~10)
  * @param {boolean} params.rebirthBlessingEnabled - 윤회의 축복 적용 여부
- * @param {number} params.hourglassLevel - 모래시계 레벨 (0~30)
+ * @param {number} params.hourglassLevel - 모래시계 레벨 (0~50)
  * @param {number} params.currentLevel - 내 현재 레벨
  */
 export function calculateHanpo(params) {
