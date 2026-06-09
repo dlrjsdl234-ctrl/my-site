@@ -51,7 +51,7 @@
 
               <div class="form-row">
                 <label for="hourglassLv">모래시계 레벨</label>
-                <input type="number" id="hourglassLv" value="0" min="0" max="30">
+                <input type="number" id="hourglassLv" value="0" min="0" max="50">
               </div>
             </div>
 
@@ -91,7 +91,7 @@
 
               <div class="form-row">
                 <label for="forecastHourglassLv">모래시계 레벨</label>
-                <input type="number" id="forecastHourglassLv" value="0" min="0" max="30">
+                <input type="number" id="forecastHourglassLv" value="0" min="0" max="50">
               </div>
             </div>
 
@@ -173,7 +173,7 @@
 
               <div class="form-row">
                 <label for="cycleHourglassLv">모래시계 레벨</label>
-                <input type="number" id="cycleHourglassLv" value="0" min="0" max="30">
+                <input type="number" id="cycleHourglassLv" value="0" min="0" max="50">
               </div>
             </div>
 
@@ -202,7 +202,7 @@
 
               <div class="form-row">
                 <label for="sweepLevelHourglassLv">모래시계 레벨</label>
-                <input type="number" id="sweepLevelHourglassLv" value="0" min="0" max="30">
+                <input type="number" id="sweepLevelHourglassLv" value="0" min="0" max="50">
               </div>
             </div>
 
@@ -253,7 +253,7 @@
 
               <div class="form-row">
                 <label for="screenHourglassLv">모래시계 레벨</label>
-                <input type="number" id="screenHourglassLv" value="0" min="0" max="30">
+                <input type="number" id="screenHourglassLv" value="0" min="0" max="50">
               </div>
 
               <div class="form-row">
@@ -690,8 +690,8 @@
 
     function getHourglassInput() {
       const hourglassLv = Number(document.getElementById("screenHourglassLv").value);
-      if (!Number.isInteger(hourglassLv) || hourglassLv < 0 || hourglassLv > 30) {
-        return { error: "모래시계 레벨은 0~30 사이의 정수여야 합니다." };
+      if (!Number.isInteger(hourglassLv) || hourglassLv < 0 || hourglassLv > 50) {
+        return { error: "모래시계 레벨은 0~50 사이의 정수여야 합니다." };
       }
 
       return { hourglassLv, multiplier: 1 + (hourglassLv * 0.1) };
@@ -2570,8 +2570,8 @@
         resultEl.innerText = "소탕 횟수는 1~3 사이의 정수로 선택하세요.";
         return;
       }
-      if (!Number.isInteger(hourglassLv) || hourglassLv < 0 || hourglassLv > 30) {
-        resultEl.innerText = "모래시계 레벨은 0~30 사이의 정수로 입력하세요.";
+      if (!Number.isInteger(hourglassLv) || hourglassLv < 0 || hourglassLv > 50) {
+        resultEl.innerText = "모래시계 레벨은 0~50 사이의 정수로 입력하세요.";
         return;
       }
 
