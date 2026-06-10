@@ -1,0 +1,972 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>이류 월드 가이드 - 이류월드</title>
+  <script>(function(){var p=localStorage.getItem('iryu_theme')||'system';var t=p;if(p==='system')t=matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t)})()</script>
+  <link rel="stylesheet" href="../../css/style.css">
+  <script src="../../js/common.js"></script>
+  <link rel="icon" href="../../assets/mainImg.png">
+  <style>
+    .early-guide {
+      display: grid;
+      gap: 18px;
+    }
+
+    .guide-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 18px;
+      border-bottom: 1px solid var(--result-row-border);
+    }
+
+    .guide-tab-btn {
+      padding: 12px 18px;
+      border: 1px solid var(--result-border);
+      border-bottom: none;
+      border-radius: 8px 8px 0 0;
+      background: var(--mini-box-bg);
+      color: var(--result-text);
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .guide-tab-btn.active {
+      background: var(--card-bg);
+      color: var(--result-highlight);
+      box-shadow: 0 -2px 0 var(--main-blue) inset;
+    }
+
+    .guide-panel {
+      display: none;
+    }
+
+    .guide-panel.active {
+      display: grid;
+      gap: 18px;
+    }
+
+    .guide-summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .guide-chip {
+      padding: 14px 16px;
+      border: 1px solid var(--result-border);
+      border-radius: 8px;
+      background: var(--mini-box-bg);
+    }
+
+    .guide-chip span {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--mini-title-color);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .guide-chip strong {
+      color: var(--result-value-color);
+      font-size: 16px;
+      line-height: 1.4;
+      word-break: keep-all;
+    }
+
+    .guide-section {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--card-bg);
+      overflow: hidden;
+    }
+
+    .guide-section-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--result-row-border);
+      background: linear-gradient(180deg, var(--mini-box-bg), var(--card-bg));
+    }
+
+    .guide-step {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      flex: 0 0 34px;
+      border-radius: 50%;
+      color: white;
+      font-weight: 900;
+    }
+
+    .guide-section:nth-of-type(1) .guide-step {
+      background: #e5484d;
+    }
+
+    .guide-section:nth-of-type(2) .guide-step {
+      background: #2f9e44;
+    }
+
+    .guide-section:nth-of-type(3) .guide-step {
+      background: #2f6feb;
+    }
+
+    .guide-section:nth-of-type(4) .guide-step {
+      background: #9c36b5;
+    }
+
+    .guide-section h2 {
+      margin: 0;
+      color: var(--section-title-color);
+      font-size: 20px;
+      line-height: 1.35;
+    }
+
+    .guide-section-body {
+      padding: 18px;
+    }
+
+    .guide-list {
+      display: grid;
+      gap: 10px;
+      list-style: none;
+    }
+
+    .guide-list li {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      padding: 11px 12px;
+      border: 1px solid var(--item-border);
+      border-radius: 8px;
+      background: var(--result-bg);
+      color: var(--result-text);
+      line-height: 1.65;
+    }
+
+    .guide-list li::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      margin-top: 10px;
+      flex: 0 0 7px;
+      border-radius: 50%;
+      background: var(--main-blue);
+    }
+
+    .guide-list strong,
+    .guide-note strong {
+      color: var(--result-highlight);
+    }
+
+    .guide-note {
+      margin-top: 14px;
+      padding: 14px 16px;
+      border: 1px solid rgba(229, 72, 77, 0.35);
+      border-left: 5px solid #e5484d;
+      border-radius: 8px;
+      background: rgba(229, 72, 77, 0.08);
+      color: var(--result-text);
+      line-height: 1.7;
+      word-break: keep-all;
+    }
+
+    .guide-priority {
+      margin-top: 14px;
+      padding: 14px 16px;
+      border: 1px solid rgba(245, 158, 11, 0.38);
+      border-left: 5px solid #f59e0b;
+      border-radius: 8px;
+      background: rgba(245, 158, 11, 0.1);
+      color: var(--result-text);
+      font-weight: 800;
+      line-height: 1.7;
+    }
+
+    .guide-route-list {
+      display: grid;
+      gap: 8px;
+      list-style: none;
+    }
+
+    .guide-route-list li {
+      display: grid;
+      grid-template-columns: minmax(110px, 170px) 1fr;
+      gap: 12px;
+      padding: 12px 14px;
+      border: 1px solid var(--item-border);
+      border-radius: 8px;
+      background: var(--result-bg);
+      color: var(--result-text);
+      line-height: 1.6;
+    }
+
+    .guide-route-list strong {
+      color: var(--result-highlight);
+      white-space: nowrap;
+    }
+
+    .guide-skill-flow {
+      padding: 14px 16px;
+      border: 1px solid var(--result-border);
+      border-radius: 8px;
+      background: var(--result-bg);
+      color: var(--result-text);
+      line-height: 1.85;
+      word-break: keep-all;
+    }
+
+    .guide-image-frame {
+      margin-top: 14px;
+      border: 1px solid var(--result-border);
+      border-radius: 8px;
+      background: var(--result-bg);
+      overflow: hidden;
+    }
+
+    .guide-image-frame img {
+      display: block;
+      width: 100%;
+      height: auto;
+      cursor: zoom-in;
+    }
+
+    .guide-img-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: var(--overlay-bg);
+      cursor: zoom-out;
+    }
+
+    .guide-img-overlay.show {
+      display: flex;
+    }
+
+    .guide-img-overlay img {
+      max-width: min(1100px, 96vw);
+      max-height: 92vh;
+      border-radius: 8px;
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.4);
+      cursor: default;
+    }
+
+    .guide-link-box {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 16px 18px;
+      border: 1px solid var(--result-border);
+      border-radius: 8px;
+      background: var(--result-bg);
+    }
+
+    .guide-link-box p {
+      margin: 0;
+      color: var(--result-text);
+      line-height: 1.6;
+    }
+
+    .guide-link-box a {
+      flex: 0 0 auto;
+      text-decoration: none;
+    }
+
+    .guide-link-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    @media (max-width: 900px) {
+      .guide-summary {
+        grid-template-columns: 1fr;
+      }
+
+      .guide-route-list li {
+        grid-template-columns: 1fr;
+        gap: 4px;
+      }
+
+      .guide-link-box {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .guide-link-actions {
+        justify-content: stretch;
+      }
+
+      .guide-link-actions a {
+        flex: 1 1 auto;
+        text-align: center;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .guide-section-head {
+        align-items: flex-start;
+      }
+
+      .guide-section h2 {
+        font-size: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+  <div class="container">
+    <aside class="sidebar"></aside>
+
+    <main class="content">
+      <div class="top-banner">
+        <h1>이류 월드 가이드</h1>
+        <p>이류 월드 진행에 필요한 핵심 공략을 구간별로 정리했습니다.</p>
+      </div>
+
+      <section class="calc-card">
+        <div class="guide-tabs" role="tablist" aria-label="가이드 탭">
+          <button type="button" class="guide-tab-btn active" role="tab" aria-selected="true" data-guide-tab="early">초반 공략</button>
+          <button type="button" class="guide-tab-btn" role="tab" aria-selected="false" data-guide-tab="transcend0">0초월 공략</button>
+          <button type="button" class="guide-tab-btn" role="tab" aria-selected="false" data-guide-tab="transcend1">1초월 공략</button>
+          <button type="button" class="guide-tab-btn" role="tab" aria-selected="false" data-guide-tab="transcend2">2초월 공략</button>
+          <button type="button" class="guide-tab-btn" role="tab" aria-selected="false" data-guide-tab="transcend3">3초월 공략</button>
+          <button type="button" class="guide-tab-btn" role="tab" aria-selected="false" data-guide-tab="transcend4">4초월 공략</button>
+          <button type="button" class="guide-tab-btn" role="tab" aria-selected="false" data-guide-tab="transcend5plus">5초월 이후</button>
+        </div>
+
+        <div class="early-guide guide-panel active" role="tabpanel" data-guide-panel="early">
+          <div class="guide-summary">
+            <div class="guide-chip">
+              <span>진행 구간</span>
+              <strong>튜토리얼</strong>
+            </div>
+            <div class="guide-chip">
+              <span>핵심 주차</span>
+              <strong>RP 9,999 근처</strong>
+            </div>
+            <div class="guide-chip">
+              <span>최우선 강화</span>
+              <strong>자동 줍기 강화</strong>
+            </div>
+          </div>
+
+          <article class="guide-section">
+            <div class="guide-section-head">
+              <span class="guide-step">1</span>
+              <h2>초기 뽑기 및 기본 세팅</h2>
+            </div>
+            <div class="guide-section-body">
+              <ul class="guide-list">
+                <li><strong>조각 뽑기:</strong> 이세계의 조각 24개 획득을 목표로 진행합니다. 기대값은 약 600젬입니다.</li>
+                <li><strong>챙길 스킬:</strong> 매직클로 5LV와 썬더볼트 1LV를 준비합니다.</li>
+                <li><strong>무기 선택:</strong> 꽃무늬 튜브, 이블윙즈, 위덤스태프, 표고버섯, 트럼펫 중에서 선택합니다.</li>
+              </ul>
+              <div class="guide-priority">최우선순위: 자동 줍기 강화</div>
+            </div>
+          </article>
+
+          <article class="guide-section">
+            <div class="guide-section-head">
+              <span class="guide-step">2</span>
+              <h2>사냥 진행 및 주의사항</h2>
+            </div>
+            <div class="guide-section-body">
+              <ul class="guide-list">
+                <li><strong>진행 순서:</strong> 계정 생성 → 튜토리얼 클리어 → 썬더볼트 사냥 시작 순서로 진행합니다.</li>
+                <li><strong>버프 기준:</strong> 경험치 2배 버프는 누적 RP 9,999까지만 적용됩니다.</li>
+              </ul>
+              <div class="guide-note">
+                <strong>중요:</strong> RP 9,999 근처에서 반드시 주차하세요. 이 구간을 넘기면 초반 경험치 2배 버프 기준이 달라집니다.
+              </div>
+            </div>
+          </article>
+
+          <article class="guide-section">
+            <div class="guide-section-head">
+              <span class="guide-step">3</span>
+              <h2>추천 사냥터 가이드</h2>
+            </div>
+            <div class="guide-section-body">
+              <ul class="guide-list">
+                <li><strong>확인 위치:</strong> 하단 추천 사냥터 버튼 클릭 하면 이미지가 나옵니다.</li>
+                <li><strong>사냥터 선택:</strong> 몬스터 DB를 참고해 현재 스펙으로 원킬 가능한 사냥터를 찾습니다.</li>
+              </ul>
+
+              <div class="guide-link-box">
+                <p>계산기와 몬스터 DB를 함께 보면서 현재 스펙에 맞는 원킬 사냥터를 찾으세요.</p>
+                <div class="guide-link-actions">
+                  <a class="btn btn-gray" href="../../assets/tab/img7.png" data-guide-image-open="../../assets/tab/img7.png" data-guide-image-alt="추천 사냥터 가이드">추천 사냥터</a>
+                  <a class="btn btn-gray" href="../tables/monster.html">몬스터 DB</a>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="guide-section">
+            <div class="guide-section-head">
+              <span class="guide-step">4</span>
+              <h2>공략 주의사항</h2>
+            </div>
+            <div class="guide-section-body">
+              <ul class="guide-list">
+                <li><strong>RP 스킬 기준:</strong> 각 루트별 RP 스킬은 찍는 순서가 아니라, 해당 RP 도달 시점에 찍혀 있어야 하는 스킬 기준입니다.</li>
+                <li><strong>구매 전제:</strong> VIP 구매를 전제로 합니다.</li>
+                <li><strong>초기화 전제:</strong> 추후 수호자의돌 초기화권 구매를 가정합니다.</li>
+                <li><strong>빌드 기준:</strong> 마법사 기반 빌드를 사용합니다.</li>
+                <li><strong>유물 투자:</strong> 고룡의 비늘과 결의의 증표는 가격에 맞춰 꾸준히 투자합니다.</li>
+              </ul>
+            </div>
+          </article>
+        </div>
+        <div class="early-guide guide-panel" role="tabpanel" data-guide-panel="transcend0">
+          <div class="guide-summary">
+            <div class="guide-chip">
+              <span>진행 구간</span>
+              <strong>0초월 → 1초월</strong>
+            </div>
+            <div class="guide-chip">
+              <span>목표 RP</span>
+              <strong>3,000만 RP</strong>
+            </div>
+            <div class="guide-chip">
+              <span>핵심 목표</span>
+              <strong>1초월 준비</strong>
+            </div>
+          </div>
+
+          <article class="guide-section">
+            <div class="guide-section-head">
+              <span class="guide-step">1</span>
+              <h2>성장 루트 & 추천 스킬/유물</h2>
+            </div>
+            <div class="guide-section-body">
+              <div class="guide-priority">이세계 썬더볼트 1~11LV / 이세계 매직클로 20LV 목표. 매직클로 20LV 미달성은 정상입니다.</div>
+              <ul class="guide-list" style="margin-top: 14px;">
+                <li><strong>초반 사냥터:</strong> 썬더볼트 필드 원킬 사냥터, 제뉴미스트 3, 인스턴트 타나토스, G팬텀워치를 기준으로 진행합니다.</li>
+                <li><strong>구매 기준:</strong> 장비도감과 메소장비를 모두 구매할 때까지 진행합니다.</li>
+                <li><strong>엘던 루트:</strong> 헤네/리스 엘던 → 오르비스탑 엘던 → 하늘테라스 엘던 → 시간의길 엘던 또는 슈퍼 엘리자 순서로 진행합니다.</li>
+                <li><strong>슈퍼 보스:</strong> 슈퍼 롬바드 이후 슈퍼 파풀라투스를 봅니다. 단, 1,500만 RP 구간에서는 비추천입니다.</li>
+              </ul>
+              <div class="guide-note">
+                <strong>추천 유물:</strong> 고룡의 비늘, 결의의 증표, 잊혀진 기억 로켓 10LV
+              </div>
+            </div>
+          </article>
+
+          <article class="guide-section">
+            <div class="guide-section-head">
+              <span class="guide-step">2</span>
+              <h2>환생 루트 & RP 투자</h2>
+            </div>
+            <div class="guide-section-body">
+              <ul class="guide-route-list">
+                <li><strong>3 RP</strong><span>SP+3, 장비제한감소2</span></li>
+                <li><strong>9,999 RP</strong><span>SP+6, 장비제한감소2, 경험치152, 환포15</span></li>
+                <li><strong>58,807 RP</strong><span>최종경험치200, 환포40</span></li>
+                <li><strong>100,037 RP</strong><span>샤프3, 버서크3, 비홀더4</span></li>
+                <li><strong>302,916 RP</strong><span>샤프19</span></li>
+                <li><strong>800,956 RP</strong><span>버서크30</span></li>
+                <li><strong>150만 RP</strong><span>샤프30, 부스터2</span></li>
+                <li><strong>300만 RP</strong><span>타겟+1</span></li>
+                <li><strong>5,837,936 RP</strong><span>쉐도우파트너11</span></li>
+                <li><strong>3,000만 RP</strong><span>목표 달성</span></li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="guide-section">
+            <div class="guide-section-head">
+              <span class="guide-step">3</span>
+              <h2>추천 스킬 순위 (마법사)</h2>
+            </div>
+            <div class="guide-section-body">
+              <div class="guide-skill-flow">
+                크리티컬샷(M) → 크리티컬스로우(1) → 앱솔리케이션(1) → 홀리심볼(M) → 분노(M) → 피지컬 트레이닝(M) → 콤보어택(M) → 크리티컬스로우(M) → 메디테이션(M) → 앱솔리케이션(M) → 비홀더스버프(M) → 드래곤블러드(M)
+              </div>
+            </div>
+          </article>
+        </div>
+        <div class="early-guide guide-panel" role="tabpanel" data-guide-panel="transcend1">
+          <div class="guide-summary">
+            <div class="guide-chip">
+              <span>진행 구간</span>
+              <strong>1초월 → 2초월</strong>
+            </div>
+            <div class="guide-chip">
+              <span>목표 RP</span>
+              <strong>1억 RP</strong>
+            </div>
+            <div class="guide-chip">
+              <span>초월 시 획득</span>
+              <strong>3만 RP</strong>
+            </div>
+          </div>
+
+          <article class="guide-section">
+            <div class="guide-section-head">
+              <span class="guide-step">1</span>
+              <h2>1초월 정보</h2>
+            </div>
+            <div class="guide-section-body">
+              <ul class="guide-list">
+                <li><strong>최대 레벨:</strong> 300, VIP 기준 330</li>
+                <li><strong>다음 초월 필요 RP:</strong> 1억 RP</li>
+                <li><strong>초월 시 획득 RP:</strong> 3만 RP</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="guide-section">
+            <div class="guide-section-head">
+              <span class="guide-step">2</span>
+              <h2>성장 루트 & 추천 스킬/유물</h2>
+            </div>
+            <div class="guide-section-body">
+              <div class="guide-priority">이세계 썬더볼트 1~11LV / 이세계 매직클로 20LV 목표</div>
+              <ul class="guide-list" style="margin-top: 14px;">
+                <li><strong>초반 기준:</strong> 썬더볼트 필드 원킬을 목표로 진행합니다.</li>
+                <li><strong>진행 루트:</strong> 헤네/리스 엘던 → 오르비스탑 엘던 → 하늘테라스 엘던 → 슈퍼 엘리자 → 슈퍼 롬바드 → 슈퍼 파풀라투스 → 슈퍼 디트와 로이 순서로 진행합니다.</li>
+              </ul>
+              <div class="guide-note">
+                <strong>추천 유물:</strong> 고룡의 비늘, 결의의 증표, 잊혀진 기억 로켓 10LV
+              </div>
+              <div class="guide-priority">
+                초월 시 RP 사용 / 29,938 RP: 경험치 200, 환포 20, SP +12, 장비제한감소 13, 샤프 1, 버서크 1, 비홀더 3
+              </div>
+            </div>
+          </article>
+
+          <article class="guide-section">
+            <div class="guide-section-head">
+              <span class="guide-step">3</span>
+              <h2>환생 루트 & RP 투자</h2>
+            </div>
+            <div class="guide-section-body">
+              <ul class="guide-route-list">
+                <li><strong>58,807 RP</strong><span>최종경험치200, 환포40</span></li>
+                <li><strong>100,037 RP</strong><span>샤프3, 버서크3, 비홀더4</span></li>
+                <li><strong>302,916 RP</strong><span>샤프19</span></li>
+                <li><strong>800,956 RP</strong><span>버서크30</span></li>
+                <li><strong>150만 RP</strong><span>샤프30, 부스터2</span></li>
+                <li><strong>300만 RP</strong><span>타겟+1</span></li>
+                <li><strong>5,837,936 RP</strong><span>쉐도우파트너11</span></li>
+                <li><strong>4000만 RP</strong><span>쉐도우파트너30, 메이플용사9</span></li>
+                <li><strong>1억 RP</strong><span>목표 달성</span></li>
+              </ul>
+            </div>
+          </article>
+        </div>
+        <div class="early-guide guide-panel" role="tabpanel" data-guide-panel="transcend2">
+          <div class="guide-summary">
+            <div class="guide-chip">
+              <span>진행 구간</span>
+              <strong>2초월 → 3초월</strong>
+            </div>
+            <div class="guide-chip">
+              <span>목표 RP</span>
+              <strong>10억 RP</strong>
+            </div>
+            <div class="guide-chip">
+              <span>초월 시 획득</span>
+              <strong>10만 RP</strong>
+            </div>
+          </div>
+
+          <article class="guide-section">
+            <div class="guide-section-head">
+              <span class="guide-step">1</span>
+              <h2>2초월 정보</h2>
+            </div>
+            <div class="guide-section-body">
+              <ul class="guide-list">
+                <li><strong>최대 레벨:</strong> 300, VIP 330, 뿔피리 Lv.5 305, VIP+뿔피리 335</li>
+                <li><strong>다음 초월 필요 RP:</strong> 10억 RP</li>
+                <li><strong>초월 시 획득 RP:</strong> 10만 RP</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="guide-section">
+            <div class="guide-section-head">
+              <span class="guide-step">2</span>
+              <h2>성장 루트 & 추천 스킬/유물</h2>
+            </div>
+            <div class="guide-section-body">
+              <div class="guide-priority">이세계 썬더볼트 1~11LV / 이세계 매직클로 20LV / 이세계 피어싱 0~30LV 목표</div>
+              <ul class="guide-list" style="margin-top: 14px;">
+                <li><strong>진행 루트:</strong> 오르비스탑 엘던 → 하늘테라스 엘던 → 슈퍼 엘리자 → 슈퍼 롬바드 → 슈퍼 파풀라투스 → 슈퍼 디트와 로이 → 슈퍼 키메라 순서로 진행합니다.</li>
+              </ul>
+              <div class="guide-note">
+                <strong>추천 유물:</strong> 고룡의 비늘, 결의의 증표, 잊혀진 기억 로켓 10LV, 아누비스의 가면 10LV, 전설의 뿔피리 5LV
+              </div>
+              <div class="guide-priority">
+                초월 시 RP 사용 / 99,796 RP: 경험치 200, 환포 40, SP +19, 장비제한감소 24, 샤프 1, 버서크 1, 비홀더 4
+              </div>
+            </div>
+          </article>
+
+          <article class="guide-section">
+            <div class="guide-section-head">
+              <span class="guide-step">3</span>
+              <h2>환생 루트 & RP 투자</h2>
+            </div>
+            <div class="guide-section-body">
+              <ul class="guide-route-list">
+                <li><strong>302,916 RP</strong><span>샤프19</span></li>
+                <li><strong>800,956 RP</strong><span>버서크30</span></li>
+                <li><strong>150만 RP</strong><span>샤프30, 부스터2</span></li>
+                <li><strong>300만 RP</strong><span>타겟+1</span></li>
+                <li><strong>5,837,936 RP</strong><span>쉐도우파트너11</span></li>
+                <li><strong>1500만 RP</strong><span>쉐도우파트너21</span></li>
+                <li><strong>4000만 RP</strong><span>쉐도우파트너30, 메이플용사9</span></li>
+                <li><strong>2억 RP</strong><span>메이플용사15, SP +49, 원거리마스터리 19</span></li>
+                <li><strong>10억 RP</strong><span>목표 달성</span></li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="guide-section">
+            <div class="guide-section-head">
+              <span class="guide-step">4</span>
+              <h2>특이사항</h2>
+            </div>
+            <div class="guide-section-body">
+              <ul class="guide-list">
+                <li><strong>2초월 2억 RP까지:</strong> 슈퍼 디트와 로이에서 사냥합니다.</li>
+                <li><strong>2초월 2억 RP 이후:</strong> 슈퍼 키메라로 이동한 뒤 매직클로를 사용합니다. 피어싱 기생이 아니라 솔플 또는 파티 매직클로 기준입니다.</li>
+                <li><strong>이세계 피어싱 21레벨 이후:</strong> 궁수로 전환하고 아누비스의 가면과 전설의 뿔피리를 구매합니다.</li>
+              </ul>
+            </div>
+          </article>
+        </div>
+        <div class="early-guide guide-panel" role="tabpanel" data-guide-panel="transcend3">
+          <div class="guide-summary">
+            <div class="guide-chip">
+              <span>진행 구간</span>
+              <strong>3초월 → 4초월</strong>
+            </div>
+            <div class="guide-chip">
+              <span>목표 RP</span>
+              <strong>100억 RP</strong>
+            </div>
+            <div class="guide-chip">
+              <span>초월 시 획득</span>
+              <strong>1,000,000 RP</strong>
+            </div>
+          </div>
+
+          <article class="guide-section">
+            <div class="guide-section-head">
+              <span class="guide-step">1</span>
+              <h2>3초월 정보</h2>
+            </div>
+            <div class="guide-section-body">
+              <ul class="guide-list">
+                <li><strong>최대 레벨:</strong> 350, VIP 380, 뿔피리 Lv.10 360, VIP+뿔피리 390</li>
+                <li><strong>다음 초월 필요 RP:</strong> 100억 RP</li>
+                <li><strong>초월 시 획득 RP:</strong> 1,000,000 RP</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="guide-section">
+            <div class="guide-section-head">
+              <span class="guide-step">2</span>
+              <h2>성장 루트 & 추천 스킬/유물</h2>
+            </div>
+            <div class="guide-section-body">
+              <div class="guide-priority">이세계 피어싱 0~30LV / 이세계 아이언에로우 0~20LV / 이세계 썬더볼트 1~30LV / 이세계 생츄어리 1~30LV / 이세계 스크류 펀치 1~3LV 목표</div>
+              <ul class="guide-list" style="margin-top: 14px;">
+                <li><strong>진행 루트:</strong> 슈퍼 엘리자 → 슈퍼 롬바드 → 슈퍼 파풀라투스 → 슈퍼 디트와 로이 → 슈퍼 키메라 → 슈퍼 루루모 → 슈퍼 자동경비로봇 → 슈퍼 쿨리좀비 순서로 진행합니다.</li>
+              </ul>
+              <div class="guide-note">
+                <strong>추천 유물:</strong> 고룡의 비늘, 결의의 증표, 잊혀진 기억 로켓 10LV, 아누비스의 가면 10LV, 전설의 뿔피리 10LV
+              </div>
+              <div class="guide-priority">
+                초월 시 RP 사용 / 999,876 RP: 경험치 200, 환포 40, SP +13, 장비제한감소 24, 샤프 19, 버서크 19, 비홀더 4, 쉐도우파트너 1, 원거리마스터리 19, 부스트 2
+              </div>
+            </div>
+          </article>
+
+          <article class="guide-section">
+            <div class="guide-section-head">
+              <span class="guide-step">3</span>
+              <h2>환생 루트 & RP 투자</h2>
+            </div>
+            <div class="guide-section-body">
+              <ul class="guide-route-list">
+                <li><strong>300만 RP</strong><span>SP +40, 버서크30, 샤프30, 쉐도우파트너6</span></li>
+                <li><strong>1500만 RP</strong><span>버서크31, 메이플용사2</span></li>
+                <li><strong>4000만 RP</strong><span>버서크32, 메이플용사4, 쉐도우파트너11</span></li>
+                <li><strong>2억 RP</strong><span>원거리마스터리21, 쉐도우파트너32, 메이플용사17, 버서크33, 샤프31</span></li>
+                <li><strong>10억 RP</strong><span>SP +46, 원거리마스터리25, 샤프35, 버서크35, 쉐도우파트너35, 메이플용사20, 어드밴스드콤보5</span></li>
+                <li><strong>25억 RP</strong><span>SP +51, 어드밴스드콤보16</span></li>
+                <li><strong>50억 RP</strong><span>SP +52, 어드밴스드콤보27</span></li>
+                <li><strong>100억 RP</strong><span>목표 달성</span></li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="guide-section">
+            <div class="guide-section-head">
+              <span class="guide-step">4</span>
+              <h2>특이사항</h2>
+            </div>
+            <div class="guide-section-body">
+              <ul class="guide-list">
+                <li><strong>중간 환생 시:</strong> 어드밴스드콤보어택 또는 SP에 투자합니다.</li>
+                <li><strong>하위 이세계 스킬:</strong> 모든 하위 이세계 스킬은 마스터를 목표로 합니다.</li>
+                <li><strong>구슬 교환:</strong> 구슬 교환을 통해 스크류 펀치 3LV를 목표로 설정하고, 나머지 이세계 조각은 이세계 패시브에 투자합니다.</li>
+              </ul>
+            </div>
+          </article>
+        </div>
+        <div class="early-guide guide-panel" role="tabpanel" data-guide-panel="transcend4">
+          <div class="guide-summary">
+            <div class="guide-chip">
+              <span>진행 구간</span>
+              <strong>4초월 → 5초월</strong>
+            </div>
+            <div class="guide-chip">
+              <span>목표 RP</span>
+              <strong>1,000억 RP</strong>
+            </div>
+            <div class="guide-chip">
+              <span>초월 시 획득</span>
+              <strong>10,000,000 RP</strong>
+            </div>
+          </div>
+
+          <article class="guide-section">
+            <div class="guide-section-head">
+              <span class="guide-step">1</span>
+              <h2>4초월 정보</h2>
+            </div>
+            <div class="guide-section-body">
+              <ul class="guide-list">
+                <li><strong>최대 레벨:</strong> 400, VIP 400, 뿔피리 Lv.20 420, VIP+뿔피리 420</li>
+                <li><strong>다음 초월 필요 RP:</strong> 1,000억 RP</li>
+                <li><strong>초월 시 획득 RP:</strong> 10,000,000 RP</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="guide-section">
+            <div class="guide-section-head">
+              <span class="guide-step">2</span>
+              <h2>성장 루트 & 추천 스킬/유물</h2>
+            </div>
+            <div class="guide-section-body">
+              <div class="guide-priority">이세계 스크류 펀치 3~30LV 목표</div>
+              <ul class="guide-list" style="margin-top: 14px;">
+                <li><strong>진행 루트:</strong> 슈퍼 롬바드 → 슈퍼 파풀라투스 → 슈퍼 디트와 로이 → 슈퍼 키메라 → 슈퍼 루루모 → 슈퍼 자동경비로봇 → 슈퍼 쿨리좀비 → 슈퍼 마이너좀비 → 슈퍼 리치 순서로 진행합니다.</li>
+              </ul>
+              <div class="guide-note">
+                <strong>추천 유물:</strong> 고룡의 비늘, 결의의 증표, 잊혀진 기억 로켓 10LV, 아누비스의 가면 10LV, 전설의 뿔피리 20LV, 화염 부적 0~최대한
+              </div>
+              <div class="guide-priority">
+                초월 시 RP 사용 / 9,347,936 RP: 경험치 200, 환포 40, SP +40, 장비제한감소 24, 샤프 30, 버서크 30, 비홀더 4, 쉐도우파트너 1, 너클마스터리 20, 부스트 2, 타겟 +1, 메이플용사 1
+              </div>
+            </div>
+          </article>
+
+          <article class="guide-section">
+            <div class="guide-section-head">
+              <span class="guide-step">3</span>
+              <h2>환생 루트 & RP 투자</h2>
+            </div>
+            <div class="guide-section-body">
+              <ul class="guide-route-list">
+                <li><strong>1500만 RP</strong><span>버서크31, 메이플용사2</span></li>
+                <li><strong>4000만 RP</strong><span>버서크32, 메이플용사4, 쉐도우파트너11</span></li>
+                <li><strong>2억 RP</strong><span>원거리마스터리21, 쉐도우파트너32, 메이플용사17, 버서크33, 샤프31</span></li>
+                <li><strong>10억 RP</strong><span>SP +46, 원거리마스터리25, 샤프35, 버서크35, 쉐도우파트너35, 메이플용사20, 어드밴스드콤보5</span></li>
+                <li><strong>25억 RP</strong><span>SP +51, 어드밴스드콤보16</span></li>
+                <li><strong>50억 RP</strong><span>SP +52, 어드밴스드콤보27</span></li>
+                <li><strong>250억 RP</strong><span>SP +53, 샤프40, 버서크40, 쉐도우파트너40, 메이플용사25, 어드밴스드콤보35, 파이널어택10</span></li>
+                <li><strong>500억 RP</strong><span>SP +93, 크리티컬 리인포스20</span></li>
+                <li><strong>1000억 RP</strong><span>목표 달성</span></li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="guide-section">
+            <div class="guide-section-head">
+              <span class="guide-step">4</span>
+              <h2>특이사항</h2>
+            </div>
+            <div class="guide-section-body">
+              <ul class="guide-list">
+                <li><strong>중간 환생 시:</strong> SP, 어드밴스드콤보, 크리티컬 리인포스에 자유롭게 투자합니다.</li>
+              </ul>
+            </div>
+          </article>
+        </div>
+        <div class="early-guide guide-panel" role="tabpanel" data-guide-panel="transcend5plus">
+          <div class="guide-summary">
+            <div class="guide-chip">
+              <span>진행 구간</span>
+              <strong>5초월 이후 ~ N초월</strong>
+            </div>
+            <div class="guide-chip">
+              <span>현재 구간</span>
+              <strong>엔드 콘텐츠</strong>
+            </div>
+            <div class="guide-chip">
+              <span>핵심 방향</span>
+              <strong>유물/스킬 최적화</strong>
+            </div>
+          </div>
+
+          <article class="guide-section">
+            <div class="guide-section-head">
+              <span class="guide-step">1</span>
+              <h2>5초월 이후 정보</h2>
+            </div>
+            <div class="guide-section-body">
+              <ul class="guide-list">
+                <li><strong>현재 기준:</strong> 엔드 스펙 구간입니다.</li>
+                <li><strong>성장 방향:</strong> 후반부는 유물과 스킬 최적화 비중이 증가합니다.</li>
+                <li><strong>세팅 차이:</strong> 개별 세팅 차이가 매우 커집니다.</li>
+              </ul>
+              <div class="guide-priority">초월 시 RP 사용 / 98,997,936 RP</div>
+              <ul class="guide-list" style="margin-top: 14px;">
+                <li><strong>기본 투자:</strong> 경험치 200, 환포 40, SP +42, 장비제한감소 24</li>
+                <li><strong>전투 스킬:</strong> 샤프 30, 버서크 32, 비홀더 4, 쉐도우파트너 30</li>
+                <li><strong>마스터리:</strong> 너클마스터리 20. 아이스데몬을 배우는 시점부터는 투자하지 않고, 부메랑 스텝 습득 시 단검마스터리로 전환합니다.</li>
+                <li><strong>추가 투자:</strong> 부스트 2, 타겟 +1, 메이플용사 15, 어드밴스드 콤보어택 1</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="guide-section">
+            <div class="guide-section-head">
+              <span class="guide-step">2</span>
+              <h2>추천 유물</h2>
+            </div>
+            <div class="guide-section-body">
+              <ul class="guide-list">
+                <li><strong>사용 스킬 기준:</strong> 주스텟, 최종데미지, 크리티컬데미지를 균등 분배 투자합니다.</li>
+                <li><strong>핵심 유물:</strong> 전설의 뿔피리, 검은구슬 10LV, 시간의 모래시계를 사용합니다.</li>
+              </ul>
+              <div class="guide-note">
+                <strong>시간의 모래시계:</strong> 6초월 후반부터 사용을 추천합니다.
+              </div>
+            </div>
+          </article>
+
+          <article class="guide-section">
+            <div class="guide-section-head">
+              <span class="guide-step">3</span>
+              <h2>스킬은 언제 바꾸는가?</h2>
+            </div>
+            <div class="guide-section-body">
+              <ul class="guide-route-list">
+                <li><strong>이세계 아이스데몬</strong><span>1LV 사용</span></li>
+                <li><strong>이세계 제네시스</strong><span>A3 펫 기준 10LV 사용</span></li>
+                <li><strong>이세계 부메랑스텝</strong><span>수호자의돌 초기화 필수. 자료 부족으로 추가 연구가 필요합니다.</span></li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="guide-section">
+            <div class="guide-section-head">
+              <span class="guide-step">4</span>
+              <h2>RP 스킬은 어떻게 투자하는가?</h2>
+            </div>
+            <div class="guide-section-body">
+              <ul class="guide-list">
+                <li><strong>투자 기준:</strong> 가격 순으로 +5LV씩 투자합니다.</li>
+                <li><strong>성장 방향:</strong> 효율보다 전체 성장 밸런스를 우선합니다.</li>
+                <li><strong>후반 핵심:</strong> 누적 스펙 상승이 핵심입니다.</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="guide-section">
+            <div class="guide-section-head">
+              <span class="guide-step">5</span>
+              <h2>마지막 조언</h2>
+            </div>
+            <div class="guide-section-body">
+              <div class="guide-priority">스스로 잘해보자 이제</div>
+            </div>
+          </article>
+        </div>
+      </section>
+</main>
+  </div>
+</div>
+<div class="guide-img-overlay" id="guideImgOverlay" aria-hidden="true">
+  <img id="guideOverlayImg" src="" alt="">
+</div>
+<script>
+  const guideImgOverlay = document.getElementById("guideImgOverlay");
+  const guideOverlayImg = document.getElementById("guideOverlayImg");
+
+  function openGuideImage(src, alt) {
+    guideOverlayImg.src = src;
+    guideOverlayImg.alt = alt;
+    guideImgOverlay.classList.add("show");
+    guideImgOverlay.setAttribute("aria-hidden", "false");
+  }
+
+  document.querySelectorAll(".guide-image-frame img").forEach((image) => {
+    image.addEventListener("click", () => {
+      openGuideImage(image.src, image.alt);
+    });
+  });
+
+  document.querySelectorAll("[data-guide-image-open]").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      openGuideImage(button.dataset.guideImageOpen, button.dataset.guideImageAlt || button.textContent.trim());
+    });
+  });
+
+  guideImgOverlay.addEventListener("click", () => {
+    guideImgOverlay.classList.remove("show");
+    guideImgOverlay.setAttribute("aria-hidden", "true");
+  });
+
+  guideOverlayImg.addEventListener("click", (event) => {
+    event.stopPropagation();
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      guideImgOverlay.classList.remove("show");
+      guideImgOverlay.setAttribute("aria-hidden", "true");
+    }
+  });
+
+  document.querySelectorAll("[data-guide-tab]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const tabName = button.dataset.guideTab;
+      document.querySelectorAll("[data-guide-tab]").forEach((tab) => {
+        const isActive = tab === button;
+        tab.classList.toggle("active", isActive);
+        tab.setAttribute("aria-selected", String(isActive));
+      });
+      document.querySelectorAll("[data-guide-panel]").forEach((panel) => {
+        panel.classList.toggle("active", panel.dataset.guidePanel === tabName);
+      });
+    });
+  });
+</script>
+</body>
+</html>
