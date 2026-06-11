@@ -120,6 +120,17 @@
     .guide-section:nth-of-type(4) .guide-step {
       background: #9c36b5;
     }
+    .guide-section:nth-of-type(5) .guide-step {
+      background: #495057;
+    }
+
+    .guide-section:nth-of-type(6) .guide-step {
+      background: #0ca678;
+    }
+
+    .guide-section:nth-of-type(7) .guide-step {
+      background: #c92a2a;
+    }
 
     .guide-section h2 {
       margin: 0;
@@ -339,7 +350,8 @@
 
       <section class="calc-card">
         <div class="guide-tabs" role="tablist" aria-label="가이드 탭">
-          <button type="button" class="guide-tab-btn active" role="tab" aria-selected="true" data-guide-tab="early">초반 공략</button>
+          <button type="button" class="guide-tab-btn active" role="tab" aria-selected="true" data-guide-tab="basic">기본 팁</button>
+          <button type="button" class="guide-tab-btn" role="tab" aria-selected="false" data-guide-tab="early">초반 공략</button>
           <button type="button" class="guide-tab-btn" role="tab" aria-selected="false" data-guide-tab="transcend0">0초월 공략</button>
           <button type="button" class="guide-tab-btn" role="tab" aria-selected="false" data-guide-tab="transcend1">1초월 공략</button>
           <button type="button" class="guide-tab-btn" role="tab" aria-selected="false" data-guide-tab="transcend2">2초월 공략</button>
@@ -348,7 +360,119 @@
           <button type="button" class="guide-tab-btn" role="tab" aria-selected="false" data-guide-tab="transcend5plus">5초월 이후</button>
         </div>
 
-        <div class="early-guide guide-panel active" role="tabpanel" data-guide-panel="early">
+        <div class="early-guide guide-panel active" role="tabpanel" data-guide-panel="basic">
+          <div class="guide-summary">
+            <div class="guide-chip">
+              <span>콘텐츠 초기화</span>
+              <strong>오전 9시</strong>
+            </div>
+            <div class="guide-chip">
+              <span>주간 보스 초기화</span>
+              <strong>일요일 오후 8시</strong>
+            </div>
+            <div class="guide-chip">
+              <span>현재 방향</span>
+              <strong>효율 관리</strong>
+            </div>
+          </div>
+
+          <article class="guide-section">
+            <div class="guide-section-head">
+              <span class="guide-step">1</span>
+              <h2>기본 시스템 정보</h2>
+            </div>
+            <div class="guide-section-body">
+              <ul class="guide-list">
+                <li><strong>콘텐츠 초기화 시간:</strong> 오전 9시입니다.</li>
+                <li><strong>주간 보스 초기화 시간:</strong> 일요일 오후 8시입니다.</li>
+                <li><strong>환생:</strong> 자주할수록 손해입니다.</li>
+                <li><strong>강화 주문서:</strong> 혼줌과 악공은 최대한 아껴 씁니다.</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="guide-section">
+            <div class="guide-section-head">
+              <span class="guide-step">2</span>
+              <h2>플레이 효율 팁</h2>
+            </div>
+            <div class="guide-section-body">
+              <ul class="guide-list">
+                <li><strong>경험치 획득:</strong> 솔플이 무조건 이득입니다.</li>
+                <li><strong>재화 획득:</strong> 파티 플레이가 무조건 이득입니다.</li>
+                <li><strong>슈퍼 던전:</strong> 최대 8인 겹사가 가능합니다.</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="guide-section">
+            <div class="guide-section-head">
+              <span class="guide-step">3</span>
+              <h2>초월 관련 팁</h2>
+            </div>
+            <div class="guide-section-body">
+              <ul class="guide-list">
+                <li><strong>초월 전:</strong> 몬스터 디펜스 기록을 갱신합니다.</li>
+                <li><strong>초월 후:</strong> 윤회의 축복 습득 후 소탕으로 스킵합니다.</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="guide-section">
+            <div class="guide-section-head">
+              <span class="guide-step">4</span>
+              <h2>유물 투자 팁</h2>
+            </div>
+            <div class="guide-section-body">
+              <ul class="guide-list">
+                <li><strong>시간의 모래시계:</strong> 방치 효율은 전설의 뿔피리와 유사합니다.</li>
+                <li><strong>투자 기준:</strong> 두 유물은 자신의 플레이 타임 기준으로 투자합니다.</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="guide-section">
+            <div class="guide-section-head">
+              <span class="guide-step">5</span>
+              <h2>장비도감 투자 팁</h2>
+            </div>
+            <div class="guide-section-body">
+              <ul class="guide-list">
+                <li><strong>구매 순서:</strong> 필수템 구매 이후 가격이 싼 도감부터 1000개 구매합니다.</li>
+                <li><strong>필수템:</strong> 올스텟 3 반지 4짝, 호루스의 눈, 딸기맛 아이스바, 메이플리프</li>
+                <li><strong>가성비 추천:</strong> 메이플 장비 시리즈</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="guide-section">
+            <div class="guide-section-head">
+              <span class="guide-step">6</span>
+              <h2>일일 콘텐츠 꼭 하기</h2>
+            </div>
+            <div class="guide-section-body">
+              <ul class="guide-list">
+                <li>펫 던전</li>
+                <li>주문서 던전</li>
+                <li>장비 레이드</li>
+                <li>몬스터 디펜스</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="guide-section">
+            <div class="guide-section-head">
+              <span class="guide-step">7</span>
+              <h2>주간 콘텐츠</h2>
+            </div>
+            <div class="guide-section-body">
+              <ul class="guide-list">
+                <li><strong>주간 보스:</strong> 꼭 챙깁니다.</li>
+              </ul>
+            </div>
+          </article>
+        </div>
+        <div class="early-guide guide-panel" role="tabpanel" data-guide-panel="early">
           <div class="guide-summary">
             <div class="guide-chip">
               <span>진행 구간</span>
