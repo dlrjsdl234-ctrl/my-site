@@ -3035,6 +3035,67 @@ html[data-theme="dark"] .level-alert-modal {
   color: #fff;
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.boss-guide-select-wrap {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 18px;
+}
+
+.boss-guide-select {
+  appearance: none;
+  min-width: min(100%, 260px);
+  border: 1px solid var(--border-color, #d8dde7);
+  border-radius: 8px;
+  background:
+    linear-gradient(45deg, transparent 50%, currentColor 50%) right 18px center / 6px 6px no-repeat,
+    linear-gradient(135deg, currentColor 50%, transparent 50%) right 12px center / 6px 6px no-repeat,
+    var(--card-bg, #fff);
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+  line-height: 1.35;
+  padding: 10px 38px 10px 14px;
+}
+
+.boss-guide-select:focus {
+  border-color: var(--primary-color, #4f6bff);
+  box-shadow: 0 0 0 3px rgba(79, 107, 255, 0.22);
+  outline: none;
+}
+
+.boss-guide-select option {
+  background: var(--card-bg, #fff);
+  color: var(--text-color, #142033);
+  font-weight: 700;
+}
+
+html[data-theme="dark"] .boss-guide-select {
+  border-color: rgba(148, 180, 255, 0.55);
+  background:
+    linear-gradient(45deg, transparent 50%, currentColor 50%) right 18px center / 6px 6px no-repeat,
+    linear-gradient(135deg, currentColor 50%, transparent 50%) right 12px center / 6px 6px no-repeat,
+    rgba(91, 176, 255, 0.16);
+  color: #f2f7ff;
+}
+
+html[data-theme="dark"] .boss-guide-select option {
+  background: #1d2d42;
+  color: #f2f7ff;
+}
+
 .boss-guide-panel {
   display: none;
 }
