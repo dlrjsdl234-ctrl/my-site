@@ -7,6 +7,10 @@ const SAMPLE_INTERVAL_MS = 1000;
 const OCR_SCALE = 4;
 const REQUIRED_STABLE_COUNT = 10;
 const REQUIRED_NON_BLACK_COUNT = 5;
+const INITIAL_LEVEL_MIN_LIMIT = 300;
+const TARGET_LEVEL_MARGIN = 50;
+const LEVEL_JUMP_ABSOLUTE_MARGIN = 30;
+const LEVEL_JUMP_RATIO = 1.5;
 const ERROR_PIXEL_X = 50;
 const ERROR_PIXEL_Y = 50;
 
@@ -284,9 +288,13 @@ async function recognizeLevel() {
   const { data } = await worker.recognize(cropCanvas);
   lastOcrText = String(data?.text || "").trim();
   const level = parseLevel(lastOcrText);
+  const targetLevel = Number(targetLevelInput.value);
 
   if (!Number.isInteger(level) || level < 1) {
     return { error: `레벨 숫자를 인식하지 못했습니다. OCR 결과: ${lastOcrText || "없음"}` };
+  }
+  if (!isPlausibleLevel(level, targetLevel)) {
+    return { error: `OCR 오인식으로 보이는 값은 무시했습니다: LV ${level.toLocaleString("ko-KR")} / OCR 결과: ${lastOcrText || "없음"}` };
   }
 
   return { level };
@@ -331,15 +339,42 @@ function drawPreprocessedCrop() {
 
 function parseLevel(text) {
   const normalized = String(text || "").replace(/[|Il]/g, "1");
-  const compact = normalized.replace(/(\d)\s+(?=\d)/g, "$1");
-  const lvMatch = compact.match(/(?:lv|level)\s*[.:：-]?\s*(\d{1,5})/i);
-  if (lvMatch) return Number(lvMatch[1]);
+  const lvMatch = normalized.match(/(?:lv|level)\s*[.:：-]?\s*(\d(?:\s*\d){0,4})/i);
+  if (lvMatch) return Number(lvMatch[1].replace(/\s+/g, ""));
 
-  const matches = compact.match(/\d{1,5}/g);
+  const matches = normalized.match(/\d{1,5}/g);
   if (!matches || matches.length === 0) return null;
-  const joined = matches.join("");
-  if (joined.length <= 5) return Number(joined);
-  return Number(matches[0]);
+  if (matches.length === 1) return Number(matches[0]);
+
+  const separatedDigits = normalized.trim().match(/^\D*(\d(?:\s+\d){1,4})\D*$/);
+  if (separatedDigits) return Number(separatedDigits[1].replace(/\s+/g, ""));
+
+  return null;
+}
+
+function isPlausibleLevel(level, targetLevel) {
+  if (!Number.isInteger(level) || level < 1) return false;
+
+  const expectedMax = getExpectedMaxLevel(targetLevel);
+  const referenceLevel = confirmedLevel ?? lastCandidateLevel ?? watchStartLevel;
+  if (!Number.isInteger(referenceLevel) || referenceLevel < 1) {
+    return level <= expectedMax;
+  }
+
+  const jumpLimit = Math.max(
+    referenceLevel + LEVEL_JUMP_ABSOLUTE_MARGIN,
+    Math.ceil(referenceLevel * LEVEL_JUMP_RATIO)
+  );
+  return level <= expectedMax || level <= jumpLimit;
+}
+
+function getExpectedMaxLevel(targetLevel) {
+  if (!Number.isInteger(targetLevel) || targetLevel < 1) return INITIAL_LEVEL_MIN_LIMIT;
+  return Math.max(
+    INITIAL_LEVEL_MIN_LIMIT,
+    targetLevel + TARGET_LEVEL_MARGIN,
+    Math.ceil(targetLevel * LEVEL_JUMP_RATIO)
+  );
 }
 
 function updateTargetStableLevel(level, targetLevel) {
