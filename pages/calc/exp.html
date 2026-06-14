@@ -1458,6 +1458,29 @@
       return Math.round(value || 0).toLocaleString("ko-KR");
     }
 
+    function parseIntegerBigInt(value, { allowZero = true } = {}) {
+      const text = String(value ?? "").replace(/,/g, "").trim();
+      if (!/^\d+$/.test(text)) return null;
+      const parsed = BigInt(text);
+      if (!allowZero && parsed <= 0n) return null;
+      return parsed;
+    }
+
+    function roundDivBigInt(numerator, denominator) {
+      return (numerator + (denominator / 2n)) / denominator;
+    }
+
+    function formatIntegerExp(value) {
+      if (typeof value === "bigint") return value.toLocaleString("ko-KR");
+      return Math.round(Number(value) || 0).toLocaleString("ko-KR");
+    }
+
+    function formatScaledExp(value, scale) {
+      const scaledValue = typeof value === "bigint" ? value : BigInt(Math.round(Number(value) || 0));
+      const scaledBy = typeof scale === "bigint" ? scale : BigInt(scale);
+      return roundDivBigInt(scaledValue, scaledBy).toLocaleString("ko-KR");
+    }
+
     function addRecentExpSample(gainedExp, options = {}) {
       if (!Number.isFinite(gainedExp) || gainedExp <= 0) return;
       if (options.levelUp) return;
@@ -2323,7 +2346,7 @@
 
       const currentLv = Number(document.getElementById("currentLv").value);
       const targetLv = Number(document.getElementById("targetLv").value);
-      const expPerMinute = Number(document.getElementById("expPerMinute").value);
+      const expPerMinute = document.getElementById("expPerMinute").value;
       const hourglassLv = Number(document.getElementById("hourglassLv").value);
 
       const result = calculateLevelUpTime(currentLv, targetLv, expPerMinute, hourglassLv);
@@ -2341,7 +2364,7 @@
           <div class="result-title">경험치 정보</div>
           <div class="result-row">
             <span class="result-label">기본 필요 총 경험치</span>
-            <strong class="result-value">${Math.round(result.baseRequiredExp).toLocaleString()}</strong>
+            <strong class="result-value">${formatIntegerExp(result.baseRequiredExp)}</strong>
           </div>
           <div class="result-row">
             <span class="result-label">모래시계 레벨</span>
@@ -2353,7 +2376,7 @@
           </div>
           <div class="result-row">
             <span class="result-label">적용 후 필요 총 경험치</span>
-            <strong class="result-value">${Math.round(result.requiredExp).toLocaleString()}</strong>
+            <strong class="result-value">${formatScaledExp(result.requiredExpScaled, result.requiredExpScale)}</strong>
           </div>
         </div>
 
@@ -2396,10 +2419,10 @@
       const resultEl = document.getElementById("forecastResult");
 
       const currentLv = Number(document.getElementById("forecastCurrentLv").value);
-      const currentExp = Number(document.getElementById("forecastCurrentExp").value || 0);
+      const currentExp = document.getElementById("forecastCurrentExp").value || "0";
       const maxLvValue = document.getElementById("forecastMaxLv").value;
       const maxLv = maxLvValue.trim() === "" ? null : Number(maxLvValue);
-      const expPerMinute = Number(document.getElementById("forecastExpPerMinute").value);
+      const expPerMinute = document.getElementById("forecastExpPerMinute").value;
       const hourglassLv = Number(document.getElementById("forecastHourglassLv").value);
       const targetDate = getTargetDateTime(document.getElementById("forecastTargetTime").value);
 
@@ -2429,7 +2452,7 @@
       const gainedLabel = timeResult.cappedByMaxLevel ? "만렙까지 획득 경험치" : "목표 시각까지 획득 경험치";
       const expDisplay = timeResult.cappedByMaxLevel
         ? "만렙 달성"
-        : `${Math.round(timeResult.expInLevel).toLocaleString("ko-KR")} / ${Math.round(timeResult.nextLevelExp).toLocaleString("ko-KR")}`;
+        : `${formatScaledExp(timeResult.expInLevelScaled, timeResult.expInLevelScale)} / ${formatScaledExp(timeResult.nextLevelExpScaled, timeResult.nextLevelExpScale)}`;
 
       resultEl.innerHTML = `
         <div class="result-section">
@@ -2462,7 +2485,7 @@
           </div>
           <div class="result-row">
             <span class="result-label">${gainedLabel}</span>
-            <strong class="result-value">${Math.round(timeResult.totalGainedExp).toLocaleString("ko-KR")}</strong>
+            <strong class="result-value">${formatScaledExp(timeResult.totalGainedExpScaled, timeResult.totalGainedExpScale)}</strong>
           </div>
         </div>
       `;
@@ -2472,31 +2495,44 @@
     window.expMinuteTime = function () {
       const resultEl = document.getElementById("expMinuteResult");
 
-      const firstExp = Number(document.getElementById("firstExp").value);     // 앞경험치
+      const firstExp = parseIntegerBigInt(document.getElementById("firstExp").value, { allowZero: false });     // 앞경험치
       const encyExp = Number(document.getElementById("encyExp").value);     // 도감 경험치
       const holySymbol = Number(document.getElementById("holySymbol").value);     // 홀리심볼 경험치
       const numAnimal = Number(document.getElementById("numAnimal").value);   // 마릿수
       const animalTime = Number(document.getElementById("animalTime").value); // 걸리는 시간
 
-      const expRatio = (3*(100+encyExp+holySymbol))/100; // 실경험치 배율
-      const realExp = Math.round(firstExp * expRatio); // 실경험치
-      const animalExp = Math.round(realExp * numAnimal); // 마릿수 경험치
-      const oneMinExp = Math.round((animalExp/animalTime)*60); // 1분당 경험치
+      if (firstExp === null) {
+        resultEl.innerText = "앞 경험치는 0보다 큰 정수로 입력하세요.";
+        return;
+      }
+      if (!Number.isFinite(encyExp) || encyExp < 0 || !Number.isFinite(holySymbol) || holySymbol < 0) {
+        resultEl.innerText = "경험치 보너스는 0 이상으로 입력하세요.";
+        return;
+      }
+      if (!Number.isInteger(numAnimal) || numAnimal <= 0 || !Number.isInteger(animalTime) || animalTime <= 0) {
+        resultEl.innerText = "마릿수와 걸리는 시간은 1 이상의 정수로 입력하세요.";
+        return;
+      }
+
+      const expRatioNumerator = BigInt(Math.round(3 * (100 + encyExp + holySymbol)));
+      const realExp = roundDivBigInt(firstExp * expRatioNumerator, 100n); // 실경험치
+      const animalExp = realExp * BigInt(numAnimal); // 마릿수 경험치
+      const oneMinExp = roundDivBigInt(animalExp * 60n, BigInt(animalTime)); // 1분당 경험치
 
       resultEl.innerHTML = `
         <div class="result-section">
           <div class="result-title">1분당 경험치 정보</div>
           <div class="result-row">
             <span class="result-label">실경험치</span>
-            <strong class="result-value">` + realExp.toLocaleString() + `</strong>
+            <strong class="result-value">` + realExp.toLocaleString("ko-KR") + `</strong>
           </div>
           <div class="result-row">
             <span class="result-label">` + numAnimal +`마리 경험치</span>
-            <strong class="result-value">` + animalExp.toLocaleString() + `</strong>
+            <strong class="result-value">` + animalExp.toLocaleString("ko-KR") + `</strong>
           </div>
           <div class="result-row">
             <span class="result-label">1분당 경험치</span>
-            <strong class="result-value">` + oneMinExp.toLocaleString() + `</strong>
+            <strong class="result-value">` + oneMinExp.toLocaleString("ko-KR") + `</strong>
           </div>
         </div>
       `;
@@ -2506,10 +2542,10 @@
     window.calcCycleOpt = function () {
       const resultEl = document.getElementById("cycleResult");
 
-      const sweepExp = Number(document.getElementById("sweepExp").value);
+      const sweepExp = document.getElementById("sweepExp").value;
       const sweepCount = Number(document.getElementById("sweepCount").value);
       const totalHours = Number(document.getElementById("totalHours").value);
-      const expPerMinute = Number(document.getElementById("cycleExpPerMinute").value);
+      const expPerMinute = document.getElementById("cycleExpPerMinute").value;
       const hourglassLv = Number(document.getElementById("cycleHourglassLv").value);
 
       const result = calculateCycleLevel(expPerMinute, hourglassLv, sweepExp, sweepCount, totalHours);
@@ -2535,15 +2571,15 @@
           <div class="result-title">경험치 합산</div>
           <div class="result-row">
             <span class="result-label">총 사냥 경험치</span>
-            <strong class="result-value">${Math.round(result.totalHuntingExp).toLocaleString("ko-KR")}</strong>
+            <strong class="result-value">${formatIntegerExp(result.totalHuntingExp)}</strong>
           </div>
           <div class="result-row">
             <span class="result-label">총 소탕 경험치</span>
-            <strong class="result-value">${Math.round(result.totalSweepExp).toLocaleString("ko-KR")}</strong>
+            <strong class="result-value">${formatIntegerExp(result.totalSweepExp)}</strong>
           </div>
           <div class="result-row">
             <span class="result-label">총 획득 경험치</span>
-            <strong class="result-value">${Math.round(result.grandTotalExp).toLocaleString("ko-KR")}</strong>
+            <strong class="result-value">${formatIntegerExp(result.grandTotalExp)}</strong>
           </div>
         </div>
         <div class="result-section">
@@ -2558,11 +2594,11 @@
     // === 소탕 레벨 계산 ===
     window.calcSweepLevel = function () {
       const resultEl = document.getElementById("sweepLevelResult");
-      const sweepExp = Number(document.getElementById("sweepLevelExp").value);
+      const sweepExp = parseIntegerBigInt(document.getElementById("sweepLevelExp").value);
       const sweepCount = Number(document.getElementById("sweepLevelCount").value);
       const hourglassLv = Number(document.getElementById("sweepLevelHourglassLv").value);
 
-      if (!Number.isFinite(sweepExp) || sweepExp < 0) {
+      if (sweepExp === null) {
         resultEl.innerText = "소탕 시 획득 경험치는 0 이상으로 입력하세요.";
         return;
       }
@@ -2576,36 +2612,38 @@
       }
 
       const multiplier = 1 + (hourglassLv * 0.1);
-      const totalExp = sweepExp * sweepCount;
+      const multiplierNumerator = BigInt(10 + hourglassLv);
+      const multiplierScale = 10n;
+      const totalExp = sweepExp * BigInt(sweepCount);
       let level = 1;
-      let expInLevel = totalExp;
-      let nextLevelExp = 0;
+      let expInLevelScaled = totalExp * multiplierScale;
+      let nextLevelExpScaled = 0n;
       let reachedMaxLevel = false;
 
       while (true) {
         const levelInfo = getExpNeedForLevel(level);
         if (levelInfo.error) {
           reachedMaxLevel = true;
-          expInLevel = 0;
-          nextLevelExp = 0;
+          expInLevelScaled = 0n;
+          nextLevelExpScaled = 0n;
           break;
         }
 
-        nextLevelExp = levelInfo.expNeed * multiplier;
-        if (expInLevel < nextLevelExp) break;
-        expInLevel -= nextLevelExp;
+        nextLevelExpScaled = levelInfo.expNeedBigInt * multiplierNumerator;
+        if (expInLevelScaled < nextLevelExpScaled) break;
+        expInLevelScaled -= nextLevelExpScaled;
         level += 1;
       }
 
-      const expPercent = nextLevelExp > 0 ? (expInLevel / nextLevelExp) * 100 : 100;
-      const usedExp = totalExp - expInLevel;
+      const expPercent = nextLevelExpScaled > 0n ? Number(expInLevelScaled * 1000000n / nextLevelExpScaled) / 10000 : 100;
+      const usedExpScaled = (totalExp * multiplierScale) - expInLevelScaled;
 
       resultEl.innerHTML = `
         <div class="result-section">
           <div class="result-title">소탕 정보</div>
           <div class="result-row">
             <span class="result-label">총 소탕 경험치</span>
-            <strong class="result-value">${Math.round(totalExp).toLocaleString("ko-KR")}</strong>
+            <strong class="result-value">${formatIntegerExp(totalExp)}</strong>
           </div>
           <div class="result-row">
             <span class="result-label">소탕 횟수</span>
@@ -2623,7 +2661,7 @@
           </div>
           <div class="result-row">
             <span class="result-label">현재 레벨 경험치</span>
-            <strong class="result-value">${Math.round(expInLevel).toLocaleString("ko-KR")}</strong>
+            <strong class="result-value">${formatScaledExp(expInLevelScaled, multiplierScale)}</strong>
           </div>
           <div class="result-row">
             <span class="result-label">현재 레벨 진행률</span>
@@ -2631,7 +2669,7 @@
           </div>
           <div class="result-row">
             <span class="result-label">레벨업에 사용된 경험치</span>
-            <strong class="result-value">${Math.round(usedExp).toLocaleString("ko-KR")}</strong>
+            <strong class="result-value">${formatScaledExp(usedExpScaled, multiplierScale)}</strong>
           </div>
         </div>
       `;
