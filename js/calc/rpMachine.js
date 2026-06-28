@@ -76,11 +76,11 @@ function getHanpoAtLevel(level) {
 }
 
 function applyFinalMultiplier(baseHanpo, finalMultiplier) {
-  return Math.floor(baseHanpo * finalMultiplier);
+  return Math.round(baseHanpo * finalMultiplier);
 }
 
 function applyRebirthMultiplier(finalAppliedHanpo, rebirthMult) {
-  return Math.floor(finalAppliedHanpo * rebirthMult);
+  return Math.round(finalAppliedHanpo * rebirthMult);
 }
 
 function applyAllMultipliers(baseHanpo, finalMultiplier, rebirthMult) {
