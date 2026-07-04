@@ -20,6 +20,7 @@ const MENU = [
 
   { section: "기능" },
   { label: "레벨업 알림", href: "/pages/tools/level-alert.html" },
+  { label: "경험치 측정", href: "/pages/tools/exp-measure.html" },
 
   { section: "테이블" },
   { label: "초월정보", href: "/pages/tables/transcend.html" },

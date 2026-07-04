@@ -95,7 +95,7 @@
             </div>
             <div class="form-row">
               <label for="hourglassLevel">모래시계 레벨</label>
-              <input type="number" id="hourglassLevel" min="0" max="30" value="0">
+              <input type="number" id="hourglassLevel" min="0" max="50" value="0">
             </div>
             <div class="form-row">
               <label for="measureSeconds">측정 시간</label>
@@ -1382,8 +1382,8 @@
         setStatus(levelInfo.error);
         return;
       }
-      if (!Number.isInteger(hourglass) || hourglass < 0 || hourglass > 30) {
-        setStatus("모래시계 레벨은 0~30 사이로 입력하세요.");
+      if (!Number.isInteger(hourglass) || hourglass < 0 || hourglass > 50) {
+        setStatus("모래시계 레벨은 0~50 사이로 입력하세요.");
         return;
       }
       if (!roi) {

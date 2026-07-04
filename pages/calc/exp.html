@@ -8,8 +8,71 @@
   <link rel="stylesheet" href="../../css/style.css">
   <script src="../../js/common.js"></script>
   <link rel="icon" href="../../assets/mainImg.png">
+  <style>
+    body.measure-embed .sidebar,
+    body.measure-embed .top-banner,
+    body.measure-embed .tab-bar {
+      display: none;
+    }
+
+    body.measure-embed {
+      background: transparent;
+      overflow: hidden;
+    }
+
+    body.measure-embed .wrapper {
+      padding: 0;
+    }
+
+    body.measure-embed .container {
+      display: block;
+    }
+
+    body.measure-embed .content {
+      width: 100%;
+      max-width: none;
+      padding: 0;
+    }
+
+    body.measure-embed .calc-card {
+      margin: 0;
+      box-shadow: none;
+      border: 0;
+      background: transparent;
+    }
+
+    body.measure-embed .tab-content {
+      display: none;
+    }
+
+    body.measure-embed #tab-screenExp {
+      display: block;
+    }
+
+    body.measure-embed .screen-exp-actions {
+      margin: 16px 0 12px;
+    }
+
+    body.measure-embed .screen-exp-preview {
+      min-height: 300px;
+    }
+
+    body.measure-embed .screen-exp-placeholder span {
+      max-width: 460px;
+      padding: 16px 20px;
+    }
+
+    body.measure-embed .screen-exp-status {
+      margin-top: 10px;
+    }
+
+    body.measure-embed #screenResult {
+      margin-top: 10px;
+    }
+  </style>
 </head>
 <body>
+  <script>if(new URLSearchParams(location.search).get("embed")==="screenExp")document.body.classList.add("measure-embed")</script>
 
   <div class="wrapper">
     <div class="container">
@@ -307,6 +370,35 @@
 
     await initExpData("../..");
 
+    const IS_SCREEN_MEASURE_EMBED = new URLSearchParams(location.search).get("embed") === "screenExp";
+    if (IS_SCREEN_MEASURE_EMBED) document.body.classList.add("measure-embed");
+
+    function postMeasureEmbedHeight() {
+      if (!IS_SCREEN_MEASURE_EMBED || window.parent === window) return;
+      requestAnimationFrame(() => {
+        window.parent.postMessage({
+          type: "iryuMeasureFrameHeight",
+          height: document.documentElement.scrollHeight
+        }, location.origin);
+      });
+    }
+
+    if (IS_SCREEN_MEASURE_EMBED) {
+      window.addEventListener("load", postMeasureEmbedHeight);
+      window.addEventListener("resize", postMeasureEmbedHeight);
+      window.addEventListener("message", event => {
+        if (event.origin !== location.origin) return;
+        if (event.data?.type === "iryuMeasureRequestHeight") postMeasureEmbedHeight();
+        if (event.data?.type === "iryuMeasureTheme" && event.data.theme) {
+          document.documentElement.setAttribute("data-theme", event.data.theme);
+        }
+      });
+      if (window.ResizeObserver) {
+        new ResizeObserver(postMeasureEmbedHeight).observe(document.body);
+      }
+      setTimeout(postMeasureEmbedHeight, 300);
+    }
+
     const SCREEN_GUIDE_COLLAPSED_KEY = "iryu_screen_exp_guide_collapsed";
     const SCREEN_ROI_STORAGE_KEY = "iryu_screen_exp_roi";
 
@@ -319,6 +411,13 @@
         document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
       });
     });
+
+    if (IS_SCREEN_MEASURE_EMBED) {
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+      document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+      document.querySelector('.tab-btn[data-tab="screenExp"]')?.classList.add("active");
+      document.getElementById("tab-screenExp")?.classList.add("active");
+    }
 
     // === 입력 ID 정의 ===
     const TAB1_IDS = ["currentLv", "targetLv", "expPerMinute", "hourglassLv"];
