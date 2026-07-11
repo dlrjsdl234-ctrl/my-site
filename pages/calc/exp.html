@@ -69,6 +69,12 @@
     body.measure-embed #screenResult {
       margin-top: 10px;
     }
+
+    .screen-result-snapshot-notice {
+      font-size: 18px;
+      font-weight: 900;
+      line-height: 1.5;
+    }
   </style>
 </head>
 <body>
@@ -1717,6 +1723,7 @@
       setScreenResult(`
         <div class="result-section">
           <div class="result-title">화면 인식 결과(beta)</div>
+          <p class="beta-notice screen-result-snapshot-notice">정확한 경험치 측정은 스냅샷 측정기를 이용 바랍니다.</p>
           <div class="result-row">
             <span class="result-label">1분당 경험치 추정</span>
             <div class="screen-exp-result-action">
@@ -2343,6 +2350,7 @@
       setScreenResult(`
         <div class="result-section">
           <div class="result-title">화면 인식 결과(beta)</div>
+          <p class="beta-notice screen-result-snapshot-notice">정확한 경험치 측정은 스냅샷 측정기를 이용 바랍니다.</p>
           <div class="result-row">
             <span class="result-label">시작 레벨/진행률</span>
             <strong class="result-value">LV ${result.startLevel} / ${(result.startRatio * 100).toFixed(2)}%</strong>
