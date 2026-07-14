@@ -164,9 +164,15 @@
     let total = 0;
     let matched = false;
 
+    const gyeong = text.match(/([0-9.]+)경/);
     const jo = text.match(/([0-9.]+)조/);
     const eok = text.match(/([0-9.]+)억/);
     const man = text.match(/([0-9.]+)만/);
+
+    if (gyeong) {
+      total += Number(gyeong[1]) * 10000000000000000;
+      matched = true;
+    }
 
     if (jo) {
       total += Number(jo[1]) * 1000000000000;
@@ -194,6 +200,7 @@
     if (!Number.isFinite(num)) return normalize(value);
 
     const units = [
+      { label: "경", value: 10000000000000000 },
       { label: "조", value: 1000000000000 },
       { label: "억", value: 100000000 },
       { label: "만", value: 10000 }
