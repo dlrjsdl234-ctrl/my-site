@@ -8,9 +8,13 @@ const CROP_SCALE = 2;
 const SCREEN_GUARD_WIDTH = 160;
 const SCREEN_CHANGE_LIMIT = 35;
 const REQUIRED_SCREEN_CHANGE_COUNT = 3;
-const REQUIRED_STABLE_COUNT = 5;
-const TEXT_DISAPPEAR_RATIO = 0.55;
-const TEXT_MIN_BASELINE_SCORE = 24;
+const REQUIRED_STABLE_COUNT = 3;
+const TEXT_DISAPPEAR_RATIO = 0.78;
+const TEXT_MIN_BASELINE_SCORE = 12;
+const TEXT_LOST_RATIO = 0.22;
+const TEXT_REVEAL_RATIO = 2.2;
+const STRONG_DIFF_RATIO = 2;
+const LOCAL_ONLY_SCREEN_RATIO = 0.6;
 
 const authBox = document.getElementById("collectionAuthBox");
 const nameInput = document.getElementById("collectionName");
@@ -51,6 +55,7 @@ let screenChangeCount = 0;
 let lastDiff = null;
 let lastScreenDiff = null;
 let lastTextScore = null;
+let lastTextLostRatio = null;
 let watchStartedAt = null;
 let alertAudioContext = null;
 
@@ -181,6 +186,7 @@ async function startWatch() {
   lastDiff = null;
   lastScreenDiff = null;
   lastTextScore = null;
+  lastTextLostRatio = null;
   watchStartedAt = Date.now();
   hideAlertOverlay();
   stopWatch();
@@ -217,6 +223,8 @@ async function runWatchSample() {
 
     const textScore = getCurrentTextScore();
     lastTextScore = textScore;
+    const textLostRatio = getCurrentTextLostRatio();
+    lastTextLostRatio = textLostRatio;
     const screenDiff = compareScreenToBaseline();
     lastScreenDiff = screenDiff;
     if (screenDiff !== null && screenDiff >= SCREEN_CHANGE_LIMIT) {
@@ -230,6 +238,7 @@ async function runWatchSample() {
         diff,
         screenDiff,
         textScore,
+        textLostRatio,
         stableCount,
         screenChangeCount,
         threshold: getThreshold(),
@@ -241,18 +250,18 @@ async function runWatchSample() {
     }
 
     const threshold = getThreshold();
-    const textGone = isUnobtainedTextGone(textScore);
-    if (diff >= threshold && textGone) {
+    const acquiredCandidate = isCollectionAcquiredCandidate(diff, threshold, screenDiff, textScore, textLostRatio);
+    if (acquiredCandidate) {
       stableCount += 1;
     } else {
       stableCount = 0;
     }
 
     const reached = stableCount >= REQUIRED_STABLE_COUNT;
-    renderResult({ diff, screenDiff, textScore, stableCount, screenChangeCount, threshold, reached });
+    renderResult({ diff, screenDiff, textScore, textLostRatio, stableCount, screenChangeCount, threshold, reached });
 
     if (!reached) {
-      const textStatus = textGone ? "미획득 표시 사라짐 확인 중" : "미획득 표시 유지";
+      const textStatus = acquiredCandidate ? "획득 변화 확인 중" : "미획득 표시 유지";
       const screenStatus = screenChangeCount > 0 ? `, 화면 전환 확인 ${screenChangeCount}/${REQUIRED_SCREEN_CHANGE_COUNT}` : "";
       setStatus(`감시 중... 변화량 ${diff.toFixed(1)} / ${threshold}, ${textStatus}, 검증 ${stableCount}/${REQUIRED_STABLE_COUNT}${screenStatus}`);
       return;
@@ -292,37 +301,90 @@ function getCurrentTextScore() {
   return getUnobtainedTextScore(current);
 }
 
-function isUnobtainedTextGone(textScore) {
+function getCurrentTextLostRatio() {
+  const current = readCropImage();
+  if (!current || !baselineImage) return null;
+  return getTextLostRatio(baselineImage, current);
+}
+
+function isCollectionAcquiredCandidate(diff, threshold, screenDiff, textScore, textLostRatio) {
+  if (diff < threshold) return false;
+  return isUnobtainedTextGone(textScore, textLostRatio) ||
+    isObtainedCardRevealed(diff, threshold, textScore) ||
+    isStrongLocalCardChange(diff, threshold, screenDiff);
+}
+
+function isUnobtainedTextGone(textScore, textLostRatio) {
   if (!Number.isFinite(textScore)) return false;
   if (baselineTextScore < TEXT_MIN_BASELINE_SCORE) return false;
-  return textScore <= baselineTextScore * TEXT_DISAPPEAR_RATIO;
+  return textScore <= baselineTextScore * TEXT_DISAPPEAR_RATIO ||
+    (Number.isFinite(textLostRatio) && textLostRatio >= TEXT_LOST_RATIO);
+}
+
+function isObtainedCardRevealed(diff, threshold, textScore) {
+  if (!Number.isFinite(textScore) || baselineTextScore < TEXT_MIN_BASELINE_SCORE) return false;
+  const brightReveal = textScore >= baselineTextScore * TEXT_REVEAL_RATIO;
+  const strongDiff = diff >= threshold * STRONG_DIFF_RATIO;
+  return brightReveal && strongDiff;
+}
+
+function isStrongLocalCardChange(diff, threshold, screenDiff) {
+  const strongDiff = diff >= threshold * STRONG_DIFF_RATIO;
+  const screenLooksStable = !Number.isFinite(screenDiff) || screenDiff < SCREEN_CHANGE_LIMIT * LOCAL_ONLY_SCREEN_RATIO;
+  return strongDiff && screenLooksStable;
 }
 
 function getUnobtainedTextScore(image) {
   if (!image) return 0;
 
   const { width, height, data } = image;
-  const startX = Math.floor(width * 0.18);
-  const endX = Math.ceil(width * 0.82);
-  const startY = Math.floor(height * 0.28);
-  const endY = Math.ceil(height * 0.76);
+  const startX = Math.floor(width * 0.08);
+  const endX = Math.ceil(width * 0.92);
+  const startY = Math.floor(height * 0.18);
+  const endY = Math.ceil(height * 0.86);
   let score = 0;
 
   for (let y = startY; y < endY; y += 1) {
     for (let x = startX; x < endX; x += 1) {
       const i = (y * width + x) * 4;
-      const r = data[i];
-      const g = data[i + 1];
-      const b = data[i + 2];
-      const max = Math.max(r, g, b);
-      const min = Math.min(r, g, b);
-      if (max >= 145 && min >= 110 && max - min <= 55) {
-        score += 1;
-      }
+      if (isUnobtainedTextPixel(data, i)) score += 1;
     }
   }
 
   return score;
+}
+
+function getTextLostRatio(baseline, current) {
+  if (!baseline || !current || baseline.width !== current.width || baseline.height !== current.height) return null;
+
+  const { width, height } = baseline;
+  const startX = Math.floor(width * 0.08);
+  const endX = Math.ceil(width * 0.92);
+  const startY = Math.floor(height * 0.18);
+  const endY = Math.ceil(height * 0.86);
+  let baselineBright = 0;
+  let lostBright = 0;
+
+  for (let y = startY; y < endY; y += 1) {
+    for (let x = startX; x < endX; x += 1) {
+      const i = (y * width + x) * 4;
+      if (!isUnobtainedTextPixel(baseline.data, i)) continue;
+      baselineBright += 1;
+      if (!isUnobtainedTextPixel(current.data, i)) lostBright += 1;
+    }
+  }
+
+  if (baselineBright < TEXT_MIN_BASELINE_SCORE) return null;
+  return lostBright / baselineBright;
+}
+
+function isUnobtainedTextPixel(data, i) {
+  const r = data[i];
+  const g = data[i + 1];
+  const b = data[i + 2];
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  return max >= 135 && min >= 95 && max - min <= 80;
 }
 
 function compareScreenToBaseline() {
@@ -400,7 +462,7 @@ async function sendCollectionNotify(diff) {
 
   if (!discordUser) {
     setStatus("도감 획득을 감지했습니다. 브라우저 알림음만 재생했습니다.");
-    renderResult({ diff, textScore: lastTextScore, stableCount: REQUIRED_STABLE_COUNT, reached: true, notified: true, notifyMethod: "브라우저 알림음" });
+    renderResult({ diff, textScore: lastTextScore, textLostRatio: lastTextLostRatio, stableCount: REQUIRED_STABLE_COUNT, reached: true, notified: true, notifyMethod: "브라우저 알림음" });
     return;
   }
 
@@ -415,7 +477,7 @@ async function sendCollectionNotify(diff) {
     });
   } catch (_) {
     setStatus("Discord DM 요청에 실패했습니다. 브라우저 알림음은 재생했습니다.");
-    renderResult({ diff, textScore: lastTextScore, stableCount: REQUIRED_STABLE_COUNT, reached: true, notified: true, notifyMethod: "브라우저 알림음" });
+    renderResult({ diff, textScore: lastTextScore, textLostRatio: lastTextLostRatio, stableCount: REQUIRED_STABLE_COUNT, reached: true, notified: true, notifyMethod: "브라우저 알림음" });
     return;
   }
 
@@ -442,7 +504,7 @@ async function sendCollectionNotify(diff) {
   }
 
   setStatus("Discord DM 알림을 발송했습니다.");
-  renderResult({ diff, textScore: lastTextScore, stableCount: REQUIRED_STABLE_COUNT, reached: true, notified: true, notifyMethod: "Discord DM + 브라우저 알림음" });
+  renderResult({ diff, textScore: lastTextScore, textLostRatio: lastTextLostRatio, stableCount: REQUIRED_STABLE_COUNT, reached: true, notified: true, notifyMethod: "Discord DM + 브라우저 알림음" });
 }
 
 async function sendScreenChangeNotify(diff, screenDiff) {
@@ -463,6 +525,7 @@ async function sendScreenChangeNotify(diff, screenDiff) {
     diff,
     screenDiff,
     textScore: lastTextScore,
+    textLostRatio: lastTextLostRatio,
     stableCount: 0,
     screenChangeCount,
     threshold: getThreshold(),
@@ -585,6 +648,8 @@ function renderResult(state) {
   const screenDiff = Number.isFinite(state.screenDiff) ? state.screenDiff.toFixed(1) : "-";
   const textScore = Number.isFinite(state.textScore) ? Math.round(state.textScore).toLocaleString("ko-KR") : "-";
   const baselineText = baselineTextScore ? Math.round(baselineTextScore).toLocaleString("ko-KR") : "-";
+  const textLost = Number.isFinite(state.textLostRatio) ? `${Math.round(state.textLostRatio * 100)}%` : "-";
+  const textReveal = baselineTextScore && Number.isFinite(state.textScore) ? `${(state.textScore / baselineTextScore).toFixed(1)}x` : "-";
   const threshold = state.threshold || getThreshold();
   const count = Math.min(state.stableCount || 0, REQUIRED_STABLE_COUNT);
   const screenCount = Math.min(state.screenChangeCount || 0, REQUIRED_SCREEN_CHANGE_COUNT);
@@ -617,6 +682,14 @@ function renderResult(state) {
       <div class="result-row">
         <span class="result-label">미획득 표시</span>
         <strong class="result-value">${textScore} / ${baselineText}</strong>
+      </div>
+      <div class="result-row">
+        <span class="result-label">표시 사라짐</span>
+        <strong class="result-value">${textLost} / ${Math.round(TEXT_LOST_RATIO * 100)}%</strong>
+      </div>
+      <div class="result-row">
+        <span class="result-label">카드 밝아짐</span>
+        <strong class="result-value">${textReveal} / ${TEXT_REVEAL_RATIO.toFixed(1)}x</strong>
       </div>
       <div class="result-row">
         <span class="result-label">획득 검증</span>
