@@ -1699,6 +1699,10 @@ th {
   pointer-events: none;
 }
 
+.screen-exp-placeholder[hidden] {
+  display: none;
+}
+
 .screen-exp-placeholder span {
   display: block;
   max-width: 520px;
