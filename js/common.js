@@ -19,7 +19,7 @@ const MENU = [
   { label: "RP 스킬 계산기", href: "/pages/calc/rpskill.html" },
 
   { section: "기능" },
-  { label: "레벨업 알림 테스트", href: "/pages/tools/level-alert.html" },
+  { label: "레벨업 알림", href: "/pages/tools/level-alert.html" },
   { label: "도감 알림", href: "/pages/tools/collection-alert.html" },
   { label: "경험치 측정", href: "/pages/tools/exp-measure.html" },
 
