@@ -24,6 +24,7 @@
       <div class="calc-card">
         <div class="tab-bar">
           <button class="tab-btn active" data-tab="defense">몬스터 디펜스</button>
+          <button class="tab-btn" data-tab="defenseHard">몬스터 디펜스 하드</button>
           <button class="tab-btn" data-tab="equipmentRaid">무기레이드 던전</button>
           <button class="tab-btn" data-tab="scroll">주문서 던전</button>
           <button class="tab-btn" data-tab="pet">펫 던전</button>
@@ -33,6 +34,13 @@
           <div class="article-content">
             <div class="article-section">
               <div id="tableContainer">데이터 로딩 중...</div>
+            </div>
+          </div>
+        </div>
+        <div id="defenseHard" class="tab-content">
+          <div class="article-content">
+            <div class="article-section">
+              <div id="defenseHardTableContainer">데이터 로딩 중...</div>
             </div>
           </div>
         </div>
@@ -185,7 +193,12 @@
 <script type="module">
   import { renderTable } from "../../js/table-viewer.js";
   renderTable("../../datas/town-defense.csv", "tableContainer", { search: false });
-  renderTable("../../datas/equipment-raid.csv", "equipmentRaidTableContainer", { search: false });
+  renderTable("../../datas/town-defense-hard.csv", "defenseHardTableContainer", { search: false });
+  renderTable("../../datas/equipment-raid.csv", "equipmentRaidTableContainer", {
+    search: false,
+    hiddenColumns: ["보스 HP 원본"],
+    tipColumns: { "보스 HP": "보스 HP 원본" }
+  });
 </script>
 <script>
   const tabButtons = document.querySelectorAll(".tab-btn");

@@ -119,6 +119,87 @@
     return Math.floor(n).toLocaleString("ko-KR");
   }
 
+  function compactFmt(n) {
+    if (n === null || n === undefined) return "-";
+    const number = Math.floor(Number(n) || 0);
+    if (!Number.isFinite(number) || number <= 0) return "0";
+
+    let text = String(number);
+    const units = ["", "만", "억", "조", "경", "해", "자", "양", "구", "간", "정", "재", "극", "항하사", "아승기", "나유타", "불가사의", "무량대수"];
+    const groups = [];
+
+    while (text.length > 0) {
+      groups.unshift(text.slice(-4));
+      text = text.slice(0, -4);
+    }
+
+    const parts = [];
+    groups.forEach((group, index) => {
+      const value = Number(group);
+      if (!value) return;
+      const unit = units[groups.length - 1 - index] || "";
+      parts.push(`${value}${unit}`);
+    });
+
+    return parts.slice(0, 2).join(" ") || "0";
+  }
+
+  function escapeHtml(value) {
+    return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function escapeAttr(value) {
+    return escapeHtml(value).replace(/"/g, "&quot;");
+  }
+
+  function hanpoTip(value, title) {
+    const fullValue = fmt(value);
+    const shortValue = compactFmt(value);
+    return `<button type="button" class="table-tip-trigger rp-machine-tip" data-tip-title="${escapeAttr(title)}" data-tip-value="${escapeAttr(fullValue)}">${escapeHtml(shortValue)}</button>`;
+  }
+
+  function showHanpoTip(anchor, title, value) {
+    const existingPopover = document.querySelector(".table-tip-popover");
+    if (existingPopover && existingPopover.dataset.anchorId === anchor.dataset.tipAnchorId) {
+      existingPopover.remove();
+      return;
+    }
+
+    document.querySelectorAll(".table-tip-popover").forEach(el => el.remove());
+
+    if (!anchor.dataset.tipAnchorId) {
+      anchor.dataset.tipAnchorId = `rp-machine-tip-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    }
+
+    const popover = document.createElement("div");
+    popover.className = "table-tip-popover";
+    popover.dataset.anchorId = anchor.dataset.tipAnchorId;
+    popover.innerHTML = `
+      <div class="table-tip-title">${escapeHtml(title || "상세 값")}</div>
+      <div class="table-tip-value">${escapeHtml(value || "0")}</div>
+    `;
+    document.body.appendChild(popover);
+
+    const rect = anchor.getBoundingClientRect();
+    const gap = 8;
+    const left = Math.min(
+      window.scrollX + rect.left,
+      window.scrollX + document.documentElement.clientWidth - popover.offsetWidth - 12
+    );
+    const top = window.scrollY + rect.bottom + gap;
+
+    popover.style.left = `${Math.max(window.scrollX + 12, left)}px`;
+    popover.style.top = `${top}px`;
+
+    const close = event => {
+      if (popover.contains(event.target) || anchor.contains(event.target)) return;
+      popover.remove();
+      document.removeEventListener("click", close);
+    };
+
+    setTimeout(() => document.addEventListener("click", close), 0);
+  }
+
   window.doCalc = function () {
     const resultEl = document.getElementById("result");
 
@@ -144,11 +225,11 @@
         </div>
         <div class="mini-box hanpo-summary-card">
           <div class="mini-title">${r.acquiredLevel !== null ? `${r.acquiredLevel} 레벨 달성시 획득 환포` : "획득 환포"}</div>
-          <div class="mini-value hanpo-summary-value highlight">${fmt(r.actualHanpo)}</div>
+          <div class="mini-value hanpo-summary-value highlight">${hanpoTip(r.actualHanpo, "획득 환포 상세")}</div>
         </div>
         <div class="mini-box hanpo-summary-card">
           <div class="mini-title">현재 레벨(${r.currentLevel}) 환포</div>
-          <div class="mini-value hanpo-summary-value highlight">${fmt(r.currentHanpoWithMult)}</div>
+          <div class="mini-value hanpo-summary-value highlight">${hanpoTip(r.currentHanpoWithMult, "현재 레벨 환포 상세")}</div>
         </div>
       </div>
 
@@ -225,6 +306,13 @@
       </details>
     `;
   };
+
+  document.getElementById("result").addEventListener("click", event => {
+    const button = event.target.closest(".rp-machine-tip");
+    if (!button) return;
+    event.stopPropagation();
+    showHanpoTip(button, button.dataset.tipTitle, button.dataset.tipValue);
+  });
 </script>
 </body>
 </html>

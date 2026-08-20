@@ -16,7 +16,7 @@ export async function initRPSkillData(basePath) {
   skillMeta = meta.map(row => ({
     tableKey: row.tableKey,
     name: row.skillName,
-    maxLevels: Array.from({ length: 10 }, (_, i) => Number(row[`maxLevel${i}`]) || 0)
+    maxLevels: Array.from({ length: 11 }, (_, i) => Number(row[`maxLevel${i}`]) || 0)
   }));
 
   // 각 테이블 CSV 로딩

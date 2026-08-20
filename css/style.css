@@ -1217,6 +1217,57 @@ th {
   background: var(--table-hover-row);
 }
 
+.table-tip-trigger {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  padding: 0;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 3px;
+}
+
+.table-tip-trigger:hover,
+.table-tip-trigger:focus {
+  color: var(--main-blue);
+  outline: none;
+}
+
+.table-tip-popover {
+  position: absolute;
+  z-index: 1000;
+  max-width: min(420px, calc(100vw - 24px));
+  border: 1px solid var(--border, #d8dde7);
+  border-radius: 8px;
+  background: #fff7d6;
+  color: #392b00;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18);
+  line-height: 1.55;
+  padding: 10px 12px;
+}
+
+.table-tip-title {
+  font-size: 0.86rem;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.table-tip-value {
+  font-size: 1rem;
+  font-weight: 800;
+  word-break: break-all;
+}
+
+html[data-theme="dark"] .table-tip-popover {
+  border-color: rgba(255, 215, 128, 0.55);
+  background: #2b2411;
+  color: #fff3c4;
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.38);
+}
+
 .table-info {
   margin-top: 10px;
   font-size: 13px;
@@ -2322,9 +2373,26 @@ html[data-theme="dark"] .level-alert-modal {
   font-weight: 600;
 }
 
-.rp-skill-table input[type="number"] {
-  width: 100%;
-  min-width: 80px;
+.rpskill-calc-table th:nth-child(1),
+.rpskill-calc-table td:nth-child(1) {
+  width: 32%;
+}
+
+.rpskill-calc-table th:nth-child(2),
+.rpskill-calc-table td:nth-child(2),
+.rpskill-calc-table th:nth-child(3),
+.rpskill-calc-table td:nth-child(3) {
+  width: 108px;
+}
+
+.rpskill-calc-table th:nth-child(4),
+.rpskill-calc-table td:nth-child(4) {
+  text-align: right;
+}
+
+.rpskill-calc-table input[type="number"] {
+  width: 88px;
+  min-width: 0;
   padding: 6px 8px;
   border: 1px solid var(--input-border);
   border-radius: 8px;
@@ -2385,6 +2453,43 @@ html[data-theme="dark"] .level-alert-modal {
 .rp-skill-table tfoot td {
   font-weight: 700;
   background: var(--rp-tfoot-bg);
+}
+
+.rp-skill-total-row {
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+}
+
+.rp-skill-total-row .total-title,
+.rp-skill-total-row .current-total,
+.rp-skill-total-row .grand-total {
+  min-width: 0;
+  text-align: center;
+}
+
+.rp-skill-total-row .current-total strong,
+.rp-skill-total-row .grand-total strong {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.rp-skill-rp-tip {
+  color: inherit;
+}
+
+.need-rp .rp-skill-rp-tip,
+.rp-skill-total-row .rp-skill-rp-tip {
+  font-weight: 800;
+}
+
+.hanpo-summary-value .rp-machine-tip {
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  text-align: left;
 }
 
 .discord-format-table {

@@ -13,7 +13,16 @@ import { loadCSV } from "./csv-loader.js";
  * @param {boolean} [options.sortable=true] - 컬럼 정렬 기능
  */
 export async function renderTable(csvPath, containerId, options = {}) {
-  const { search = true, sortable = true, levelFilter = false, searchColumn = null, searchPlaceholder = "검색..." } = options;
+  const {
+    search = true,
+    sortable = true,
+    levelFilter = false,
+    searchColumn = null,
+    searchPlaceholder = "검색...",
+    hiddenColumns = [],
+    tipColumns = {}
+  } = options;
+  const hiddenColumnSet = new Set(hiddenColumns);
 
   const container = document.getElementById(containerId);
   if (!container) return;
@@ -37,7 +46,7 @@ export async function renderTable(csvPath, containerId, options = {}) {
 
   // 빈 컬럼 필터링 (모든 행이 빈 문자열인 컬럼 제거)
   const activeHeaders = headers.filter(h =>
-    rows.some(row => row[h] !== undefined && row[h] !== "")
+    !hiddenColumnSet.has(h) && rows.some(row => row[h] !== undefined && row[h] !== "")
   );
 
   let filteredRows = rows;
@@ -166,7 +175,15 @@ export async function renderTable(csvPath, containerId, options = {}) {
     for (const row of filteredRows) {
       html += "<tr>";
       for (const h of activeHeaders) {
-        html += `<td>${escapeHtml(row[h] || "")}</td>`;
+        const value = row[h] || "";
+        const tipColumn = tipColumns[h];
+        const tipValue = tipColumn ? row[tipColumn] : "";
+
+        if (tipValue) {
+          html += `<td><button type="button" class="table-tip-trigger" data-tip-title="${escapeAttr(h)} 원본" data-tip-value="${escapeAttr(tipValue)}">${escapeHtml(value)}</button></td>`;
+        } else {
+          html += `<td>${escapeHtml(value)}</td>`;
+        }
       }
       html += "</tr>";
     }
@@ -190,6 +207,13 @@ export async function renderTable(csvPath, containerId, options = {}) {
         });
       });
     }
+
+    tableWrap.querySelectorAll(".table-tip-trigger").forEach(button => {
+      button.addEventListener("click", event => {
+        event.stopPropagation();
+        showTableTip(button, button.dataset.tipTitle, button.dataset.tipValue);
+      });
+    });
   }
 
   render();
@@ -197,4 +221,50 @@ export async function renderTable(csvPath, containerId, options = {}) {
 
 function escapeHtml(str) {
   return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function escapeAttr(str) {
+  return escapeHtml(String(str)).replace(/"/g, "&quot;");
+}
+
+function showTableTip(anchor, title, value) {
+  const existingPopover = document.querySelector(".table-tip-popover");
+  if (existingPopover && existingPopover.dataset.anchorId === anchor.dataset.tipAnchorId) {
+    existingPopover.remove();
+    return;
+  }
+
+  document.querySelectorAll(".table-tip-popover").forEach(el => el.remove());
+
+  if (!anchor.dataset.tipAnchorId) {
+    anchor.dataset.tipAnchorId = `table-tip-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  }
+
+  const popover = document.createElement("div");
+  popover.className = "table-tip-popover";
+  popover.dataset.anchorId = anchor.dataset.tipAnchorId;
+  popover.innerHTML = `
+    <div class="table-tip-title">${escapeHtml(title || "원본")}</div>
+    <div class="table-tip-value">${escapeHtml(value || "")}</div>
+  `;
+  document.body.appendChild(popover);
+
+  const rect = anchor.getBoundingClientRect();
+  const gap = 8;
+  const left = Math.min(
+    window.scrollX + rect.left,
+    window.scrollX + document.documentElement.clientWidth - popover.offsetWidth - 12
+  );
+  const top = window.scrollY + rect.bottom + gap;
+
+  popover.style.left = `${Math.max(window.scrollX + 12, left)}px`;
+  popover.style.top = `${top}px`;
+
+  const close = event => {
+    if (popover.contains(event.target) || anchor.contains(event.target)) return;
+    popover.remove();
+    document.removeEventListener("click", close);
+  };
+
+  setTimeout(() => document.addEventListener("click", close), 0);
 }
