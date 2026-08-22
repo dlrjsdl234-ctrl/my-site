@@ -2941,6 +2941,81 @@ html[data-theme="dark"] .level-alert-modal {
   justify-content: space-between;
 }
 
+.platform-card .result-box {
+  position: relative;
+  overflow: hidden;
+}
+
+.platform-card .result-box::before {
+  content: "";
+  display: block;
+  height: 5px;
+  margin: -22px -22px 18px;
+  background: var(--platform-color);
+}
+
+.platform-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.platform-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.14);
+  flex: 0 0 auto;
+}
+
+.platform-badge {
+  align-self: flex-start;
+  margin-bottom: 12px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--platform-color) 14%, transparent);
+  color: var(--platform-color);
+  border: 1px solid color-mix(in srgb, var(--platform-color) 35%, transparent);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.platform-card-chzzk {
+  --platform-color: #00c73c;
+  --platform-hover: #00a832;
+}
+
+.platform-card-youtube {
+  --platform-color: #ff0033;
+  --platform-hover: #d9002b;
+}
+
+.platform-mark-chzzk {
+  background: #00c73c;
+}
+
+.platform-mark-youtube {
+  background: #ff0033;
+}
+
+.btn-platform {
+  text-align: center;
+  background: var(--platform-color);
+}
+
+.btn-platform:hover {
+  background: var(--platform-hover);
+}
+
 /* 모바일 */
 @media (max-width: 768px) {
   .link-card-grid {
@@ -2951,6 +3026,10 @@ html[data-theme="dark"] .level-alert-modal {
     margin-top: 24px;
     padding-top: 20px;
     border-top: 1px dashed var(--result-section-border);
+  }
+
+  .platform-card .result-box::before {
+    margin: -16px -16px 16px;
   }
 }
 
