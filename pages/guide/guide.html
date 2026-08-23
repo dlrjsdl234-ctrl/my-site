@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
@@ -383,6 +383,30 @@
 
     .equip-book-table strong {
       color: var(--result-highlight);
+    }
+
+    .artifact-route-table th,
+    .artifact-route-table td,
+    .artifact-route-table th:first-child,
+    .artifact-route-table td:first-child {
+      text-align: center;
+    }
+
+    .artifact-route-table th {
+      background: var(--main-blue);
+      color: #fff;
+      font-size: 14px;
+    }
+
+    .artifact-route-table td {
+      color: var(--result-text);
+      font-size: 17px;
+      font-weight: 800;
+    }
+
+    .artifact-route-table strong {
+      color: inherit;
+      font-size: 18px;
     }
 
     @media (max-width: 900px) {
@@ -1338,30 +1362,40 @@
               <h2>8초월 기준 뿔피리 / 모래시계 루트</h2>
             </div>
             <div class="guide-section-body">
-              <ul class="guide-route-list">
-                <li><strong>뿔피리 Lv.1~6</strong><span>모래시계 Lv.1</span></li>
-                <li><strong>뿔피리 Lv.7~8</strong><span>모래시계 Lv.2</span></li>
-                <li><strong>뿔피리 Lv.9~10</strong><span>모래시계 Lv.3</span></li>
-                <li><strong>뿔피리 Lv.11~12</strong><span>모래시계 Lv.4</span></li>
-                <li><strong>뿔피리 Lv.13~18</strong><span>모래시계 Lv.5</span></li>
-                <li><strong>뿔피리 Lv.19~21</strong><span>모래시계 Lv.6</span></li>
-                <li><strong>뿔피리 Lv.22~24</strong><span>모래시계 Lv.7</span></li>
-                <li><strong>뿔피리 Lv.25~27</strong><span>모래시계 Lv.8</span></li>
-                <li><strong>뿔피리 Lv.28~31</strong><span>모래시계 Lv.9</span></li>
-                <li><strong>뿔피리 Lv.32~37</strong><span>모래시계 Lv.10</span></li>
-                <li><strong>뿔피리 Lv.38~40</strong><span>모래시계 Lv.11</span></li>
-                <li><strong>뿔피리 Lv.41~46</strong><span>모래시계 Lv.12</span></li>
-                <li><strong>뿔피리 Lv.47~50</strong><span>모래시계 Lv.13</span></li>
-                <li><strong>뿔피리 Lv.51~52</strong><span>모래시계 Lv.14</span></li>
-                <li><strong>뿔피리 Lv.53~55</strong><span>모래시계 Lv.15</span></li>
-                <li><strong>뿔피리 Lv.56~62</strong><span>모래시계 Lv.16</span></li>
-                <li><strong>뿔피리 Lv.63~66</strong><span>모래시계 Lv.17</span></li>
-                <li><strong>뿔피리 Lv.67~68</strong><span>모래시계 Lv.18</span></li>
-                <li><strong>뿔피리 Lv.69~73</strong><span>모래시계 Lv.19</span></li>
-                <li><strong>뿔피리 Lv.74~77</strong><span>모래시계 Lv.20</span></li>
-                <li><strong>뿔피리 Lv.78~79</strong><span>모래시계 Lv.21</span></li>
-                <li><strong>뿔피리 Lv.80</strong><span>모래시계 Lv.22~50</span></li>
-              </ul>
+              <div class="equip-book-table-wrap">
+                <table class="equip-book-table artifact-route-table">
+                  <thead>
+                    <tr>
+                      <th>전설의 뿔피리</th>
+                      <th>시간의 모래시계</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td><strong>Lv.1~6</strong></td><td>Lv.1</td></tr>
+                    <tr><td><strong>Lv.7~8</strong></td><td>Lv.2</td></tr>
+                    <tr><td><strong>Lv.9~10</strong></td><td>Lv.3</td></tr>
+                    <tr><td><strong>Lv.11~12</strong></td><td>Lv.4</td></tr>
+                    <tr><td><strong>Lv.13~18</strong></td><td>Lv.5</td></tr>
+                    <tr><td><strong>Lv.19~21</strong></td><td>Lv.6</td></tr>
+                    <tr><td><strong>Lv.22~24</strong></td><td>Lv.7</td></tr>
+                    <tr><td><strong>Lv.25~27</strong></td><td>Lv.8</td></tr>
+                    <tr><td><strong>Lv.28~31</strong></td><td>Lv.9</td></tr>
+                    <tr><td><strong>Lv.32~37</strong></td><td>Lv.10</td></tr>
+                    <tr><td><strong>Lv.38~40</strong></td><td>Lv.11</td></tr>
+                    <tr><td><strong>Lv.41~46</strong></td><td>Lv.12</td></tr>
+                    <tr><td><strong>Lv.47~50</strong></td><td>Lv.13</td></tr>
+                    <tr><td><strong>Lv.51~52</strong></td><td>Lv.14</td></tr>
+                    <tr><td><strong>Lv.53~55</strong></td><td>Lv.15</td></tr>
+                    <tr><td><strong>Lv.56~62</strong></td><td>Lv.16</td></tr>
+                    <tr><td><strong>Lv.63~66</strong></td><td>Lv.17</td></tr>
+                    <tr><td><strong>Lv.67~68</strong></td><td>Lv.18</td></tr>
+                    <tr><td><strong>Lv.69~73</strong></td><td>Lv.19</td></tr>
+                    <tr><td><strong>Lv.74~77</strong></td><td>Lv.20</td></tr>
+                    <tr><td><strong>Lv.78~79</strong></td><td>Lv.21</td></tr>
+                    <tr><td><strong>Lv.80</strong></td><td>Lv.22~50</td></tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </article>
 
