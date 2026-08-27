@@ -31,7 +31,20 @@
 
 <script type="module">
   import { renderMultiTable } from "../../js/multi-table-viewer.js";
-  renderMultiTable("../../datas/rpskill-perf", "tableContainer");
+  renderMultiTable("../../datas/rpskill-perf", "tableContainer", {
+    compactNumberColumns: [
+      "소모 RP",
+      "누적 RP",
+      "필요 RP",
+      "샤프 소모값",
+      "버서크 소모값",
+      "비용",
+      "누적 비용",
+      "누적 환포",
+      "소모 포인트",
+      "누적 포인트"
+    ]
+  });
 </script>
 </body>
 </html>
