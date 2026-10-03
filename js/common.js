@@ -134,7 +134,10 @@ function buildSidebar() {
   html += "</ul>";
   html += '<div class="sidebar-footer">'
     + buildThemeToggle()
-    + '<button class="btn-clear-storage" onclick="clearStorageAndReload()">저장 데이터 초기화</button>'
+    + '<div class="sidebar-actions">'
+    + '<button type="button" class="btn-clear-storage" onclick="clearStorageAndReload()">저장 데이터 초기화</button>'
+    + '<button type="button" class="btn-language-toggle notranslate" translate="no" id="languageToggle" aria-label="대만 번체 중국어로 번역" aria-pressed="false">繁體中文</button>'
+    + '</div>'
     + '</div>';
   sidebar.innerHTML = html;
 
@@ -175,6 +178,10 @@ function clearStorageAndReload() {
 
 document.addEventListener("DOMContentLoaded", () => {
   buildSidebar();
+  // 공통 스크립트 기준으로 모든 페이지에서 동일한 번역 모듈을 로드한다.
+  const translationScript = document.createElement('script');
+  translationScript.src = getBasePath() + '/js/i18n.js';
+  document.head.appendChild(translationScript);
 
   // number input 스크롤로 값 변경 방지
   document.addEventListener("wheel", (e) => {
