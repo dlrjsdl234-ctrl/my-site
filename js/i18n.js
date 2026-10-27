@@ -3,6 +3,29 @@
   'use strict';
   const dictionaries = {
   "zh-TW": {
+    "승천 단계 선택": "選擇飛昇階段",
+    "승천 단계": "飛昇階段",
+    "달성 조건": "達成條件",
+    "스킬 효과": "技能效果",
+    "처치 대상": "討伐目標",
+    "보스 체력": "首領生命值",
+    "효과 / 기준": "效果／條件",
+    "최대 최종 데미지 증가": "最終傷害提升上限",
+    "최종 데미지 증가": "最終傷害提升",
+    "확인중": "確認中",
+    "스킬 진화": "技能進化",
+    "몬스터 이동 속도 -10%": "怪物移動速度 -10%",
+    "오브 -> 태초의 오브": "寶珠 -> 太初寶珠",
+    "오닉스 드래곤 -> 인헤일 바이탈러티": "歐尼斯龍 -> 生命吸收",
+    "승천 2을 달성한 상태에서 검은마법사를 처치하면 승천 3를 달성할 수 있습니다.": "達成飛昇 2 後，擊敗黑魔法師即可達成飛昇 3。",
+    "승천 후 쌓은 누적 RP에 따라 최종 데미지가 증가합니다. 초반에 가파르게 증가하며, 누적 RP 400해 도달 시 최대 +600%에 도달한 뒤 유지됩니다.": "最終傷害隨飛昇後累積的 RP 提升。初期提升較快，累積 RP 達到 400 垓時，最高提升至 +600%，之後維持此上限。",
+    "누적 RP 4해: +201% / 10해: +288% / 20해: +358% / 30해: +400%": "累積 RP 4 垓：+201% / 10 垓：+288% / 20 垓：+358% / 30 垓：+400%",
+    "누적 RP 400해 도달 시 최대 +600% (이후 유지)": "累積 RP 達到 400 垓時最高 +600%（之後維持）",
+    "태초의 오브 -> 천구 (던전 데미지 15%를 모아 5,000타마다 방출)": "太初寶珠 -> 天球（累積副本傷害的 15%，每 5,000 次命中釋放一次）",
+    "승천의 공명": "飛昇共鳴",
+    "승천의공명": "飛昇共鳴",
+    "슈퍼 라이카": "超級萊伊卡",
+    "별빛 일일 획득 상한": "星光每日獲取上限",
     "구슬 획득량 계산기": "寶珠獲取量計算機",
     "풍요의 축복과 2배 획득 확률을 반영한 구슬의 기대 획득량을 계산합니다.": "計算包含豐饒祝福與雙倍獲取機率的寶珠預期獲取量。",
     "기본 드랍 개수": "基礎掉落數量",
@@ -2015,6 +2038,29 @@
     "양쪽": "兩側"
   },
   "en": {
+    "승천 단계 선택": "Select Ascension Stage",
+    "승천 단계": "Ascension Stage",
+    "달성 조건": "Requirements",
+    "스킬 효과": "Skill Effects",
+    "처치 대상": "Target Boss",
+    "보스 체력": "Boss HP",
+    "효과 / 기준": "Effect / Criteria",
+    "최대 최종 데미지 증가": "Maximum Final Damage Increase",
+    "최종 데미지 증가": "Final Damage Increase",
+    "확인중": "Pending Confirmation",
+    "스킬 진화": "Skill Evolution",
+    "몬스터 이동 속도 -10%": "Monster Movement Speed -10%",
+    "오브 -> 태초의 오브": "Orb -> Primordial Orb",
+    "오닉스 드래곤 -> 인헤일 바이탈러티": "Onyx Dragon -> Inhale Vitality",
+    "승천 2을 달성한 상태에서 검은마법사를 처치하면 승천 3를 달성할 수 있습니다.": "After reaching Ascension 2, defeat the Black Mage to reach Ascension 3.",
+    "승천 후 쌓은 누적 RP에 따라 최종 데미지가 증가합니다. 초반에 가파르게 증가하며, 누적 RP 400해 도달 시 최대 +600%에 도달한 뒤 유지됩니다.": "Final damage increases with RP accumulated after ascension. It rises rapidly at first, reaching a maximum of +600% at 40Sx cumulative RP and remaining at that cap.",
+    "누적 RP 4해: +201% / 10해: +288% / 20해: +358% / 30해: +400%": "Cumulative RP 400Qi: +201% / 1Sx: +288% / 2Sx: +358% / 3Sx: +400%",
+    "누적 RP 400해 도달 시 최대 +600% (이후 유지)": "Maximum +600% at 40Sx cumulative RP (maintained thereafter)",
+    "태초의 오브 -> 천구 (던전 데미지 15%를 모아 5,000타마다 방출)": "Primordial Orb -> Celestial Orb (stores 15% of dungeon damage and releases it every 5,000 hits)",
+    "승천의 공명": "Ascension Resonance",
+    "승천의공명": "Ascension Resonance",
+    "슈퍼 라이카": "Super Lyka",
+    "별빛 일일 획득 상한": "Daily Starlight Acquisition Cap",
     "구슬 획득량 계산기": "Orb Drop Calculator",
     "풍요의 축복과 2배 획득 확률을 반영한 구슬의 기대 획득량을 계산합니다.": "Calculate expected orb drops with Blessing of Abundance and double-drop bonuses.",
     "기본 드랍 개수": "Base Drop Amount",
@@ -4487,19 +4533,45 @@
   const attributes = ['placeholder', 'title', 'aria-label', 'alt'];
   let observer;
 
-  // 한국어 숫자 단위는 표시 문자열에서만 영어식 숫자로 변환한다.
+  // Only display text is localized; stored values and full-number details stay exact.
+  // English suffixes use groups of 1,000, with at most three decimal places.
+  function compactEnglishInteger(total) {
+    const suffixes = ["", "K", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc", "No", "Dc", "Ud", "Dd", "Td", "Qad", "Qid", "Sxd", "Spd", "Ocd", "Nod", "Vg"];
+    if (total < 1000n) return total.toString();
+    let index = Math.floor((total.toString().length - 1) / 3);
+    if (index >= suffixes.length) {
+      const exponent = total.toString().length - 1;
+      const scale = 10n ** BigInt(exponent);
+      const rounded = (total * 1000n + scale / 2n) / scale;
+      if (rounded >= 10000n) return '1e+' + (exponent + 1);
+      const fraction = (rounded % 1000n).toString().padStart(3, '0').replace(/0+$/, '');
+      return (rounded / 1000n).toString() + (fraction ? '.' + fraction : '') + 'e+' + exponent;
+    }
+    let scale = 1000n ** BigInt(index);
+    let rounded = (total * 1000n + scale / 2n) / scale;
+    if (rounded >= 1000000n) {
+      index += 1;
+      scale *= 1000n;
+      rounded = (total * 1000n + scale / 2n) / scale;
+    }
+    const fraction = (rounded % 1000n).toString().padStart(3, '0').replace(/0+$/, '');
+    return (rounded / 1000n).toString() + (fraction ? '.' + fraction : '') + (suffixes[index] || 'e+' + index * 3);
+  }
+
   function englishNumbers(value) {
-    const powers = { 만:4, 억:8, 조:12, 경:16, 해:20, 자:24, 양:28, 구:32, 간:36, 정:40, 재:44, 극:48 };
-    return value.replace(/(?:\d[\d,.]*\s*[만억조경해자양구간정재극]\s*)+(?:\d[\d,.]*)?/g, group => {
+    const powers = { 만:4, 억:8, 조:12, 경:16, 해:20, 자:24, 양:28, 구:32, 간:36, 정:40, 재:44, 극:48, 항하사:52, 아승기:56, 나유타:60, 불가사의:64, 무량대수:68 };
+    const unitPattern = Object.keys(powers).sort((a, b) => b.length - a.length).join('|');
+    const groups = new RegExp('(?:\\d[\\d,.]*\\s*(?:' + unitPattern + ')\\s*)+(?:\\d[\\d,.]*)?', 'g');
+    const pieces = new RegExp('(\\d[\\d,.]*)\\s*(' + unitPattern + ')?', 'g');
+    return value.replace(groups, group => {
       let total = 0n;
-      const pieces = group.matchAll(/(\d[\d,.]*)\s*([만억조경해자양구간정재극])?/g);
-      for (const [,number,unit] of pieces) {
-        const [whole, fraction=''] = number.replace(/,/g,'').split('.');
+      for (const [, number, unit] of group.matchAll(pieces)) {
+        const [whole, fraction = ''] = number.replace(/,/g, '').split('.');
         const power = (powers[unit] || 0) - fraction.length;
         if (power < 0) return group;
-        total += BigInt(whole+fraction) * 10n ** BigInt(power);
+        total += BigInt(whole + fraction) * 10n ** BigInt(power);
       }
-      return total.toLocaleString('en-US') + (group.endsWith(' ') ? ' ' : '');
+      return compactEnglishInteger(total) + (/\s$/.test(group) ? ' ' : '');
     });
   }
 
@@ -4513,8 +4585,8 @@
     const phrasePattern = patterns[language];
     if (language === 'en') {
       if (value.trim() === '시간') return value.replace('시간', 'Hours');
-      const phrases = value.replace(phrasePattern, match => ' '+dictionary[match]+' ');
-      const result = englishNumbers(phrases)
+      const phrases = englishNumbers(value).replace(phrasePattern, match => ' '+dictionary[match]+' ');
+      const result = phrases
         .replace(/([0-9,.\s])([개회장분초일층배])/g,
           (_, number, unit) => number + ' ' + (dictionary[unit] || unit))
         .replace(/[가-힣]+/g, word => Object.prototype.hasOwnProperty.call(dictionary, word) ? ' '+dictionary[word]+' ' : word);
