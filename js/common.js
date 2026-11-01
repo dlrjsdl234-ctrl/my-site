@@ -18,7 +18,6 @@ const MENU = [
   { section: "홈" },
   { label: "홈", href: "/index.html" },
   { label: "가이드", href: "/pages/guide/guide.html" },
-  { label: "승천3후RP추천", href: "/pages/guide/rp-30day-plan.html" },
 
   { section: "계산기" },
   { label: "환포 계산기", href: "/pages/calc/rpMachine.html" },
@@ -26,6 +25,7 @@ const MENU = [
   { label: "구슬 획득량 계산기", href: "/pages/calc/orb.html" },
   /*{ label: "유물 계산기", href: "/pages/calc/artifact.html" },*/
   { label: "RP 스킬 계산기", href: "/pages/calc/rpskill.html" },
+  { label: "승천3 이후 RP 투자 계산기", href: "/pages/calc/rp-30day-plan.html" },
 
   { section: "기능" },
   { label: "레벨업 알림", href: "/pages/tools/level-alert.html" },
