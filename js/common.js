@@ -18,6 +18,7 @@ const MENU = [
   { section: "홈" },
   { label: "홈", href: "/index.html" },
   { label: "가이드", href: "/pages/guide/guide.html" },
+  { label: "승천3후RP추천", href: "/pages/guide/rp-30day-plan.html" },
 
   { section: "계산기" },
   { label: "환포 계산기", href: "/pages/calc/rpMachine.html" },
